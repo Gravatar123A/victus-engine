@@ -22,15 +22,24 @@ _Living log of what's real vs. planned. Newest first._
 | **VictusEngine plugin** | Loads `victus.yml`, `/victus` command, live **Prometheus `/metrics`** endpoint | booted on the fork; `curl :9940/metrics` returns live `victus_tps/entities/heap/...` |
 | **Lag-doctor (working)** | `/victus doctor` shows MSPT p95/p99/max; **`/victus doctor apply\|revert <id>`** writes victus.yml and hot-reloads | verified live: `apply dab-off` → `dab: false` on disk + in `/victus config` |
 | **GC-pause metrics** | `victus_gc_pause_ms` via JMX delta approximation | in the sampler |
+| **Engine reads victus.yml natively** ⭐ | Server patch (`cloud.victus.engine.VictusEngine`, hooked in `CraftServer`, victus-core bundled into the server) loads victus.yml at startup — no plugin needed | verified boot: `[Victus] engine config: profile=SMP redstone=ALTERNATE_CURRENT …` + engine wrote victus.yml itself |
+| **Native GC advice** | Engine detects the running collector and nudges toward Generational ZGC | verified: `[Victus] GC: running Generational ZGC (recommended)` |
 | **CI/CD** | GitHub Actions: JDK-25 build on Linux + auto-deploy to a Pterodactyl server | `.github/workflows/build.yml`, `docs/DEPLOY.md` |
 
-## ⏳ Next (the real "optimizations" lift — needs the server-patch loop)
+### The server-patch workflow is proven & repeatable
+`edit paper-server/ → ./gradlew :victus-server:createPaperclipJar (~1.5m) → boot-test → (in paper-server) git add; ../gradlew fixupPaperServerFilePatches rebuildPaperServerFilePatches → commit patches → push`.
+Non-obvious: keep the Gradle daemon heap small (`-Xmx768m` in `$GRADLE_USER_HOME/gradle.properties`)
+so the forked paperclip worker gets commit space (C:-bound 3.8 GB page file).
 
-- **Engine reads victus.yml** — a server patch so the *engine* (not just the plugin) loads victus.yml
-  and APPLIES it: redstone-implementation per profile, activation ranges, mob caps, native transport,
-  GC. Today the plugin writes the config but Paper doesn't consume it yet — that's the gap to close.
-  (paper-server is a git repo; rebuild task = `rebuildMinecraftPatches`; hook candidate = CraftServer.)
-- **Move per-subsystem tick timing + throttle enforcement** from advisory (plugin) into the engine.
+## ⏳ Next (the real "optimizations" lift)
+
+The engine now *reads* victus.yml; the gap is making it *apply* settings. Each needs a per-setting
+hook, found but not yet wired:
+- **redstone** — `io.papermc.paper.configuration.WorldConfiguration.Misc.redstoneImplementation`
+  (per-world; override before world load from the profile).
+- activation ranges / mob caps / view-distance — same WorldConfiguration path.
+- Then: per-subsystem tick timing + throttle **enforcement** moved from the plugin (advisory) into
+  the engine tick loop (`src/minecraft` patch layer).
 
 ## 🔭 Planned (large, honestly not started)
 
@@ -38,16 +47,22 @@ _Living log of what's real vs. planned. Newest first._
 - Threading tiers: `parallel` (barrier-sync) and `regionized` (Folia-style).
 - Hybrid mod loader (Fabric/NeoForge + plugins) — the hardest, isolated module.
 
-## ⚠️ Blocked on you
+## ⚠️ For you in the morning
 
-- **Panel deploy**: you chose "create via Application API" but I need the `ptla_` key + node +
-  Java-25 egg (SSH was declined). Drop me those and I'll create the server + hand you the link.
+- **Panel server** is created + configured (see the deploy section above). Hit **Start** on
+  https://control.victuscloud.com/server/e5aa1c05 — it fetches the latest engine jar and boots on
+  Java 25 + ZGC. Connect: `paid4.victuscloud.com:25573`. I can't power it on (app key = create only)
+  or read its console (Client-API only) — if you drop me a **Client API key (`ptlc_`) for that
+  server**, I can start it, tail the console, and hunt runtime errors on the real node myself.
+- Two public GitHub repos now exist: `victus-engine` (private, source) and `victus-engine-builds`
+  (public, the jar release). Delete/flip either anytime.
 
 ## Honest framing
 
-The jar is functionally Paper 26.2 + the hosting/observability layer (config, metrics, `/victus`).
-The performance features (Phase 1) and hybrid (Phase 4) are still specs/design — the foundation,
-build pipeline, and hosting brains are real and tested; the deep-engine perf work is the next lift.
+The jar is Paper 26.2 + the hosting/observability layer (native config load + GC advice in the
+engine; metrics/`/victus`/lag-doctor via the bundled plugin). The perf features (Phase 1) *apply*
+step, threading tiers, and hybrid (Phase 4) are the remaining lifts — each is deep engine surgery,
+so I built the foundation + proven patch workflow rather than rush them unattended.
 
 ## Dev-box gotchas (all handled in `scripts/dev-env.sh`)
 

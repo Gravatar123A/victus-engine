@@ -1,6 +1,6 @@
 --- /dev/null
 +++ b/src/main/java/cloud/victus/engine/VictusEngine.java
-@@ -1,0 +_,89 @@
+@@ -1,0 +_,97 @@
 +// SPDX-License-Identifier: GPL-3.0-only
 +package cloud.victus.engine;
 +
@@ -49,20 +49,28 @@
 +                }
 +            } else {
 +                Files.writeString(f, DEFAULT_YML, StandardCharsets.UTF_8);
-+                LOG.info("[Victus] wrote a default victus.yml to the server directory");
++                LOG.info("wrote a default victus.yml to the server directory");
 +            }
 +            config = new ConfigResolver(map).resolve(null);
-+            LOG.info("[Victus] engine config: profile=" + config.profile
++            LOG.info("engine config: profile=" + config.profile
 +                    + " threading=" + config.threadingMode
 +                    + " redstone=" + config.redstone
 +                    + " compression=" + config.compression
 +                    + " dab=" + config.dab
 +                    + " max-mspt=" + config.maxMspt);
 +            for (String w : config.warnings) {
-+                LOG.warning("[Victus] victus.yml: " + w);
++                LOG.warning("victus.yml: " + w);
++            }
++            // Native GC advice (victus-core runtime module): nudge toward Generational ZGC.
++            cloud.victus.core.runtime.GcProfile gc = cloud.victus.core.runtime.GcDetector.detect();
++            if (gc.isGenerationalZgc()) {
++                LOG.info("GC: running " + gc.displayName() + " (recommended)");
++            } else {
++                LOG.info("GC: running " + gc.displayName()
++                        + " — for the lowest pause times use -XX:+UseZGC -XX:+ZGenerational (Java 21+)");
 +            }
 +        } catch (Throwable t) {
-+            LOG.warning("[Victus] failed to load victus.yml (using defaults): " + t);
++            LOG.warning("failed to load victus.yml (using defaults): " + t);
 +            config = new ResolvedConfig();
 +        }
 +    }

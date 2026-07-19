@@ -10,14 +10,17 @@ _Living log of what's real vs. planned. Newest first._
 | **Fork boots** | Branded server reaches `Done (16.7s)!`, logs `This server is running Victus version 26.2-DEV-…` | boot test |
 | **victus-core** | Pure-JDK, Paper-independent core logic — config, metrics, JSON logging, lag-doctor, throttle-limits, GC-runtime | **411/411 offline self-tests pass** |
 | **VictusEngine plugin** | Loads `victus.yml`, `/victus` command, live **Prometheus `/metrics`** endpoint | booted on the fork; `curl :9940/metrics` returns live `victus_tps/entities/heap/...` |
+| **Lag-doctor (working)** | `/victus doctor` shows MSPT p95/p99/max; **`/victus doctor apply\|revert <id>`** writes victus.yml and hot-reloads | verified live: `apply dab-off` → `dab: false` on disk + in `/victus config` |
+| **GC-pause metrics** | `victus_gc_pause_ms` via JMX delta approximation | in the sampler |
 | **CI/CD** | GitHub Actions: JDK-25 build on Linux + auto-deploy to a Pterodactyl server | `.github/workflows/build.yml`, `docs/DEPLOY.md` |
 
-## ⏳ In progress / next
+## ⏳ Next (the real "optimizations" lift — needs the server-patch loop)
 
-- **Engine-integrated hosting** — move per-subsystem tick timing + throttle **enforcement** from the
-  plugin (advisory only today) into server patches.
-- **Config-driven optimizations** — apply profile-based redstone / activation-range / GC / network
-  defaults from `victus.yml` inside the server.
+- **Engine reads victus.yml** — a server patch so the *engine* (not just the plugin) loads victus.yml
+  and APPLIES it: redstone-implementation per profile, activation ranges, mob caps, native transport,
+  GC. Today the plugin writes the config but Paper doesn't consume it yet — that's the gap to close.
+  (paper-server is a git repo; rebuild task = `rebuildMinecraftPatches`; hook candidate = CraftServer.)
+- **Move per-subsystem tick timing + throttle enforcement** from advisory (plugin) into the engine.
 
 ## 🔭 Planned (large, honestly not started)
 

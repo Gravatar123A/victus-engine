@@ -80,7 +80,9 @@ compatibility:
   purpur-nbt-tolerance: true    # don't spam "unknown NBT tag" when migrating from Purpur
 
 eula:
-  no-pay-to-win-guard: true     # warn on pay-gated queue / P2W patterns (2023 EULA bans both)
+  no-pay-to-win-guard: true     # warn on clear pay-to-win patterns (banned). NOT priority queues —
+                                # those are a contested gray area, not a flat ban (see LICENSING.md)
+  warn-standalone-queue-skip: false  # optionally flag standalone "skip the queue" SKUs (risky)
 ```
 
 ## Notes

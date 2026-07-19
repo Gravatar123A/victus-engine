@@ -23,5 +23,11 @@ Victus Engine is a fork of **PaperMC**, so it inherits Paper's licensing split:
   (enforced by `.gitignore`).
 - As of the 26.1 base, Java Edition ships **unobfuscated** with a `LICENSE` inside the jar — this
   does not change the EULA. Bedrock is unaffected.
-- EULA bans **pay-to-win** and **pay-gated player queues** — the `eula.no-pay-to-win-guard` config
-  surfaces warnings so downstream server owners stay compliant.
+- EULA clearly bans **pay-to-win** (any "competitive gameplay advantage"). The rule for paid access
+  is "one charge, the same for everyone, for access to the server as a whole," and access can't be
+  gated by out-of-game purchases. **Priority/queue monetization is a genuine gray area** — a
+  standalone "skip the queue" SKU is arguably non-compliant, but rank/subscriber priority queues sit
+  in a contested, largely-unenforced zone (Hypixel runs them). Don't treat priority queues as flatly
+  banned. The `eula.no-pay-to-win-guard` config warns on clear P2W patterns (and optionally on
+  standalone queue-skip SKUs), not on rank-based priority.
+- All these permissions are **discretionary and revocable by Mojang at any time.**

@@ -92,7 +92,8 @@ The one thing no other fork can copy, because no other fork is built by a host.
 - **Safe-restart / rollback / backup hooks** callable by Victus Wings.
 - **Config auto-migration** from `server.properties`/`spigot.yml`/`paper.yml`/`purpur.yml` on first
   boot → switching from Paper feels safe and reversible.
-- **EULA guard** — warn on pay-gated queues / pay-to-win patterns (2023 EULA bans both).
+- **EULA guard** — warn on pay-to-win patterns (clearly banned). Priority/queue monetization is a
+  contested gray area, *not* a flat ban (Hypixel runs paid queues) — see docs/LICENSING.md.
 
 ## 6. Hybrid mod bridge (day-one seam, isolated)
 

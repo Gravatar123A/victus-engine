@@ -1,0 +1,15 @@
+name: VictusEngine
+version: 0.1.0
+main: cloud.victus.plugin.VictusPlugin
+api-version: "1.21"
+author: Victus Cloud
+description: Victus Engine hosting/observability layer — victus.yml config, /victus command, and a Prometheus metrics endpoint. Backed by victus-core.
+commands:
+  victus:
+    description: Victus Engine control command.
+    usage: /victus <version|config|reload|metrics|doctor>
+    permission: victus.admin
+permissions:
+  victus.admin:
+    description: Use the /victus command.
+    default: op

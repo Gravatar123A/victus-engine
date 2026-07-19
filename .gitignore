@@ -42,3 +42,8 @@ victus-tmp/
 # --- secrets / local ---
 *.env
 local.properties
+
+# build scratch
+*.args
+cerr.txt
+err.txt

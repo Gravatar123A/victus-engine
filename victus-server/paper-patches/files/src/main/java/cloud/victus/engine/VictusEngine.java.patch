@@ -1,0 +1,92 @@
+--- /dev/null
++++ b/src/main/java/cloud/victus/engine/VictusEngine.java
+@@ -1,0 +_,89 @@
++// SPDX-License-Identifier: GPL-3.0-only
++package cloud.victus.engine;
++
++import cloud.victus.core.config.ConfigResolver;
++import cloud.victus.core.config.ResolvedConfig;
++import org.yaml.snakeyaml.Yaml;
++
++import java.io.BufferedReader;
++import java.nio.charset.StandardCharsets;
++import java.nio.file.Files;
++import java.nio.file.Path;
++import java.util.Map;
++import java.util.logging.Logger;
++
++/**
++ * Native (in-engine) Victus bootstrap. Loads {@code victus.yml} at server startup and resolves it via
++ * victus-core (bundled into the server), so the engine itself — not just a plugin — knows its profile
++ * and settings. Applying those settings to concrete engine behaviour is layered on from here.
++ */
++public final class VictusEngine {
++
++    private static final Logger LOG = Logger.getLogger("Victus");
++    private static volatile ResolvedConfig config = new ResolvedConfig();
++
++    private VictusEngine() {
++    }
++
++    /** The resolved engine config (never null). */
++    public static ResolvedConfig config() {
++        return config;
++    }
++
++    /** Loads victus.yml (writing a documented default if absent) and resolves it. Never throws. */
++    public static void init() {
++        try {
++            Path f = Path.of("victus.yml");
++            Map<String, Object> map = Map.of();
++            if (Files.exists(f)) {
++                try (BufferedReader r = Files.newBufferedReader(f, StandardCharsets.UTF_8)) {
++                    Object parsed = new Yaml().load(r);
++                    if (parsed instanceof Map<?, ?> m) {
++                        @SuppressWarnings("unchecked")
++                        Map<String, Object> cast = (Map<String, Object>) m;
++                        map = cast;
++                    }
++                }
++            } else {
++                Files.writeString(f, DEFAULT_YML, StandardCharsets.UTF_8);
++                LOG.info("[Victus] wrote a default victus.yml to the server directory");
++            }
++            config = new ConfigResolver(map).resolve(null);
++            LOG.info("[Victus] engine config: profile=" + config.profile
++                    + " threading=" + config.threadingMode
++                    + " redstone=" + config.redstone
++                    + " compression=" + config.compression
++                    + " dab=" + config.dab
++                    + " max-mspt=" + config.maxMspt);
++            for (String w : config.warnings) {
++                LOG.warning("[Victus] victus.yml: " + w);
++            }
++        } catch (Throwable t) {
++            LOG.warning("[Victus] failed to load victus.yml (using defaults): " + t);
++            config = new ResolvedConfig();
++        }
++    }
++
++    private static final String DEFAULT_YML = ""
++            + "# Victus Engine config. See docs/VICTUS-CONFIG.md for the full schema.\n"
++            + "engine:\n"
++            + "  profile: smp            # smp | technical | minigames | modded | network\n"
++            + "threading:\n"
++            + "  mode: single            # single | parallel | regionized\n"
++            + "optimizations:\n"
++            + "  redstone: alternate-current   # vanilla | alternate-current | eigencraft\n"
++            + "  entities:\n"
++            + "    dab: true\n"
++            + "    async-pathfinding: true\n"
++            + "    per-player-mob-spawns: true\n"
++            + "  network:\n"
++            + "    compression: libdeflate     # zlib | libdeflate (NOT zstd — breaks clients)\n"
++            + "hosting:\n"
++            + "  limits:\n"
++            + "    max-mspt: 45\n"
++            + "  metrics:\n"
++            + "    prometheus:\n"
++            + "      enabled: true\n"
++            + "      bind: 127.0.0.1\n"
++            + "      port: 9940\n";
++}

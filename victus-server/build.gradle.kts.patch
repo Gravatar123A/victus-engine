@@ -41,7 +41,7 @@
 +// Victus start - Rebrand
 +sourceSets {
 +    main {
-+        java { srcDir("../paper-server/src/main/java") }
++        java { srcDir("../paper-server/src/main/java"); srcDir("../victus-core/src/main/java"); exclude("**/*SelfTest.java") } // Victus - bundle victus-core
 +        resources { srcDir("../paper-server/src/main/resources") }
 +    }
 +    test {

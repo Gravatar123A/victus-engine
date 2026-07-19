@@ -1,31 +1,61 @@
-// === Victus Engine — root build ===
-// In a paperweight-patcher fork most subproject wiring is provided by the plugin. This root
-// build only sets shared coordinates and the Java toolchain. Server/api specifics live in the
-// patched Paper subprojects and in patches/ .
+// === Victus Engine — root build (paperweight-patcher 2.0) ===
+// Mirrors the current Paper hard-fork fork convention. paperweight fetches Paper at `paperCommit`,
+// decompiles it, applies our patches, and builds the server jar. Paper source is never vendored.
 
 plugins {
     java
+    id("io.papermc.paperweight.patcher") version "2.0.0-beta.21"
 }
 
-allprojects {
-    group = property("group") as String
-    version = property("version") as String
+val paperMavenPublicUrl = "https://repo.papermc.io/repository/maven-public/"
+
+paperweight {
+    upstreams.paper {
+        ref = providers.gradleProperty("paperCommit")
+
+        patchFile {
+            path = "paper-server/build.gradle.kts"
+            outputFile = file("victus-server/build.gradle.kts")
+            patchFile = file("victus-server/build.gradle.kts.patch")
+        }
+        patchFile {
+            path = "paper-api/build.gradle.kts"
+            outputFile = file("victus-api/build.gradle.kts")
+            patchFile = file("victus-api/build.gradle.kts.patch")
+        }
+        patchDir("paperApi") {
+            upstreamPath = "paper-api"
+            excludes = setOf("build.gradle.kts")
+            patchesDir = file("victus-api/paper-patches")
+            outputDir = file("paper-api")
+        }
+    }
 }
 
 subprojects {
+    apply(plugin = "java-library")
+
+    extensions.configure<JavaPluginExtension> {
+        toolchain {
+            // Paper 26.2 requires JDK 25.
+            languageVersion = JavaLanguageVersion.of(25)
+        }
+    }
+
     tasks.withType<JavaCompile>().configureEach {
         options.encoding = "UTF-8"
-        options.release.set(21) // TODO(verify): match the JDK Paper 26.1 requires (>=21).
+        options.release = 25
     }
     tasks.withType<Javadoc>().configureEach {
         options.encoding = "UTF-8"
     }
+
+    repositories {
+        mavenCentral()
+        maven(paperMavenPublicUrl)
+    }
 }
 
-// Victus Engine target JDK. Java 21 is present locally; Paper 26.x may require a newer JDK —
-// bump the toolchain if applyPatches complains.
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
-    }
+tasks.register("printVictusVersion") {
+    doLast { println(project.version) }
 }

@@ -12,8 +12,11 @@ if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
   gradle wrapper --gradle-version 8.12
 fi
 
-echo "[victus] applyPatches (fetch + decompile + patch Paper)..."
-./gradlew applyPatches
+echo "[victus] applyAllPatches (fetch + decompile + patch Paper)..."
+# Generated subproject build files are (re)created from the *.patch by applyAllPatches. Remove any
+# stale copies first, so Gradle doesn't read an out-of-date one at configuration time.
+rm -f victus-server/build.gradle.kts victus-api/build.gradle.kts
+./gradlew applyAllPatches
 
 echo "[victus] build server jar..."
 ./gradlew build

@@ -1,35 +1,34 @@
 #!/usr/bin/env bash
 # Source me:  source scripts/dev-env.sh
-# Redirects all temp + Gradle caches onto E:, because the dev machine's C: drive is full (~0 bytes).
-# Without this, Gradle/paperweight fail with ENOSPC while decompiling Paper.
+# Machine-specific build environment for the Windows dev box. NOT needed on Linux CI.
+# Fixes two local gotchas discovered while bootstrapping the build:
+#   1. C: drive is full  -> redirect all temp + Gradle caches onto E:
+#   2. Avast intercepts TLS -> Java/Gradle must trust the Windows cert store, or every
+#      dependency/plugin download fails (git/curl work via the Windows store; Java does not by default)
+# IMPORTANT: use Windows-style paths (E:/...) for anything a Windows JVM reads (java.io.tmpdir),
+# NOT MINGW paths (/e/...) — the JVM mangles the latter.
 
 set -a
 
-# --- keep temp off C: ---
-export VICTUS_TMP="/e/victus-tmp/victus-engine"
-mkdir -p "$VICTUS_TMP"
-export TMPDIR="$VICTUS_TMP"
-export TMP="$VICTUS_TMP"
-export TEMP="$VICTUS_TMP"
+VICTUS_TMP='E:/victus-tmp/nodetmp'
+export TMP="$VICTUS_TMP" TEMP="$VICTUS_TMP" TMPDIR="$VICTUS_TMP"
+export GRADLE_USER_HOME='E:/victus-tmp/gradle-home'
+# -Djava.io.tmpdir keeps JVM temp off C:; Windows-ROOT lets Java trust the Windows cert store (Avast).
+export GRADLE_OPTS="-Djava.io.tmpdir=E:/victus-tmp/nodetmp -Djavax.net.ssl.trustStoreType=Windows-ROOT"
 
-# --- keep the (large) Gradle cache + wrapper dists off C: ---
-export GRADLE_USER_HOME="/e/victus-tmp/gradle-home"
-mkdir -p "$GRADLE_USER_HOME"
-
-# --- JVM: point java.io.tmpdir at E: too, modest heap ---
-export GRADLE_OPTS="-Dorg.gradle.jvmargs=-Xmx3G -Djava.io.tmpdir=$VICTUS_TMP"
+# Prefer the wrapper if present, else the bootstrapped Gradle 9.4.1 on E:.
+export VICTUS_GRADLE="/e/victus-tmp/gradle-dist/gradle-9.4.1/bin/gradle"
 
 set +a
 
+mkdir -p /e/victus-tmp/nodetmp /e/victus-tmp/gradle-home
 echo "[victus] dev env ready"
-echo "  TMPDIR            = $TMPDIR"
+echo "  TMP               = $TMP"
 echo "  GRADLE_USER_HOME  = $GRADLE_USER_HOME"
+echo "  GRADLE_OPTS       = $GRADLE_OPTS"
 echo "  java              = $(java -version 2>&1 | head -1)"
+echo "  (Gradle will auto-provision JDK 25 via the foojay resolver on first build.)"
 
-# --- Reference: recommended RUNTIME flags for the built server (Generational ZGC, Java 21+) ---
-# Replaces the legacy Aikar/G1 flag set. Validate on a pilot node before fleet rollout.
-#   java -Xms<N>G -Xmx<N>G \
-#     -XX:+UseZGC -XX:+ZGenerational \
-#     -XX:+AlwaysPreTouch -XX:+PerfDisableSharedMem \
-#     -Dusing.aikars.flags=false \
-#     -jar victus-engine.jar --nogui
+# --- Recommended RUNTIME flags for the built server (Generational ZGC, Java 25) ---
+#   java -Xms<N>G -Xmx<N>G -XX:+UseZGC -XX:+ZGenerational \
+#     -XX:+AlwaysPreTouch -XX:+PerfDisableSharedMem -jar victus-engine.jar --nogui

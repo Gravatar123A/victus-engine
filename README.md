@@ -46,30 +46,25 @@ for the full `victus.yml` schema (the concrete feature seams).
 paperweight downloads and patches it at build time (see below). Nothing here builds until you run
 the hydrate step **with internet access**.
 
-## Build (requires internet — the scaffold was created offline)
+## Build (requires internet + a git clone)
 
-Target base: **Paper `26.1`+** (the first *unobfuscated* Java Edition release — a major reason the
-timing for this project is good; no more obfuscation mappings to fight).
+Base: **Paper `26.2`** (unobfuscated). Toolchain: paperweight-patcher `2.0.0-beta.21`,
+Gradle `9.4.1`, **JDK 25** (auto-provisioned by Gradle's foojay resolver on first build).
 
 ```bash
-# 0. one-time: generate the Gradle wrapper jar (needs internet)
-gradle wrapper --gradle-version 8.12
-
-# 1. set up a dev environment that keeps temp files off the full C: drive
+# 1. dev env — keeps temp/caches off a full C: and trusts the Windows cert store (Avast TLS)
 source scripts/dev-env.sh
 
-# 2. pull + patch Paper source, then build the server jar
-./scripts/build.sh          # wraps ./gradlew applyPatches build
+# 2. pull + decompile + patch Paper, then build the server jar
+./scripts/build.sh          # wraps ./gradlew applyAllPatches build
 
-# 3. run it
-java -jar build/libs/victus-engine-*.jar
+# 3. run it (Java 25, Generational ZGC)
+java -XX:+UseZGC -XX:+ZGenerational -jar victus-server/build/libs/victus-*.jar --nogui
 ```
 
-> ⚠️ The `settings.gradle.kts` / `build.gradle.kts` paperweight-patcher config is a
-> **documented-convention template with `TODO(verify)` markers**. Confirm the plugin version and
-> the `upstreams`/patch block against the current paperweight docs
-> (<https://docs.papermc.io/paper/dev/getting-started/paperweight-patcher>) for your Paper base —
-> the DSL drifted across the Paper hard-fork. This was written without network access.
+> The build config is verified working (paperweight configures + checks out Paper). On Windows the
+> two gotchas are handled by `scripts/dev-env.sh`: Windows-style temp paths and the `Windows-ROOT`
+> Java truststore (so Gradle's TLS survives Avast interception). On Linux/CI neither is needed.
 
 ## Layout
 

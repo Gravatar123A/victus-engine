@@ -41,7 +41,7 @@ public final class VictusCommand implements CommandExecutor {
                 sender.sendMessage("[Victus] TPS=" + fmt(tps) + " players=" + players
                         + " — Prometheus endpoint configured under hosting.metrics.prometheus in victus.yml");
             }
-            case "doctor" -> doctor(sender);
+            case "doctor" -> doctor(sender, args);
             default -> sender.sendMessage("[Victus] /victus <version|config|reload|metrics|doctor>");
         }
         return true;
@@ -57,7 +57,29 @@ public final class VictusCommand implements CommandExecutor {
         for (String w : c.warnings) sender.sendMessage("warn: " + w);
     }
 
-    private void doctor(CommandSender sender) {
+    private void doctor(CommandSender sender, String[] args) {
+        RemediationCatalog cat = RemediationCatalog.defaultCatalog();
+
+        // /victus doctor apply|revert <id>
+        if (args.length >= 3 && (args[1].equalsIgnoreCase("apply") || args[1].equalsIgnoreCase("revert"))) {
+            boolean revert = args[1].equalsIgnoreCase("revert");
+            Remediation chosen = cat.get(args[2]);
+            if (chosen == null) {
+                sender.sendMessage("[Victus] unknown fix id: " + args[2]);
+                return;
+            }
+            Remediation target = revert ? cat.revertOf(chosen) : chosen;
+            try {
+                String desc = new ConfigApplier(plugin.getServer().getWorldContainer()).apply(target.writes());
+                plugin.reloadVictusConfig();
+                sender.sendMessage("[Victus] applied [" + target.id() + "] " + target.title() + " -> " + desc);
+                sender.sendMessage("[Victus] revert with: /victus doctor revert " + chosen.id());
+            } catch (Exception e) {
+                sender.sendMessage("[Victus] apply failed: " + e.getMessage());
+            }
+            return;
+        }
+
         Server server = plugin.getServer();
         double mspt = server.getAverageTickTime();
         double[] tps = server.getTPS();
@@ -67,14 +89,17 @@ public final class VictusCommand implements CommandExecutor {
             entities += w.getEntities().size();
             chunks += w.getLoadedChunks().length;
         }
+        var msptSnap = plugin.registry().summary(MetricCatalog.MSPT).snapshot();
         sender.sendMessage("=== /victus doctor ===");
-        sender.sendMessage("TPS=" + fmt(tps.length > 0 ? tps[0] : 20.0) + "  MSPT=" + fmt(mspt) + "ms  players="
-                + players + "  entities=" + entities + "  chunks=" + chunks);
+        sender.sendMessage("TPS=" + fmt(tps.length > 0 ? tps[0] : 20.0) + "  MSPT now=" + fmt(mspt)
+                + "ms  p95=" + fmt(msptSnap.p95()) + "  p99=" + fmt(msptSnap.p99()) + "  max=" + fmt(msptSnap.max()));
+        sender.sendMessage("players=" + players + "  entities=" + entities + "  chunks=" + chunks);
 
-        RemediationCatalog cat = RemediationCatalog.defaultCatalog();
         boolean overBudget = mspt > plugin.config().maxMspt;
         if (overBudget || entities > 2000) {
-            sender.sendMessage(overBudget ? "MSPT over budget — suggestions:" : "High entity count — suggestions:");
+            sender.sendMessage(overBudget
+                    ? "MSPT over budget — fixes (apply with /victus doctor apply <id>):"
+                    : "High entity count — fixes (apply with /victus doctor apply <id>):");
             for (Remediation r : cat.forSubsystem(Subsystem.ENTITIES)) {
                 sender.sendMessage("  [" + r.id() + "] " + r.title() + " — " + r.expectedGain()
                         + " (caveat: " + r.behaviorCaveat() + ")");

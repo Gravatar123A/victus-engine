@@ -7,6 +7,11 @@ import cloud.victus.core.metrics.MetricRegistry;
 import org.bukkit.Server;
 import org.bukkit.World;
 
+import java.lang.management.GarbageCollectorMXBean;
+import java.lang.management.ManagementFactory;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Runs on the main thread once per second and pushes live server stats into the {@link MetricRegistry}.
  * Reading world/entity state must be on the main thread; the HTTP endpoint reads the registry
@@ -15,6 +20,8 @@ import org.bukkit.World;
 final class MetricsSampler implements Runnable {
     private final Server server;
     private final MetricRegistry registry;
+    /** collector name -> [cumulative count, cumulative time-ms] from the previous sample. */
+    private final Map<String, long[]> gcPrev = new HashMap<>();
 
     MetricsSampler(Server server, MetricRegistry registry) {
         this.server = server;
@@ -41,6 +48,30 @@ final class MetricsSampler implements Runnable {
                     .set(w.getEntities().size());
             registry.gauge(MetricCatalog.CHUNKS_LOADED, Labels.of(MetricCatalog.LABEL_WORLD, name))
                     .set(w.getLoadedChunks().length);
+        }
+
+        sampleGc();
+    }
+
+    /** Records the average pause of any GC that occurred since the last sample, per collector. JMX
+     *  only exposes cumulative count/time, so we approximate per-pause as delta-time / delta-count. */
+    private void sampleGc() {
+        for (GarbageCollectorMXBean gc : ManagementFactory.getGarbageCollectorMXBeans()) {
+            long count = gc.getCollectionCount();
+            long time = gc.getCollectionTime();
+            if (count < 0 || time < 0) continue;
+            long[] prev = gcPrev.put(gc.getName(), new long[]{count, time});
+            if (prev == null) continue;
+            long dc = count - prev[0];
+            long dt = time - prev[1];
+            if (dc > 0) {
+                double avgPauseMs = (double) dt / dc;
+                var summary = registry.summary(MetricCatalog.GC_PAUSE_MS,
+                        Labels.of(MetricCatalog.LABEL_COLLECTOR, gc.getName()));
+                for (long i = 0; i < dc && i < 50; i++) { // cap to bound work if a huge burst occurred
+                    summary.record(avgPauseMs);
+                }
+            }
         }
     }
 }

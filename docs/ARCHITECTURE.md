@@ -56,10 +56,10 @@ Every item preserves vanilla behavior or is a toggle back to it. Honest gains, w
 
 | Area | Technique | Honest gain |
 | --- | --- | --- |
-| **Ping** | Krypton-style Netty + native epoll + flush consolidation; libdeflate (~3× compress) / zstd (~50-80% smaller packets) | lower felt latency, less tick contention |
+| **Ping** | Krypton-style Netty + native epoll + flush consolidation; **libdeflate** (~3× faster, wire-compatible DEFLATE) + viewable-packet grouping | lower felt latency, less tick contention |
 | **Redstone** | Alternate-Current dust engine (toggle: vanilla/AC/eigencraft) | up to ~30× (typ. ~10×) lower dust MSPT |
 | **Entities** | DAB distance-throttled AI + async pathfinding + async entity tracker + per-player mob caps + activation ranges | ~15–40% entity MSPT on mob-heavy worlds |
-| **Chunks** | Tune Moonrise worker/IO pools + pre-gen tooling | removes gen stalls from tick |
+| **Chunks** | Tune Moonrise worker/IO pools + pre-gen tooling + zstd/Linear region-file storage | removes gen stalls from tick; smaller/faster disk |
 | **Memory** | FerriteCore-style block-state/model + string dedup | ~ up to 2× lower footprint |
 | **GC** | Default **Generational ZGC** (Java 21+) | sub-ms pauses vs G1 ~35 ms avg / ~180 ms p99 |
 

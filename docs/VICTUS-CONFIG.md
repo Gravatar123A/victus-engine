@@ -35,9 +35,14 @@ optimizations:
     per-player-mob-spawns: true # required for the tracker gain; fairer mob caps
     activation-range-tuning: true
   network:
-    native-transport: true      # Linux epoll
-    compression: zstd           # zlib | libdeflate | zstd
+    native-transport: true      # Linux epoll / io_uring
+    compression: libdeflate     # zlib | libdeflate  — WIRE-COMPATIBLE ONLY.
+                                # NOT zstd: MC packet compression is fixed to zlib/DEFLATE; zstd
+                                # would break stock clients. zstd is for region/disk storage only.
+    compression-threshold: 256  # bytes
     flush-consolidation: true
+    low-alloc-handlers: true    # Krypton-class low-alloc encode/decode + viewable-packet grouping
+    tcp-nodelay: true
   chunks:
     worker-threads: auto
     io-threads: auto

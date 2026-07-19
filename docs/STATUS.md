@@ -2,6 +2,16 @@
 
 _Living log of what's real vs. planned. Newest first._
 
+## 🚀 Panel deploy (2026-07-20)
+
+- **Server created on the Victus panel** via Application API: `Victus Engine Test`, id 375, on **DE-1**,
+  6 GB RAM / 10 GB disk. Panel: https://control.victuscloud.com/server/e5aa1c05 — connect:
+  **`paid4.victuscloud.com:25573`**. **You just hit Start** (the app key can create but not power on).
+- The jar is published as a public GitHub release
+  (`github.com/Gravatar123A/victus-engine-builds` → `dev-26.2/victus-server.jar`, HTTP-200 verified);
+  the server's custom startup accepts EULA, fetches the jar once, and runs it on Java 25 + ZGC.
+  (Public build repo is reversible — delete it or switch to a Client-API/SFTP upload anytime.)
+
 ## ✅ Done & verified
 
 | Area | State | Evidence |

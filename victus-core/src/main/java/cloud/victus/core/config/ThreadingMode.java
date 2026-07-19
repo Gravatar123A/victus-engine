@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-only
 package cloud.victus.core.config;
 
 /** Per-instance tick threading tier. See docs/design/modules/threading-tiers.md. */

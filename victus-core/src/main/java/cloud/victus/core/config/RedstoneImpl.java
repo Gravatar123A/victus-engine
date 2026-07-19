@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-only
 package cloud.victus.core.config;
 
 /** Redstone dust engine (Paper already bundles all three). See docs/phase-1/01-redstone.md. */

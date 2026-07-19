@@ -1,0 +1,24 @@
+Victus Engine
+Copyright (C) 2026 Victus Cloud
+
+This program is free software: you can redistribute it and/or modify it under the terms of the
+GNU General Public License as published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this program. If not,
+see <https://www.gnu.org/licenses/>.
+
+Victus Engine is a fork of PaperMC (https://papermc.io), which is licensed under GPL-3.0 (server)
+and MIT (API). This fork therefore inherits GPL-3.0-only for server code. See docs/LICENSING.md.
+
+===============================================================================================
+ ⚠ SCAFFOLD PLACEHOLDER — the FULL text of the GNU General Public License v3.0 MUST replace this
+   block before any public release. It was omitted here only because the scaffold was generated
+   without network access. Fetch the canonical text from:
+        https://www.gnu.org/licenses/gpl-3.0.txt
+   (or `curl -o LICENSE-GPL3 https://www.gnu.org/licenses/gpl-3.0.txt`) and paste it below.
+===============================================================================================

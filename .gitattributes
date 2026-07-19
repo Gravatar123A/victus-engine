@@ -1,0 +1,8 @@
+# Normalize line endings. Scripts MUST stay LF or they break on Linux CI / servers.
+* text=auto eol=lf
+*.sh        text eol=lf
+gradlew     text eol=lf
+*.bat       text eol=crlf
+*.jar       binary
+*.zip       binary
+*.png       binary

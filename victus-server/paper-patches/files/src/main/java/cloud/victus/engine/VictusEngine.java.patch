@@ -1,6 +1,6 @@
 --- /dev/null
 +++ b/src/main/java/cloud/victus/engine/VictusEngine.java
-@@ -1,0 +_,124 @@
+@@ -1,0 +_,134 @@
 +// SPDX-License-Identifier: GPL-3.0-only
 +package cloud.victus.engine;
 +
@@ -93,9 +93,19 @@
 +                case ALTERNATE_CURRENT -> WorldConfiguration.Misc.RedstoneImplementation.ALTERNATE_CURRENT;
 +                case EIGENCRAFT -> WorldConfiguration.Misc.RedstoneImplementation.EIGENCRAFT;
 +            };
-+            if (cfg.misc.redstoneImplementation != target) {
-+                cfg.misc.redstoneImplementation = target;
-+                LOG.info("applied redstone=" + target + " to world '" + worldName + "' (profile " + c.profile + ")");
++            boolean redstoneChanged = cfg.misc.redstoneImplementation != target;
++            cfg.misc.redstoneImplementation = target;
++
++            // per-player mob spawns (Paper Entities.Spawning) — driven by the resolved profile
++            boolean spawnsChanged = false;
++            if (cfg.entities != null && cfg.entities.spawning != null) {
++                spawnsChanged = cfg.entities.spawning.perPlayerMobSpawns != c.perPlayerMobSpawns;
++                cfg.entities.spawning.perPlayerMobSpawns = c.perPlayerMobSpawns;
++            }
++
++            if (redstoneChanged || spawnsChanged) {
++                LOG.info("applied to world '" + worldName + "' (profile " + c.profile + "): redstone="
++                        + target + ", per-player-mob-spawns=" + c.perPlayerMobSpawns);
 +            }
 +        } catch (Throwable t) {
 +            LOG.warning("applyWorldConfig failed for " + worldName + ": " + t);

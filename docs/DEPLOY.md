@@ -46,6 +46,18 @@ image (e.g. a `java_25` / `openjdk:25` Pterodactyl image), and its startup comma
 2. **deploy** job — only on `main` with `DEPLOY_ENABLED=true`: uploads the jar to the server via the
    Pterodactyl client API and sends a `restart` power signal.
 
+## Manual panel deploy (what's live on server e5aa1c05)
+
+The test server on DE-1 runs the engine directly:
+- **Startup command** must be a plain `java` invocation, NOT `sh -c "…"` — wings doesn't run the
+  startup through a shell, so a wrapped command's `echo eula=true`/redirects silently no-op and the
+  server loops on the EULA prompt. Use:
+  `java -Xms512M -XX:MaxRAMPercentage=70.0 -XX:+UseZGC -XX:+ZGenerational -jar victus.jar --nogui`
+- **EULA**: accept via the panel's EULA button (or `eula=true` in the server's `eula.txt`). The
+  engine does NOT auto-accept (the operator must accept Mojang's EULA).
+- The jar (`victus.jar`) lives in the server volume; update it by re-uploading the release asset
+  and re-fetching, or replace it in `/var/lib/pterodactyl/volumes/<uuid>/` directly.
+
 ## Notes
 
 - Deploy is skipped automatically on PRs and when `DEPLOY_ENABLED` isn't `true`, so the build stays

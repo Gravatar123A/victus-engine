@@ -2,6 +2,27 @@
 
 _Living log of what's real vs. planned. Newest first._
 
+## 🚧 2026-07-20 — async pathfinding: DESIGNED + config foundation landed (core is the next focused build)
+
+Off-thread A* path computation (à la Petal/Leaf). **Fully designed** — a 5-agent research workflow
+produced a source-verified, reference-validated brief (`docs/phase-3/01-async-pathfinding-design.md`):
+the promise-`AsyncPath` model (return a lazy `Path`; any accessor that needs it before the worker
+finishes computes inline synchronously — a missed gate degrades to vanilla-sync, never a crash),
+plus Victus safety deltas (hoist mob callbacks to main, null off-thread `getBlockEntity`,
+try/catch→sync fallback, daemon threads + shutdown hook, `CALLER_RUNS` saturation).
+
+**Landed this increment:** the config layer (`asyncPathfinding` + max-threads / queue-size /
+keepalive / reject-policy / per-navigation ground·flying·water knobs), **default OFF**, resolver
+self-test **43/43**.
+
+**Honest status — why the core isn't rushed:** unlike DAB/tick-timing, async pathfinding is
+concurrency whose correctness its **own** verification plan says needs a **48-hour gameplay soak**
+(zero off-thread writes, door/brain/goal parity, MSPT win) — a headless boot can only confirm
+compile/link/executor-lifecycle/kill-switch, not races or stuck mobs (no players headless → no mob
+pathing). So the core (`AsyncPath` + `PathFinder`/`PathNavigation` refactor + executor) will be
+implemented **default-OFF/opt-in**, gated behind the adversarial-review pass + a soak on `e5aa1c05`
+before it can be trusted default-on. Design + config are the verified foundation for that.
+
 ## ⭐ 2026-07-20 — DAB (distance-throttled mob AI) — first deep-perf patch, workflow-designed + adversarially reviewed
 
 **DAB = Dynamic Activation of Brain**: inside the patched `Mob.serverAiStep()`, a mob far from every

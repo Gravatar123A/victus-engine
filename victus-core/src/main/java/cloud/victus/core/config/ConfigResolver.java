@@ -56,7 +56,15 @@ public final class ConfigResolver {
                 if (o != null && !String.valueOf(o).isBlank()) c.dabBlacklist.add(String.valueOf(o).trim());
             }
         }
-        c.asyncPathfinding = boolVal(resolveWithProfile("optimizations.entities.async-pathfinding", Boolean.TRUE));
+        c.asyncPathfinding = boolVal(resolveWithProfile("optimizations.entities.async-pathfinding", Boolean.FALSE));
+        c.asyncPathfindingMaxThreads = Math.max(0, toInt(resolveWithProfile("optimizations.entities.async-pathfinding-max-threads", 0), 0));
+        c.asyncPathfindingQueueSize = Math.max(0, toInt(resolveWithProfile("optimizations.entities.async-pathfinding-queue-size", 0), 0));
+        c.asyncPathfindingKeepaliveSeconds = Math.max(1, toInt(resolveWithProfile("optimizations.entities.async-pathfinding-keepalive", 60), 60));
+        String rp = String.valueOf(resolveWithProfile("optimizations.entities.async-pathfinding-reject-policy", "CALLER_RUNS")).trim().toUpperCase();
+        c.asyncPathfindingRejectPolicy = rp.equals("FLUSH_ALL") ? "FLUSH_ALL" : "CALLER_RUNS";
+        c.asyncPathfindingGround = boolVal(resolveWithProfile("optimizations.entities.async-pathfinding-ground", Boolean.TRUE));
+        c.asyncPathfindingFlying = boolVal(resolveWithProfile("optimizations.entities.async-pathfinding-flying", Boolean.FALSE));
+        c.asyncPathfindingWater = boolVal(resolveWithProfile("optimizations.entities.async-pathfinding-water", Boolean.FALSE));
         c.perPlayerMobSpawns = boolVal(resolveWithProfile("optimizations.entities.per-player-mob-spawns", Boolean.TRUE));
         c.maxMspt = intVal("hosting.limits.max-mspt", 45);
         c.monsterSpawnCap = toInt(resolveWithProfile("optimizations.entities.monster-spawn-cap", -1), -1);

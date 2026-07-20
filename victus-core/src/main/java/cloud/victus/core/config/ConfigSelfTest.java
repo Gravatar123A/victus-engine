@@ -123,6 +123,27 @@ public final class ConfigSelfTest {
         check("dab blacklist parsed into ResolvedConfig",
                 new ConfigResolver(dabBl).resolve(null).dabBlacklist.size() == 2);
 
+        // 12. async pathfinding: OFF by default (opt-in pending soak), knobs + reject-policy validation
+        ResolvedConfig apDef = new ConfigResolver(cfg("engine.profile", "smp")).resolve(null);
+        check("async-pathfinding OFF by default (opt-in)", !apDef.asyncPathfinding);
+        check("async-pathfinding ground default on", apDef.asyncPathfindingGround);
+        check("async-pathfinding flying default off", !apDef.asyncPathfindingFlying);
+        check("async-pathfinding water default off", !apDef.asyncPathfindingWater);
+        check("async-pathfinding max-threads default 0 (auto)", apDef.asyncPathfindingMaxThreads == 0);
+        check("async-pathfinding default reject-policy CALLER_RUNS", apDef.asyncPathfindingRejectPolicy.equals("CALLER_RUNS"));
+        Map<String, Object> apOn = cfg("engine.profile", "smp");
+        put(apOn, "optimizations.entities.async-pathfinding", true);
+        put(apOn, "optimizations.entities.async-pathfinding-max-threads", 4);
+        put(apOn, "optimizations.entities.async-pathfinding-reject-policy", "flush_all");
+        ResolvedConfig apOnR = new ConfigResolver(apOn).resolve(null);
+        check("async-pathfinding explicit enable", apOnR.asyncPathfinding);
+        check("async-pathfinding explicit max-threads=4", apOnR.asyncPathfindingMaxThreads == 4);
+        check("async-pathfinding reject-policy normalized to FLUSH_ALL", apOnR.asyncPathfindingRejectPolicy.equals("FLUSH_ALL"));
+        Map<String, Object> apBad = cfg("engine.profile", "smp");
+        put(apBad, "optimizations.entities.async-pathfinding-reject-policy", "nonsense");
+        check("async-pathfinding bad reject-policy falls back to CALLER_RUNS",
+                new ConfigResolver(apBad).resolve(null).asyncPathfindingRejectPolicy.equals("CALLER_RUNS"));
+
         System.out.println();
         System.out.println("RESULT: " + passed + " passed, " + failed + " failed");
         System.out.println("Sample resolved (smp): " + smp);

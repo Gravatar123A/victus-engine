@@ -22,7 +22,26 @@ public final class ResolvedConfig {
     public int dabActivationDistMod = 8;
     /** DAB: entity type ids (e.g. {@code minecraft:villager}) that always full-tick; empty = none. */
     public final List<String> dabBlacklist = new ArrayList<>();
-    public boolean asyncPathfinding = true;
+    /**
+     * Async pathfinding master switch. Default {@code false}: it is opt-in until a gameplay soak
+     * signs it off (see docs/phase-3/01-async-pathfinding-design.md §7) — a subtle threading bug
+     * would affect all mob AI, so we ship it disabled and let operators enable + soak it.
+     */
+    public boolean asyncPathfinding = false;
+    /** Worker threads for async pathfinding; 0 = auto ({@code max(cores/3, 1)}). */
+    public int asyncPathfindingMaxThreads = 0;
+    /** Bounded work-queue size; 0 = auto ({@code maxThreads * 256}). */
+    public int asyncPathfindingQueueSize = 0;
+    /** Idle worker keep-alive (seconds). */
+    public int asyncPathfindingKeepaliveSeconds = 60;
+    /** Saturation policy: CALLER_RUNS (compute on the main thread = degrade to sync) or FLUSH_ALL. */
+    public String asyncPathfindingRejectPolicy = "CALLER_RUNS";
+    /** Offload ground navigation (the common/expensive case). */
+    public boolean asyncPathfindingGround = true;
+    /** Offload flying navigation (v1.1 — off until audited). */
+    public boolean asyncPathfindingFlying = false;
+    /** Offload water/amphibious navigation (v2 — the known async regression; off). */
+    public boolean asyncPathfindingWater = false;
     public boolean perPlayerMobSpawns = true;
     public int maxMspt = 45;
     /** Per-world monster spawn cap; -1 = use the server/vanilla default. */
@@ -46,6 +65,9 @@ public final class ResolvedConfig {
                 + ", dabActivationDistMod=" + dabActivationDistMod
                 + ", dabBlacklist=" + dabBlacklist
                 + ", asyncPathfinding=" + asyncPathfinding
+                + ", asyncPathfindingMaxThreads=" + asyncPathfindingMaxThreads
+                + ", asyncPathfindingQueueSize=" + asyncPathfindingQueueSize
+                + ", asyncPathfindingGround=" + asyncPathfindingGround
                 + ", perPlayerMobSpawns=" + perPlayerMobSpawns
                 + ", maxMspt=" + maxMspt
                 + ", monsterSpawnCap=" + monsterSpawnCap

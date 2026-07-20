@@ -7,6 +7,7 @@
 +import cloud.victus.core.config.ConfigResolver;
 +import cloud.victus.core.config.ResolvedConfig;
 +import io.papermc.paper.configuration.WorldConfiguration;
++import net.minecraft.world.entity.MobCategory;
 +import org.yaml.snakeyaml.Yaml;
 +
 +import java.io.BufferedReader;
@@ -93,20 +94,19 @@
 +                case ALTERNATE_CURRENT -> WorldConfiguration.Misc.RedstoneImplementation.ALTERNATE_CURRENT;
 +                case EIGENCRAFT -> WorldConfiguration.Misc.RedstoneImplementation.EIGENCRAFT;
 +            };
-+            boolean redstoneChanged = cfg.misc.redstoneImplementation != target;
 +            cfg.misc.redstoneImplementation = target;
 +
-+            // per-player mob spawns (Paper Entities.Spawning) — driven by the resolved profile
-+            boolean spawnsChanged = false;
++            // Entities.Spawning — per-player mob spawns + (profile) monster spawn cap
++            String extra = "";
 +            if (cfg.entities != null && cfg.entities.spawning != null) {
-+                spawnsChanged = cfg.entities.spawning.perPlayerMobSpawns != c.perPlayerMobSpawns;
 +                cfg.entities.spawning.perPlayerMobSpawns = c.perPlayerMobSpawns;
++                if (c.monsterSpawnCap >= 0 && cfg.entities.spawning.spawnLimits != null) {
++                    cfg.entities.spawning.spawnLimits.put(MobCategory.MONSTER, c.monsterSpawnCap);
++                    extra = ", monster-spawn-cap=" + c.monsterSpawnCap;
++                }
 +            }
-+
-+            if (redstoneChanged || spawnsChanged) {
-+                LOG.info("applied to world '" + worldName + "' (profile " + c.profile + "): redstone="
-+                        + target + ", per-player-mob-spawns=" + c.perPlayerMobSpawns);
-+            }
++            LOG.info("applied to world '" + worldName + "' (profile " + c.profile + "): redstone="
++                    + target + ", per-player-mob-spawns=" + c.perPlayerMobSpawns + extra);
 +        } catch (Throwable t) {
 +            LOG.warning("applyWorldConfig failed for " + worldName + ": " + t);
 +        }

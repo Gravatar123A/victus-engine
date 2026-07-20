@@ -47,6 +47,7 @@ public final class ConfigResolver {
         c.asyncPathfinding = boolVal(resolveWithProfile("optimizations.entities.async-pathfinding", Boolean.TRUE));
         c.perPlayerMobSpawns = boolVal(resolveWithProfile("optimizations.entities.per-player-mob-spawns", Boolean.TRUE));
         c.maxMspt = intVal("hosting.limits.max-mspt", 45);
+        c.monsterSpawnCap = toInt(resolveWithProfile("optimizations.entities.monster-spawn-cap", -1), -1);
 
         if (c.threadingMode == ThreadingMode.REGIONIZED) {
             c.warnings.add("threading.mode=regionized requires Folia-aware plugins; "
@@ -85,6 +86,17 @@ public final class ConfigResolver {
             return Integer.parseInt(String.valueOf(v).trim());
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("expected an integer at " + dotted + ", got: " + v);
+        }
+    }
+
+    /** Coerce a resolved value (from victus.yml / profile / default) to an int. */
+    private static int toInt(Object v, int def) {
+        if (v == null) return def;
+        if (v instanceof Number) return ((Number) v).intValue();
+        try {
+            return Integer.parseInt(String.valueOf(v).trim());
+        } catch (NumberFormatException e) {
+            return def;
         }
     }
 

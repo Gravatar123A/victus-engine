@@ -72,6 +72,20 @@ public final class ConfigSelfTest {
             new ConfigResolver(b).resolve(null);
         }));
 
+        // 9. monster spawn cap per profile (minigames/network capped; smp/technical vanilla)
+        check("smp -> monster cap -1 (vanilla)",
+                new ConfigResolver(cfg("engine.profile", "smp")).resolve(null).monsterSpawnCap == -1);
+        check("technical -> monster cap -1 (vanilla)",
+                new ConfigResolver(cfg("engine.profile", "technical")).resolve(null).monsterSpawnCap == -1);
+        check("minigames -> monster cap 8",
+                new ConfigResolver(cfg("engine.profile", "minigames")).resolve(null).monsterSpawnCap == 8);
+        check("network -> monster cap 5",
+                new ConfigResolver(cfg("engine.profile", "network")).resolve(null).monsterSpawnCap == 5);
+        Map<String, Object> mc = cfg("engine.profile", "minigames");
+        put(mc, "optimizations.entities.monster-spawn-cap", 20);
+        check("explicit monster-spawn-cap beats profile overlay",
+                new ConfigResolver(mc).resolve(null).monsterSpawnCap == 20);
+
         System.out.println();
         System.out.println("RESULT: " + passed + " passed, " + failed + " failed");
         System.out.println("Sample resolved (smp): " + smp);

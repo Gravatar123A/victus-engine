@@ -26,10 +26,18 @@ public enum Profile {
                 d.put("optimizations.entities.dab", false);
                 break;
             case SMP:
-            case MINIGAMES:
             case MODDED:
-            case NETWORK:
                 d.put("optimizations.redstone", "alternate-current");
+                break;
+            case MINIGAMES:
+                // minigames rarely need natural mobs — cap hard to save spawn/tick cost
+                d.put("optimizations.redstone", "alternate-current");
+                d.put("optimizations.entities.monster-spawn-cap", 8);
+                break;
+            case NETWORK:
+                // hub/proxy-backing lobbies want minimal mobs
+                d.put("optimizations.redstone", "alternate-current");
+                d.put("optimizations.entities.monster-spawn-cap", 5);
                 break;
         }
         return Collections.unmodifiableMap(d);

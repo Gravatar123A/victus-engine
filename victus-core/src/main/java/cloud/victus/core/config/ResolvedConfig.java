@@ -15,6 +15,8 @@ public final class ResolvedConfig {
     public boolean asyncPathfinding = true;
     public boolean perPlayerMobSpawns = true;
     public int maxMspt = 45;
+    /** Per-world monster spawn cap; -1 = use the server/vanilla default. */
+    public int monsterSpawnCap = -1;
 
     /** Non-fatal advisories surfaced at boot and in {@code /victus doctor}. */
     public final List<String> warnings = new ArrayList<>();
@@ -30,6 +32,7 @@ public final class ResolvedConfig {
                 + ", asyncPathfinding=" + asyncPathfinding
                 + ", perPlayerMobSpawns=" + perPlayerMobSpawns
                 + ", maxMspt=" + maxMspt
+                + ", monsterSpawnCap=" + monsterSpawnCap
                 + ", warnings=" + warnings + "}";
     }
 }

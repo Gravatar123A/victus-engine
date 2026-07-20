@@ -164,6 +164,18 @@ public final class RuntimeSelfTest {
                         && bigDedicated.contains("-XX:+AlwaysPreTouch"));
         check("recommendedGcFlags list immutable", isImmutable(small));
 
+        // ---- 12. Moonrise chunk-thread advisory (dedicated-only; never steal cores on shared) ----
+        check("shared node -> keep Moonrise default worker-threads (-1)",
+                RecommendedFlags.recommendedChunkWorkerThreads(16, false) == -1);
+        check("tiny box -> keep default even if 'dedicated'",
+                RecommendedFlags.recommendedChunkWorkerThreads(4, true) == -1);
+        check("dedicated 16-core -> uncap to cores-2 (14)",
+                RecommendedFlags.recommendedChunkWorkerThreads(16, true) == 14);
+        check("dedicated 8-core -> uncap to cores-2 (6)",
+                RecommendedFlags.recommendedChunkWorkerThreads(8, true) == 6);
+        check("shared io-threads -> default (-1)", RecommendedFlags.recommendedChunkIoThreads(false, true) == -1);
+        check("dedicated+NVMe io-threads -> 3", RecommendedFlags.recommendedChunkIoThreads(true, true) == 3);
+
         System.out.println();
         System.out.println("RESULT: " + passed + " passed, " + failed + " failed");
         System.out.println("Live collector detected: " + live.displayName()

@@ -109,6 +109,38 @@ public final class RecommendedFlags {
     private RecommendedFlags() {
     }
 
+    // === Moonrise chunk-system thread advisory (2026-07-20) ================================
+    // Paper's Moonrise DELIBERATELY throttles chunk-gen/IO threads for shared hosting
+    // (MoonriseCommon.adjustWorkerThreads): default worker threads = totalCores/2, then HALVED
+    // again (→ ~cores/4), and on <=6-core boxes it uses just ONE worker thread. Great for
+    // packed shared nodes; a big, needless cap on a DEDICATED box. Uncapping it is the roadmap's
+    // top chunk-loading win (Q5) — but ONLY on dedicated hardware: raising it on a shared/oversold
+    // node steals cores from co-located servers, so the default recommendation is "leave it".
+    // Apply via config/paper-global.yml: chunk-system.worker-threads / io-threads (or the JVM
+    // system property "<brand>.WorkerThreadCount"). -1 = Moonrise's conservative default.
+
+    /**
+     * Recommended {@code chunk-system.worker-threads} for a node. Returns {@code -1} (= keep Moonrise's
+     * safe shared-hosting default) UNLESS this is a dedicated box, in which case it sizes to leave the
+     * main tick thread + GC headroom while devoting the rest to parallel chunk gen.
+     *
+     * @param cores     physical cores available to this instance
+     * @param dedicated true only for a dedicated (not shared/oversold) node
+     * @return the value for {@code chunk-system.worker-threads}, or {@code -1} to keep the default
+     */
+    public static int recommendedChunkWorkerThreads(int cores, boolean dedicated) {
+        if (!dedicated || cores <= 6) {
+            return -1; // shared/oversold or tiny box → never steal cores from neighbours; keep default
+        }
+        // dedicated: use most cores for chunk gen but reserve ~2 for the main tick + GC.
+        return Math.max(4, cores - 2);
+    }
+
+    /** Recommended {@code chunk-system.io-threads} (region file read/write). 1 is plenty unless on fast NVMe + dedicated. */
+    public static int recommendedChunkIoThreads(boolean dedicated, boolean nvme) {
+        return dedicated && nvme ? 3 : -1; // -1 = Moonrise default (1)
+    }
+
     /** The recommended Generational-ZGC GC/latency flags. Immutable. */
     public static List<String> gcFlags() {
         return GC_FLAGS;

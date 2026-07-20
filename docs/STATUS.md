@@ -2,6 +2,19 @@
 
 _Living log of what's real vs. planned. Newest first._
 
+## ⭐ 2026-07-20 — engine now APPLIES optimizations (node-verified)
+
+The gap is closing: the engine doesn't just read `victus.yml`, it **applies** settings per world.
+- Hook in `PaperConfigurations.createWorldConfig` → `VictusEngine.applyWorldConfig(cfg, world)` sets
+  `misc.redstoneImplementation` and `entities.spawning.perPlayerMobSpawns` from the resolved profile.
+- **Verified on the DE-1 node** (java_25 container, ZGC, jar pulled from the public release):
+  `[Victus] applied to world 'minecraft:overworld' (profile SMP): redstone=ALTERNATE_CURRENT,
+  per-player-mob-spawns=true` (overworld + nether + end), `Done (13.8s)!`, **zero errors**.
+- I have SSH to the control VPS + DE-1 (authorized) and can boot/tail the engine on the node.
+- Panel server `e5aa1c05` is ready: `victus.jar` is in its volume; clicking **Start** runs it.
+- Next per-setting hooks (same `WorldConfiguration` pattern): activation ranges, mob-spawn ranges,
+  view/simulation distance; then per-subsystem tick timing + throttle enforcement.
+
 ## 🚀 Panel deploy (2026-07-20)
 
 - **Server created on the Victus panel** via Application API: `Victus Engine Test`, id 375, on **DE-1**,

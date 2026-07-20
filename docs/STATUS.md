@@ -2,6 +2,29 @@
 
 _Living log of what's real vs. planned. Newest first._
 
+## ⭐ 2026-07-20 — profile-driven optimizations APPLIED by the engine (node-verified)
+
+The engine reads `victus.yml` and **applies** these per world (via the `PaperConfigurations.createWorldConfig` hook → `VictusEngine.applyWorldConfig`). All node-verified on DE-1 + deployed to `e5aa1c05`.
+
+| Setting | smp | technical | minigames | modded | network |
+| --- | --- | --- | --- | --- | --- |
+| redstone engine | alternate-current | **vanilla** | alternate-current | alternate-current | alternate-current |
+| per-player-mob-spawns | on | on | on | on | on |
+| monster spawn cap | vanilla (-1) | vanilla (-1) | **8** | vanilla (-1) | **5** |
+| projectile save cap / chunk | **16** | vanilla (off) | 16 | 16 | 16 |
+
+`technical` = vanilla-accurate (no approximations). `victus-core` config resolver: **21/21 tests**.
+Build pipeline lives on **DE-1** (java_25 container, ~1m35s incremental); deploy-to-panel + push-to-GitHub after every increment (standing rule).
+
+### Next phase (bigger, engine-unique — beyond config knobs)
+1. **Native observability in the engine** — `/victus` command + Prometheus endpoint served by the
+   engine itself (main-thread tick sampler), so hosting features need no bundled plugin.
+2. **Per-subsystem tick timing** (src/minecraft tick hooks) → a real lag-doctor breakdown.
+3. **Deep perf patches**: DAB (distance-throttled mob AI, à la Pufferfish), async pathfinding.
+4. Threading tiers (parallel/regionized); hybrid mod loader.
+These are larger multi-step patches (src/minecraft layer) — done via the same build→node-test→
+deploy→push loop, verifying on the node before each deploy.
+
 ## ⭐ 2026-07-20 — engine now APPLIES optimizations (node-verified)
 
 The gap is closing: the engine doesn't just read `victus.yml`, it **applies** settings per world.

@@ -1,6 +1,6 @@
 --- /dev/null
 +++ b/src/main/java/cloud/victus/engine/VictusTickTimings.java
-@@ -1,0 +_,72 @@
+@@ -1,0 +_,81 @@
 +// SPDX-License-Identifier: GPL-3.0-only
 +package cloud.victus.engine;
 +
@@ -33,6 +33,13 @@
 +    public static volatile double avgEntitiesMs = 0.0;
 +    public static volatile double avgBlockEntitiesMs = 0.0;
 +
++    /**
++     * Whether to LOG the per-window breakdown (default OFF: the averages above are always published for
++     * metrics/{@code /victus doctor}, but unconditional 10s log spam is opt-in). Enable with
++     * {@code -Dvictus.ticktiming.log=true}.
++     */
++    public static volatile boolean logEnabled = Boolean.getBoolean("victus.ticktiming.log");
++
 +    private VictusTickTimings() {
 +    }
 +
@@ -59,9 +66,11 @@
 +            avgTotalMs = total;
 +            avgEntitiesMs = ent;
 +            avgBlockEntitiesMs = be;
-+            LOG.info(String.format(Locale.ROOT,
-+                    "tick timings (avg/%dt): total=%.2fms  entities=%.2fms (%.0f%%)  block-entities=%.2fms (%.0f%%)  other=%.2fms",
-+                    windowTicks, total, ent, pct(ent, total), be, pct(be, total), Math.max(0.0, total - ent - be)));
++            if (logEnabled) {
++                LOG.info(String.format(Locale.ROOT,
++                        "tick timings (avg/%dt): total=%.2fms  entities=%.2fms (%.0f%%)  block-entities=%.2fms (%.0f%%)  other=%.2fms",
++                        windowTicks, total, ent, pct(ent, total), be, pct(be, total), Math.max(0.0, total - ent - be)));
++            }
 +            windowTotalNanos = 0L;
 +            windowSum[ENTITIES] = 0L;
 +            windowSum[BLOCK_ENTITIES] = 0L;

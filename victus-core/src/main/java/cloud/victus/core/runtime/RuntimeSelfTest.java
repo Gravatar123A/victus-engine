@@ -146,6 +146,24 @@ public final class RuntimeSelfTest {
                         && GcProfile.fromConfig(GcProfile.ZGC_GENERATIONAL.configName()) == GcProfile.ZGC_GENERATIONAL);
         check("UNKNOWN.configName is 'unknown'", GcProfile.UNKNOWN.configName().equals("unknown"));
 
+        // ---- 11. Heap-aware GC policy (2026-07-20, measured: ZGC ~2x RAM of G1 at idle) ----
+        List<String> small = RecommendedFlags.recommendedGcFlags(6144, false);   // 6GB shared/oversold
+        check("small/shared heap -> G1 (not ZGC)",
+                small.contains("-XX:+UseG1GC") && !small.contains("-XX:+UseZGC"));
+        check("shared node -> NO AlwaysPreTouch (oversell-safe)", !small.contains("-XX:+AlwaysPreTouch"));
+        check("any tier -> CompactObjectHeaders additive win",
+                small.contains("-XX:+UseCompactObjectHeaders"));
+        check("any tier -> StringDedup + native trim",
+                small.contains("-XX:+UseStringDeduplication") && small.contains("-XX:TrimNativeHeapInterval=5000"));
+        List<String> bigShared = RecommendedFlags.recommendedGcFlags(32768, false); // big but shared
+        check("big but SHARED heap -> still G1 (ZGC only when dedicated)",
+                bigShared.contains("-XX:+UseG1GC") && !bigShared.contains("-XX:+UseZGC"));
+        List<String> bigDedicated = RecommendedFlags.recommendedGcFlags(32768, true); // big + dedicated
+        check("big + DEDICATED heap -> Generational ZGC + pretouch",
+                bigDedicated.contains("-XX:+UseZGC") && bigDedicated.contains("-XX:+ZGenerational")
+                        && bigDedicated.contains("-XX:+AlwaysPreTouch"));
+        check("recommendedGcFlags list immutable", isImmutable(small));
+
         System.out.println();
         System.out.println("RESULT: " + passed + " passed, " + failed + " failed");
         System.out.println("Live collector detected: " + live.displayName()

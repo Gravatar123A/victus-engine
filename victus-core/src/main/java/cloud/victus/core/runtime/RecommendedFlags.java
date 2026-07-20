@@ -36,6 +36,69 @@ public final class RecommendedFlags {
             "-XX:+AlwaysPreTouch",
             "-XX:+PerfDisableSharedMem");
 
+    // === Heap-aware GC policy (2026-07-20) — MEASURED on DE-1, not assumed ==================
+    // A/B on the node (elastic heap, PSS via smaps_rollup): a near-idle server used
+    //   Generational ZGC = ~1.96 GB PSS   vs   G1 = ~1.03 GB PSS   (~48% LESS on G1).
+    // ZGC's colored-pointer multi-mapping roughly DOUBLES the footprint at idle on small/oversold
+    // nodes and needs spare cores the single tick thread doesn't have. Every well-tuned Paper peer
+    // on the box runs G1+Aikar — that is why Victus (the one ZGC process) looked "heavier than Paper".
+    // Policy: G1+Aikar is the DEFAULT; Generational ZGC only pays off on big, dedicated, many-core
+    // heaps where its pause-time win matters more than its RAM/CPU cost.
+    /** Heap size (MB) at/above which Generational ZGC may be worth its overhead — and only if dedicated. */
+    public static final int ZGC_MIN_HEAP_MB = 16384;
+
+    /** G1 + Aikar tuning — the default collector for typical (&lt;16 GB / shared / oversold) instances. */
+    public static final List<String> G1_AIKAR_FLAGS = List.of(
+            "-XX:+UseG1GC", "-XX:+UnlockExperimentalVMOptions", "-XX:+ParallelRefProcEnabled",
+            "-XX:MaxGCPauseMillis=200", "-XX:+DisableExplicitGC",
+            "-XX:G1NewSizePercent=30", "-XX:G1MaxNewSizePercent=40", "-XX:G1HeapRegionSize=8M",
+            "-XX:G1ReservePercent=20", "-XX:G1HeapWastePercent=5", "-XX:G1MixedGCCountTarget=4",
+            "-XX:InitiatingHeapOccupancyPercent=15", "-XX:G1MixedGCLiveThresholdPercent=90",
+            "-XX:G1RSetUpdatingPauseTimePercent=5", "-XX:SurvivorRatio=32",
+            "-XX:+PerfDisableSharedMem", "-XX:MaxTenuringThreshold=1",
+            // Periodic idle GC → returns committed heap to the OS on oversold/shared nodes (lower idle RAM).
+            "-XX:G1PeriodicGCInterval=180000", "-XX:-G1PeriodicGCInvokesConcurrent",
+            "-XX:G1PeriodicGCSystemLoadThreshold=0");
+
+    /**
+     * Universal additive wins layered on ANY collector (measured / spec'd, not marketing):
+     * <ul>
+     *   <li>{@code -XX:+UseCompactObjectHeaders} (JEP 519, JDK 25) — ~15-20% smaller object footprint;
+     *       something Paper's source cannot do. Measured ~38% fewer heap bytes for the same boot.</li>
+     *   <li>{@code -XX:+UseStringDeduplication} — a few % heap.</li>
+     *   <li>{@code -XX:TrimNativeHeapInterval=5000} — returns freed native/Netty arenas to the OS.</li>
+     * </ul>
+     */
+    public static final List<String> ADDITIVE_FLAGS = List.of(
+            "-XX:+UseCompactObjectHeaders",
+            "-XX:+UseStringDeduplication",
+            "-XX:TrimNativeHeapInterval=5000");
+
+    /**
+     * The recommended GC/latency flags for a given heap size and node type — the heap-aware policy.
+     * G1+Aikar by default; Generational ZGC only for large ({@code >= ZGC_MIN_HEAP_MB}) dedicated heaps.
+     * {@code AlwaysPreTouch} is included ONLY for dedicated nodes (on oversold/shared nodes it pins RSS
+     * at boot and defeats the oversell model — a measured regression).
+     *
+     * @param heapMb    the heap size in MB
+     * @param dedicated true for a dedicated box (may pretouch / use ZGC on big heaps); false = shared/oversold
+     */
+    public static List<String> recommendedGcFlags(int heapMb, boolean dedicated) {
+        List<String> flags = new ArrayList<>();
+        if (dedicated && heapMb >= ZGC_MIN_HEAP_MB) {
+            flags.add("-XX:+UseZGC");
+            flags.add("-XX:+ZGenerational");
+            flags.add("-XX:+PerfDisableSharedMem");
+        } else {
+            flags.addAll(G1_AIKAR_FLAGS);
+        }
+        if (dedicated) {
+            flags.add("-XX:+AlwaysPreTouch"); // only pretouch on dedicated boxes (never oversold/shared)
+        }
+        flags.addAll(ADDITIVE_FLAGS);
+        return List.copyOf(flags);
+    }
+
     /** Minimum OS + off-heap headroom to reserve outside {@code -Xmx} (spec: ~1&nbsp;GB). */
     public static final int OS_RESERVE_MIN_MB = 1024;
     /** Maximum / conservative OS + off-heap headroom to reserve outside {@code -Xmx} (spec: ~1.5&nbsp;GB). */

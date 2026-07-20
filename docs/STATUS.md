@@ -2,6 +2,40 @@
 
 _Living log of what's real vs. planned. Newest first._
 
+## ⭐ 2026-07-20 — PERF ROOT-CAUSE FOUND + FIXED: the fork was heavier than Paper by its own JVM config (ZGC), not its code
+
+Owner reported "RAM/CPU/chunk as bad or worse than Paper." A 6-angle deep research workflow + **direct
+A/B measurement on DE-1** (elastic heap, PSS via `/proc/PID/smaps_rollup`, NMT) found the real cause:
+**Victus was the only process on the node running Generational ZGC; every Paper peer runs G1+Aikar.**
+
+Measured, near-idle, same jar/world:
+
+| GC config (elastic heap) | PSS | NMT committed |
+| --- | --- | --- |
+| Generational ZGC (old default) | **1.96 GB** | 1.86 GB |
+| G1+Aikar | **1.03 GB** | 0.90 GB |
+| G1+Aikar + CompactObjectHeaders | **1.00 GB** | 0.87 GB |
+
+→ **G1 uses ~48% less RAM** than ZGC here (ZGC's colored-pointer multi-mapping ~doubles the footprint at
+idle and needs spare cores the single tick thread lacks). *Caveat learned:* a first A/B with `Xms==Xmx`
+hid this (full-commit) — you must use an **elastic** heap so RSS tracks the working set.
+
+**Fixes shipped:**
+- `e5aa1c05` startup PATCHed (Application API) ZGC → **G1+Aikar + `-XX:+UseCompactObjectHeaders`
+  + `-XX:+UseStringDeduplication` + native-trim, elastic `-Xms1024M -Xmx4608M` (safe headroom, not 95%),
+  no AlwaysPreTouch** — boot-verified. This ~halves your server's RAM on next Start.
+- `victus-core RecommendedFlags` now **heap-aware** (`recommendedGcFlags`: G1+Aikar default; Gen-ZGC only
+  ≥16 GB **dedicated**; COH/StringDedup/native-trim additive; AlwaysPreTouch dedicated-only). Self-test **64/64**.
+- `VictusEngine` GC boot-advice made heap-aware (it used to hardcode "switch to ZGC" — the regression's source).
+- `VictusTickTimings` 10s log spam gated behind `-Dvictus.ticktiming.log=true` (default off; metrics still publish).
+
+**Research verdict (saves weeks — do NOT build these):** FerriteCore (Moonrise already dedups blockstates →
+~0 MB server; the famous 600 MB is a modded-*client* number), C2ME (Moonrise *is* the equivalent + is
+incompatible), Lithium ports (~85-90% banked in Moonrise). The genuinely additive wins over *tuned* Paper:
+**CompactObjectHeaders** (~15-20% heap, a JDK-25 flag Paper's source can't set), uncapping Moonrise
+chunk-threads on dedicated nodes, async chunk send (port Leaf), and Folia regionized as an opt-in premium tier.
+Full roadmap: `docs/phase-3/` (perf research). Measure everything A/B with spark + Chunky + PSS/NMT — idle-TPS is a vanity metric.
+
 ## 🚧 2026-07-20 — async pathfinding: DESIGNED + config foundation landed (core is the next focused build)
 
 Off-thread A* path computation (à la Petal/Leaf). **Fully designed** — a 5-agent research workflow

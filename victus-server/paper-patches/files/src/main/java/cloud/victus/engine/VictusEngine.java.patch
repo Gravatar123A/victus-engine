@@ -1,6 +1,6 @@
 --- /dev/null
 +++ b/src/main/java/cloud/victus/engine/VictusEngine.java
-@@ -1,0 +_,165 @@
+@@ -1,0 +_,181 @@
 +// SPDX-License-Identifier: GPL-3.0-only
 +package cloud.victus.engine;
 +
@@ -67,13 +67,29 @@
 +            // Push DAB (distance-throttled mob AI) settings into the hot-path statics read by
 +            // the patched Mob.serverAiStep(). Safe no-op when optimizations.entities.dab=false.
 +            cloud.victus.engine.dab.VictusDab.configure(config);
-+            // Native GC advice (victus-core runtime module): nudge toward Generational ZGC.
++            // Native GC advice — HEAP-AWARE (measured 2026-07-20: Generational ZGC uses ~2x the RAM of
++            // G1 at idle on small/oversold nodes). G1+Aikar is recommended by default; ZGC only pays off
++            // on large, dedicated, many-core heaps where its pause-time win outweighs its RAM/CPU cost.
 +            cloud.victus.core.runtime.GcProfile gc = cloud.victus.core.runtime.GcDetector.detect();
-+            if (gc.isGenerationalZgc()) {
-+                LOG.info("GC: running " + gc.displayName() + " (recommended)");
++            long heapMb = Runtime.getRuntime().maxMemory() / (1024L * 1024L);
++            boolean largeHeap = heapMb >= cloud.victus.core.runtime.RecommendedFlags.ZGC_MIN_HEAP_MB;
++            if (largeHeap) {
++                if (gc.isGenerationalZgc()) {
++                    LOG.info("GC: running " + gc.displayName() + " (recommended for this large heap)");
++                } else {
++                    LOG.info("GC: running " + gc.displayName() + " on a " + heapMb
++                            + "MB heap — for a heap this large, Generational ZGC (-XX:+UseZGC -XX:+ZGenerational) "
++                            + "can lower pause times; keep G1 if RAM/cores are tight.");
++                }
 +            } else {
-+                LOG.info("GC: running " + gc.displayName()
-+                        + " — for the lowest pause times use -XX:+UseZGC -XX:+ZGenerational (Java 21+)");
++                if (gc == cloud.victus.core.runtime.GcProfile.G1) {
++                    LOG.info("GC: running G1 (recommended for a " + heapMb + "MB heap) + add -XX:+UseCompactObjectHeaders for ~15-20% less RAM");
++                } else if (gc.isZgc()) {
++                    LOG.info("GC: running " + gc.displayName() + " on a " + heapMb + "MB heap — G1 uses ~half the RAM "
++                            + "on heaps this size (measured); switch the start flags to G1+Aikar unless you specifically need ZGC pauses.");
++                } else {
++                    LOG.info("GC: running " + gc.displayName());
++                }
 +            }
 +        } catch (Throwable t) {
 +            LOG.warning("failed to load victus.yml (using defaults): " + t);

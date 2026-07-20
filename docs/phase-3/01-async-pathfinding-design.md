@@ -301,3 +301,16 @@ boolean asyncPathfindingWater;         // false (v2)
 ---
 
 **Files verified this session (all `E:/victus-tmp/apath-src/`):** `net/minecraft/world/entity/ai/navigation/PathNavigation.java` (seam L156-205, tick L270, moveTo L212-264, recompute L101-110, stop L400), `net/minecraft/world/level/pathfinder/PathFinder.java` (findPath L43-67, shared scratch L24/L27), `net/minecraft/world/level/pathfinder/Path.java` (final class L14, final fields L16-21, isDone L38, sameAs L100), plus targeted greps confirming `getPathfindingMalus` = live `Object2FloatMap` reads (WalkNodeEvaluator L106-414) and `onPathfindingStart/Done` at WalkNodeEvaluator L41/L46, `currentContext` lifecycle at NodeEvaluator L27/L36.
+---
+
+## §8. Implementation findings (2026-07-20, during core build — corrections to the brief)
+
+While starting the core, source-level checks turned up facts that refine/correct the brief:
+
+1. **`onPathfindingStart()`/`onPathfindingDone()` are EMPTY in base `Mob`** (Mob.java:205-209) — only `Sniffer` overrides them. So the brief's "hoist mob callbacks to main" (H2) machinery is unnecessary; instead **force-sync any mob overriding these (Sniffer)**. Removes the only off-thread mob-mutation with far less code.
+2. **The ground pathfinder path does NOT call `getBlockEntity()`** (no hits in WalkNodeEvaluator/NodeEvaluator/PathFinder). So the brief's H4/R1 "off-thread getBlockEntity crash class" is **not triggered by ground navigation in 26.2** — the `PathNavigationRegion.getBlockEntity` guard is not needed for v1-ground (keep it in mind for flying/water later).
+3. **NEW HAZARD the brief MISSED — `PathTypeCache` (S1-ish, correctness):** `PathfindingContext` (built in `NodeEvaluator.prepare`) grabs the **shared per-`ServerLevel` `PathTypeCache`** (`serverLevel.getPathTypeCache()`) and `getPathTypeFromState` → `cache.getOrCompute()` **reads and writes** it. It is a plain fixed-size `long[4096]`/`PathType[4096]` with **no synchronization**. Concurrent async workers (different mobs, same world) racing `compute()` can leave a **torn entry** (`positions[i]=keyB` but `pathTypes[i]=typeA`) → a later lookup returns the WRONG `PathType` → a mob paths into a hazard / avoids safe ground. Memory-safe (no crash, arrays don't corrupt) and self-correcting (paths recompute; cache overwrites), but a real behavior race.
+   - **Required v1 mitigation:** give each async worker a **thread-local `PathTypeCache`** (thread-confined), not the shared level cache. Patch `PathfindingContext` ctor: when on an async pathfinding thread, use `VictusAsyncPath.threadLocalPathTypeCache()` instead of `serverLevel.getPathTypeCache()`. Main-thread pathfinding keeps using the shared cache. This eliminates the race with a small extra patch.
+   - **Lesson:** shared per-level mutable caches are the real async hazard class in modern MC (added ~1.20.2, post-dating Airplane/Petal). The core build must hunt for others (e.g. any other `serverLevel.getX()Cache()` touched during `findPath`) before enabling.
+
+**Consequence for scope:** the core needs the thread-local `PathTypeCache` patch on top of the brief. Because a first pass already surfaced a brief-missed shared-state race, the core will be implemented deliberately (with an adversarial concurrency review specifically hunting shared mutable state) and remains **default-OFF pending a gameplay soak** — never rushed.

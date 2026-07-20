@@ -1,12 +1,13 @@
 --- /dev/null
 +++ b/src/main/java/cloud/victus/engine/VictusEngine.java
-@@ -1,0 +_,134 @@
+@@ -1,0 +_,147 @@
 +// SPDX-License-Identifier: GPL-3.0-only
 +package cloud.victus.engine;
 +
 +import cloud.victus.core.config.ConfigResolver;
 +import cloud.victus.core.config.ResolvedConfig;
 +import io.papermc.paper.configuration.WorldConfiguration;
++import net.minecraft.world.entity.EntityTypes;
 +import net.minecraft.world.entity.MobCategory;
 +import org.yaml.snakeyaml.Yaml;
 +
@@ -105,6 +106,18 @@
 +                    extra = ", monster-spawn-cap=" + c.monsterSpawnCap;
 +                }
 +            }
++            // Chunks — cap pile-prone projectiles/orbs per chunk (anti-lag; skipped for technical)
++            if (c.projectileSaveLimit >= 0 && cfg.chunks != null && cfg.chunks.entityPerChunkSaveLimit != null) {
++                var limit = cfg.chunks.entityPerChunkSaveLimit;
++                limit.put(EntityTypes.EXPERIENCE_ORB, c.projectileSaveLimit);
++                limit.put(EntityTypes.ARROW, c.projectileSaveLimit);
++                limit.put(EntityTypes.SNOWBALL, c.projectileSaveLimit);
++                limit.put(EntityTypes.ENDER_PEARL, c.projectileSaveLimit);
++                limit.put(EntityTypes.FIREBALL, c.projectileSaveLimit);
++                limit.put(EntityTypes.SMALL_FIREBALL, c.projectileSaveLimit);
++                extra += ", projectile-save-limit=" + c.projectileSaveLimit;
++            }
++
 +            LOG.info("applied to world '" + worldName + "' (profile " + c.profile + "): redstone="
 +                    + target + ", per-player-mob-spawns=" + c.perPlayerMobSpawns + extra);
 +        } catch (Throwable t) {

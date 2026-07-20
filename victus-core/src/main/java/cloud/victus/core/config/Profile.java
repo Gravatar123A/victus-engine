@@ -28,16 +28,19 @@ public enum Profile {
             case SMP:
             case MODDED:
                 d.put("optimizations.redstone", "alternate-current");
+                d.put("optimizations.entities.projectile-save-limit", 16); // anti-pile (arrows/XP/etc.)
                 break;
             case MINIGAMES:
                 // minigames rarely need natural mobs — cap hard to save spawn/tick cost
                 d.put("optimizations.redstone", "alternate-current");
                 d.put("optimizations.entities.monster-spawn-cap", 8);
+                d.put("optimizations.entities.projectile-save-limit", 16);
                 break;
             case NETWORK:
                 // hub/proxy-backing lobbies want minimal mobs
                 d.put("optimizations.redstone", "alternate-current");
                 d.put("optimizations.entities.monster-spawn-cap", 5);
+                d.put("optimizations.entities.projectile-save-limit", 16);
                 break;
         }
         return Collections.unmodifiableMap(d);

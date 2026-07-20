@@ -48,6 +48,7 @@ public final class ConfigResolver {
         c.perPlayerMobSpawns = boolVal(resolveWithProfile("optimizations.entities.per-player-mob-spawns", Boolean.TRUE));
         c.maxMspt = intVal("hosting.limits.max-mspt", 45);
         c.monsterSpawnCap = toInt(resolveWithProfile("optimizations.entities.monster-spawn-cap", -1), -1);
+        c.projectileSaveLimit = toInt(resolveWithProfile("optimizations.entities.projectile-save-limit", -1), -1);
 
         if (c.threadingMode == ThreadingMode.REGIONIZED) {
             c.warnings.add("threading.mode=regionized requires Folia-aware plugins; "

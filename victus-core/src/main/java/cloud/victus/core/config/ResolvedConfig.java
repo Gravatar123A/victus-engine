@@ -17,6 +17,8 @@ public final class ResolvedConfig {
     public int maxMspt = 45;
     /** Per-world monster spawn cap; -1 = use the server/vanilla default. */
     public int monsterSpawnCap = -1;
+    /** Per-chunk save cap for pile-prone projectiles/orbs (arrows, XP, etc.); -1 = off (vanilla). */
+    public int projectileSaveLimit = -1;
 
     /** Non-fatal advisories surfaced at boot and in {@code /victus doctor}. */
     public final List<String> warnings = new ArrayList<>();
@@ -33,6 +35,7 @@ public final class ResolvedConfig {
                 + ", perPlayerMobSpawns=" + perPlayerMobSpawns
                 + ", maxMspt=" + maxMspt
                 + ", monsterSpawnCap=" + monsterSpawnCap
+                + ", projectileSaveLimit=" + projectileSaveLimit
                 + ", warnings=" + warnings + "}";
     }
 }

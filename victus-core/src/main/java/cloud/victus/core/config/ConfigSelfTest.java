@@ -86,6 +86,14 @@ public final class ConfigSelfTest {
         check("explicit monster-spawn-cap beats profile overlay",
                 new ConfigResolver(mc).resolve(null).monsterSpawnCap == 20);
 
+        // 10. projectile-save-limit: non-technical profiles cap piles; technical stays vanilla (-1)
+        check("smp -> projectile save limit 16",
+                new ConfigResolver(cfg("engine.profile", "smp")).resolve(null).projectileSaveLimit == 16);
+        check("network -> projectile save limit 16",
+                new ConfigResolver(cfg("engine.profile", "network")).resolve(null).projectileSaveLimit == 16);
+        check("technical -> projectile save limit -1 (vanilla)",
+                new ConfigResolver(cfg("engine.profile", "technical")).resolve(null).projectileSaveLimit == -1);
+
         System.out.println();
         System.out.println("RESULT: " + passed + " passed, " + failed + " failed");
         System.out.println("Sample resolved (smp): " + smp);

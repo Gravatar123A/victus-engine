@@ -1,6 +1,6 @@
 --- /dev/null
 +++ b/src/main/java/cloud/victus/engine/VictusEngine.java
-@@ -1,0 +_,147 @@
+@@ -1,0 +_,165 @@
 +// SPDX-License-Identifier: GPL-3.0-only
 +package cloud.victus.engine;
 +
@@ -64,6 +64,9 @@
 +            for (String w : config.warnings) {
 +                LOG.warning("victus.yml: " + w);
 +            }
++            // Push DAB (distance-throttled mob AI) settings into the hot-path statics read by
++            // the patched Mob.serverAiStep(). Safe no-op when optimizations.entities.dab=false.
++            cloud.victus.engine.dab.VictusDab.configure(config);
 +            // Native GC advice (victus-core runtime module): nudge toward Generational ZGC.
 +            cloud.victus.core.runtime.GcProfile gc = cloud.victus.core.runtime.GcDetector.detect();
 +            if (gc.isGenerationalZgc()) {
@@ -76,6 +79,17 @@
 +            LOG.warning("failed to load victus.yml (using defaults): " + t);
 +            config = new ResolvedConfig();
 +        }
++    }
++
++    /**
++     * Re-reads {@code victus.yml} and re-pushes the runtime-changeable settings (currently DAB) so
++     * {@code /victus reload} and {@code /victus doctor apply} take effect without a JVM restart.
++     * Invoked reflectively by the VictusPlugin reload path (which cannot see this server-internal
++     * class at compile time). Re-applying per-world settings (redstone/spawn caps) still needs a
++     * world reload, but DAB is read live from {@link cloud.victus.engine.dab.VictusDab}'s statics.
++     */
++    public static void reload() {
++        init();
 +    }
 +
 +    /**
@@ -132,9 +146,13 @@
 +            + "threading:\n"
 +            + "  mode: single            # single | parallel | regionized\n"
 +            + "optimizations:\n"
-+            + "  redstone: alternate-current   # vanilla | alternate-current | eigencraft\n"
++            + "  # These are left commented so the chosen 'profile' decides them. Uncomment to force a\n"
++            + "  # value regardless of profile (e.g. technical wants vanilla redstone + dab off).\n"
++            + "  #redstone: alternate-current   # vanilla | alternate-current | eigencraft\n"
 +            + "  entities:\n"
-+            + "    dab: true\n"
++            + "    #dab: true                   # distance-throttle far mob AI (profile decides if unset)\n"
++            + "    #dab-start-distance: 12      # blocks within which mobs always full-tick AI\n"
++            + "    #dab-max-tick-interval: 20   # a far mob ticks AI at most once every N ticks\n"
 +            + "    async-pathfinding: true\n"
 +            + "    per-player-mob-spawns: true\n"
 +            + "  network:\n"

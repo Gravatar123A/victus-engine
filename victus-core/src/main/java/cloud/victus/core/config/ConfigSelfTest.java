@@ -94,6 +94,35 @@ public final class ConfigSelfTest {
         check("technical -> projectile save limit -1 (vanilla)",
                 new ConfigResolver(cfg("engine.profile", "technical")).resolve(null).projectileSaveLimit == -1);
 
+        // 11. DAB knobs: defaults, derived square, per-profile overlays, explicit override
+        ResolvedConfig smpDab = new ConfigResolver(cfg("engine.profile", "smp")).resolve(null);
+        check("smp -> dab start-distance 16 (profile overlay)", smpDab.dabStartDistance == 16);
+        check("smp -> dab start-distance-sq derived = 256", smpDab.dabStartDistanceSq == 256);
+        check("default -> dab max-tick-interval 20", smpDab.dabMaxTickInterval == 20);
+        check("default -> dab activation-dist-mod 8", smpDab.dabActivationDistMod == 8);
+        ResolvedConfig modDab = new ConfigResolver(cfg("engine.profile", "modded")).resolve(null);
+        check("modded -> conservative dab start-distance 24", modDab.dabStartDistance == 24);
+        check("modded -> conservative dab max-tick-interval 8", modDab.dabMaxTickInterval == 8);
+        check("modded -> gentler dab activation-dist-mod 9", modDab.dabActivationDistMod == 9);
+        check("minigames -> aggressive dab start-distance 8",
+                new ConfigResolver(cfg("engine.profile", "minigames")).resolve(null).dabStartDistance == 8);
+        Map<String, Object> dabOv = cfg("engine.profile", "smp");
+        put(dabOv, "optimizations.entities.dab-start-distance", 40);
+        ResolvedConfig dabOvR = new ConfigResolver(dabOv).resolve(null);
+        check("explicit dab start-distance beats profile overlay", dabOvR.dabStartDistance == 40);
+        check("explicit dab start-distance-sq recomputed = 1600", dabOvR.dabStartDistanceSq == 1600);
+        Map<String, Object> dabClamp = cfg("engine.profile", "smp");
+        put(dabClamp, "optimizations.entities.dab-max-tick-interval", 0);
+        check("dab max-tick-interval floored at >=1",
+                new ConfigResolver(dabClamp).resolve(null).dabMaxTickInterval == 1);
+        Map<String, Object> dabBl = cfg("engine.profile", "smp");
+        java.util.List<String> bl = new java.util.ArrayList<>();
+        bl.add("minecraft:villager");
+        bl.add("axolotl");
+        put(dabBl, "optimizations.entities.dab-blacklist", bl);
+        check("dab blacklist parsed into ResolvedConfig",
+                new ConfigResolver(dabBl).resolve(null).dabBlacklist.size() == 2);
+
         System.out.println();
         System.out.println("RESULT: " + passed + " passed, " + failed + " failed");
         System.out.println("Sample resolved (smp): " + smp);

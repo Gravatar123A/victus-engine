@@ -89,6 +89,14 @@ public final class VictusPlugin extends JavaPlugin {
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(victusYml);
         Map<String, Object> map = YamlMaps.toNestedMap(yaml);
         this.config = new ConfigResolver(map).resolve(null);
+        // Re-push runtime-changeable engine settings (DAB) so a reload/doctor-apply actually takes
+        // effect. The engine owns victus.yml natively; call it reflectively since this plugin does
+        // not compile against server internals (and must still work if run as a pure plugin).
+        try {
+            Class.forName("cloud.victus.engine.VictusEngine").getMethod("reload").invoke(null);
+        } catch (Throwable ignored) {
+            // engine not present (running as a standalone plugin) — nothing to re-push
+        }
     }
 
     private void writeDefaultVictusYml() {
@@ -99,9 +107,11 @@ public final class VictusPlugin extends JavaPlugin {
                 + "threading:\n"
                 + "  mode: single            # single | parallel | regionized\n"
                 + "optimizations:\n"
-                + "  redstone: alternate-current   # vanilla | alternate-current | eigencraft\n"
+                + "  # Left commented so the chosen 'profile' decides. Uncomment to force regardless\n"
+                + "  # of profile (e.g. technical wants vanilla redstone + dab off).\n"
+                + "  #redstone: alternate-current   # vanilla | alternate-current | eigencraft\n"
                 + "  entities:\n"
-                + "    dab: true\n"
+                + "    #dab: true                   # distance-throttle far mob AI (profile decides if unset)\n"
                 + "    async-pathfinding: true\n"
                 + "    per-player-mob-spawns: true\n"
                 + "  network:\n"

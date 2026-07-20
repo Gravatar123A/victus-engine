@@ -2,6 +2,30 @@
 
 _Living log of what's real vs. planned. Newest first._
 
+## ⭐ 2026-07-20 — DAB (distance-throttled mob AI) — first deep-perf patch, workflow-designed + adversarially reviewed
+
+**DAB = Dynamic Activation of Brain**: inside the patched `Mob.serverAiStep()`, a mob far from every
+player ticks its goal/target selectors + LOS sensing + navigation only every Nth tick (N grows with
+squared distance to the nearest player, capped). Movement controls **and** the Brain
+(`customServerAiStep`) always tick — so v1 does **not** throttle the Brain (zero memory-TTL risk) and
+nothing freezes mid-air. Runs only on Paper's EAR-active path, so it layers on top of activation-range
+and can never resurrect an inactive mob.
+
+- **Config** (`victus-core`): `optimizations.entities.dab` + `dab-start-distance` / `dab-max-tick-interval`
+  / `dab-activation-dist-mod` / `dab-blacklist`, per-profile (SMP start=16, MINIGAMES/NETWORK aggressive,
+  MODDED conservative, TECHNICAL **off**). Resolver self-test **33/33**.
+- **Helper** `cloud.victus.engine.dab.VictusDab`: `computeInterval` (nearest-player distance → interval,
+  cached on `Mob.dabInterval`, recomputed every 16 ticks, id-offset) + `mustFullTick` exclusion predicate
+  (combat / bosses / passengers / leashed / fire / drowning / potion-effects / operator blacklist).
+- **Process**: designed by a 5-agent research **workflow** (source-verified against MC 26.2), then an
+  adversarial review **workflow** (4 lenses → per-finding verify) surfaced **5 real issues** — all fixed:
+  runtime `/victus reload` now re-pushes DAB (`VictusEngine.reload()`), default `victus.yml` no longer
+  masks the TECHNICAL profile, allocation-free blacklist, id-offset recompute, start-distance overflow clamp.
+- **Node-verified**: builds (JDK25/ZGC), boots clean, `[Victus] DAB enabled (start-distance=16 …)`, no errors.
+  Runtime *throttle behaviour* needs a connected client (EAR skips mob AI entirely with nobody online) —
+  that's the live gameplay check: spawn far mobs, watch `entities=` fall via the per-subsystem tick timing,
+  confirm mobs don't freeze and combat stays full-rate.
+
 ## ⭐ 2026-07-20 — per-subsystem tick timing (first src/minecraft patches — deep layer unblocked)
 
 The first **decompiled-Minecraft** patches land, which unblocks the entire deep-perf patch layer
@@ -44,7 +68,7 @@ Build pipeline lives on **DE-1** (java_25 container, ~1m35s incremental); deploy
 1. **Native observability in the engine** — `/victus` command + Prometheus endpoint served by the
    engine itself (main-thread tick sampler), so hosting features need no bundled plugin.
 2. ~~**Per-subsystem tick timing** (src/minecraft tick hooks) → a real lag-doctor breakdown.~~ ✅ DONE (2026-07-20).
-3. **Deep perf patches**: DAB (distance-throttled mob AI, à la Pufferfish), async pathfinding.
+3. **Deep perf patches**: ~~DAB (distance-throttled mob AI, à la Pufferfish)~~ ✅ v1 DONE (2026-07-20); async pathfinding next.
 4. Threading tiers (parallel/regionized); hybrid mod loader.
 These are larger multi-step patches (src/minecraft layer) — done via the same build→node-test→
 deploy→push loop, verifying on the node before each deploy.

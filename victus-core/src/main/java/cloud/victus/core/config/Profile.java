@@ -26,21 +26,32 @@ public enum Profile {
                 d.put("optimizations.entities.dab", false);
                 break;
             case SMP:
-            case MODDED:
                 d.put("optimizations.redstone", "alternate-current");
                 d.put("optimizations.entities.projectile-save-limit", 16); // anti-pile (arrows/XP/etc.)
+                d.put("optimizations.entities.dab-start-distance", 16);     // moderate: fewer "resume on approach" artifacts
+                break;
+            case MODDED:
+                // unknown modded AI/goals -> throttle shallowly, big full-tick radius, gentle scaling
+                d.put("optimizations.redstone", "alternate-current");
+                d.put("optimizations.entities.projectile-save-limit", 16);
+                d.put("optimizations.entities.dab-start-distance", 24);
+                d.put("optimizations.entities.dab-max-tick-interval", 8);
+                d.put("optimizations.entities.dab-activation-dist-mod", 9);
                 break;
             case MINIGAMES:
                 // minigames rarely need natural mobs — cap hard to save spawn/tick cost
                 d.put("optimizations.redstone", "alternate-current");
                 d.put("optimizations.entities.monster-spawn-cap", 8);
                 d.put("optimizations.entities.projectile-save-limit", 16);
+                d.put("optimizations.entities.dab-start-distance", 8);      // aggressive: arena mobs are decoration
+                d.put("optimizations.entities.dab-activation-dist-mod", 7);
                 break;
             case NETWORK:
                 // hub/proxy-backing lobbies want minimal mobs
                 d.put("optimizations.redstone", "alternate-current");
                 d.put("optimizations.entities.monster-spawn-cap", 5);
                 d.put("optimizations.entities.projectile-save-limit", 16);
+                d.put("optimizations.entities.dab-start-distance", 12);
                 break;
         }
         return Collections.unmodifiableMap(d);

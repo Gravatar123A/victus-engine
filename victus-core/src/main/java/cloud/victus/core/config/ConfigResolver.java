@@ -44,6 +44,18 @@ public final class ConfigResolver {
         c.compression = CompressionBackend.fromConfig(str("optimizations.network.compression", "libdeflate"));
         c.compressionThreshold = intVal("optimizations.network.compression-threshold", 256);
         c.dab = boolVal(resolveWithProfile("optimizations.entities.dab", Boolean.TRUE));
+        // Clamp to a sane range: 0..4096 blocks. Upper bound also prevents the int square below
+        // from overflowing (46341^2 > Integer.MAX_VALUE).
+        c.dabStartDistance = Math.min(4096, Math.max(0, toInt(resolveWithProfile("optimizations.entities.dab-start-distance", 12), 12)));
+        c.dabStartDistanceSq = c.dabStartDistance * c.dabStartDistance;
+        c.dabMaxTickInterval = Math.max(1, toInt(resolveWithProfile("optimizations.entities.dab-max-tick-interval", 20), 20));
+        c.dabActivationDistMod = Math.max(1, toInt(resolveWithProfile("optimizations.entities.dab-activation-dist-mod", 8), 8));
+        Object dabBl = resolveWithProfile("optimizations.entities.dab-blacklist", null);
+        if (dabBl instanceof java.util.List<?> list) {
+            for (Object o : list) {
+                if (o != null && !String.valueOf(o).isBlank()) c.dabBlacklist.add(String.valueOf(o).trim());
+            }
+        }
         c.asyncPathfinding = boolVal(resolveWithProfile("optimizations.entities.async-pathfinding", Boolean.TRUE));
         c.perPlayerMobSpawns = boolVal(resolveWithProfile("optimizations.entities.per-player-mob-spawns", Boolean.TRUE));
         c.maxMspt = intVal("hosting.limits.max-mspt", 45);

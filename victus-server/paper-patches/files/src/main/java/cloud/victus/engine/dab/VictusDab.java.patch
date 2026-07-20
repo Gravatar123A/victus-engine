@@ -1,0 +1,143 @@
+--- /dev/null
++++ b/src/main/java/cloud/victus/engine/dab/VictusDab.java
+@@ -1,0 +_,140 @@
++// SPDX-License-Identifier: GPL-3.0-only
++package cloud.victus.engine.dab;
++
++import cloud.victus.core.config.ResolvedConfig;
++import net.minecraft.core.registries.BuiltInRegistries;
++import net.minecraft.resources.Identifier;
++import net.minecraft.world.entity.EntityType;
++import net.minecraft.world.entity.Mob;
++import net.minecraft.world.entity.NeutralMob;
++import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
++import net.minecraft.world.entity.boss.wither.WitherBoss;
++import net.minecraft.world.entity.monster.warden.Warden;
++import net.minecraft.world.entity.player.Player;
++
++import java.util.HashSet;
++import java.util.List;
++import java.util.Set;
++import java.util.logging.Logger;
++
++/**
++ * DAB — Dynamic Activation of Brain (distance-throttled mob AI).
++ *
++ * <p>Called from the patched {@code Mob.serverAiStep()}: for a mob far from every player the
++ * <em>goal/target selectors, line-of-sight sensing and navigation</em> are ticked only every Nth
++ * tick, where N grows with the squared distance to the nearest player. Movement controls
++ * (move/look/jump) and {@code customServerAiStep} (the Brain) always tick, so nothing freezes
++ * mid-air and brain-memory semantics are preserved untouched (v1 deliberately does not throttle
++ * the Brain, so no memory-TTL catch-up is required — that is a later, opt-in step).
++ *
++ * <p>This only ever runs inside {@code serverAiStep}, which Paper's Entity-Activation-Range already
++ * skips for mobs with no nearby player — so DAB layers strictly on top of EAR and can never
++ * resurrect an EAR-inactive mob. Engine-only: a plugin cannot throttle these phases.
++ *
++ * <p>All reads happen on the synchronous world/region tick (the {@code serverAiStep} caller), so no
++ * async access. Every public method is exception-safe and fails toward full-rate ticking.
++ */
++public final class VictusDab {
++
++    private static final Logger LOG = Logger.getLogger("Victus");
++
++    /** Master switch, read once per mob per tick in the hot path. */
++    public static volatile boolean enabled = false;
++
++    private static volatile int startDistanceSq = 144;   // full-tick radius^2
++    private static volatile int maxInterval = 20;         // interval cap (ticks)
++    private static volatile int distMod = 8;              // interval = distSq >> distMod
++    private static volatile Set<EntityType<?>> blacklist = Set.of();
++
++    private VictusDab() {
++    }
++
++    /** Push the resolved engine config into the hot-path statics. Never throws. */
++    public static void configure(ResolvedConfig c) {
++        try {
++            if (c == null) {
++                enabled = false;
++                return;
++            }
++            startDistanceSq = Math.max(0, c.dabStartDistanceSq);
++            maxInterval = Math.max(1, c.dabMaxTickInterval);
++            distMod = Math.max(1, c.dabActivationDistMod);
++            // Resolve blacklist ids -> EntityType instances ONCE here, so the hot-path check is an
++            // allocation-free identity/hash lookup (no per-tick Identifier.toString()).
++            Set<EntityType<?>> bl = new HashSet<>();
++            for (String id : c.dabBlacklist) {
++                if (id == null || id.isBlank()) continue;
++                String norm = id.trim().toLowerCase(java.util.Locale.ROOT);
++                if (norm.indexOf(':') < 0) norm = "minecraft:" + norm;
++                try {
++                    BuiltInRegistries.ENTITY_TYPE.getOptional(Identifier.parse(norm)).ifPresent(bl::add);
++                } catch (Throwable t) {
++                    LOG.warning("DAB: ignoring unparseable blacklist entry '" + id + "'");
++                }
++            }
++            blacklist = bl;
++            enabled = c.dab;
++            LOG.info("DAB " + (enabled ? "enabled" : "disabled")
++                    + " (start-distance=" + (int) Math.sqrt(startDistanceSq)
++                    + " max-interval=" + maxInterval
++                    + " dist-mod=" + distMod
++                    + " blacklist=" + bl.size() + ")");
++        } catch (Throwable t) {
++            enabled = false;
++            LOG.warning("DAB configure failed (disabled): " + t);
++        }
++    }
++
++    /**
++     * Recompute a mob's AI tick interval (1 = full tick every tick). Called periodically from
++     * {@code serverAiStep}; the result is cached on {@code Mob.dabInterval} between recomputes.
++     */
++    public static int computeInterval(Mob mob) {
++        try {
++            if (!enabled) return 1;
++            List<? extends Player> players = mob.level().players();
++            int n = players.size();
++            if (n == 0) return maxInterval;   // no players — EAR would have deactivated it anyway
++            double best = Double.MAX_VALUE;
++            for (int i = 0; i < n; i++) {
++                double d = players.get(i).distanceToSqr(mob);
++                if (d < best) best = d;
++            }
++            if (best <= startDistanceSq) return 1;
++            long shifted = ((long) best) >> distMod;
++            if (shifted <= 1L) return 1;
++            return shifted >= maxInterval ? maxInterval : (int) shifted;
++        } catch (Throwable t) {
++            return 1;   // fail safe = full tick
++        }
++    }
++
++    /**
++     * Conditions that force full-rate AI regardless of distance — correctness / vanilla-behaviour
++     * preservation. Ordered cheapest-and-most-common first for short-circuit efficiency.
++     */
++    public static boolean mustFullTick(Mob mob) {
++        try {
++            // combat / aggression — must react on time
++            if (mob.getTarget() != null) return true;
++            if (mob.isAggressive()) return true;
++            if (mob instanceof NeutralMob nm && nm.isAngry()) return true;  // angry-but-targetless neutrals reacquire full-rate
++            if (mob.hurtTime > 0) return true;
++            // mount / leash / passenger stack — keep the whole stack in sync
++            if (mob.isVehicle() || mob.isPassenger()) return true;
++            if (mob.isLeashed()) return true;
++            // per-tick hazards / active status
++            if (mob.getRemainingFireTicks() > 0) return true;
++            if (mob.isInWater() && !mob.canBreatheUnderwater()) return true;  // drown-escape AI
++            if (!mob.getActiveEffects().isEmpty()) return true;
++            // structural / boss entities
++            if (mob instanceof EnderDragon || mob instanceof WitherBoss || mob instanceof Warden) return true;
++            // operator blacklist (zero cost when empty; allocation-free identity lookup)
++            Set<EntityType<?>> bl = blacklist;
++            if (!bl.isEmpty() && bl.contains(mob.getType())) return true;
++            return false;
++        } catch (Throwable t) {
++            return true;   // fail safe = full tick
++        }
++    }
++}

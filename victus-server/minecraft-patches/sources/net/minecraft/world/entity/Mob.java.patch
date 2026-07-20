@@ -1,0 +1,41 @@
+--- a/net/minecraft/world/entity/Mob.java
++++ b/net/minecraft/world/entity/Mob.java
+@@ -140,6 +_,7 @@
+     private final BodyRotationControl bodyRotationControl;
+     protected PathNavigation navigation;
+     protected final GoalSelector goalSelector;
++    public int dabInterval = 1; // Victus - DAB: cached distance-throttle interval (1 = full-tick every tick)
+     public net.minecraft.world.entity.ai.goal.@Nullable FloatGoal goalFloat; // Paper - Allow nerfed mobs to jump and float
+     public GoalSelector targetSelector;
+     private @Nullable LivingEntity target;
+@@ -818,7 +_,22 @@
+             return;
+         }
+         // Paper end - Allow nerfed mobs to jump and float
++        // Victus start - DAB: distance-throttle the sensing/selectors/navigation AI path.
++        // Movement controls + customServerAiStep (Brain) below stay full-rate, so nothing freezes
++        // mid-air and brain semantics are untouched. Runs only on the EAR-active path.
++        boolean dabRun = true;
++        if (cloud.victus.engine.dab.VictusDab.enabled) {
++            if (((this.tickCount + this.getId()) & 15) == 0) { // id-offset so co-spawned mobs don't all recompute the same tick
++                this.dabInterval = cloud.victus.engine.dab.VictusDab.computeInterval(this);
++            }
++            if (this.dabInterval > 1) {
++                dabRun = ((this.tickCount + this.getId()) % this.dabInterval) == 0
++                        || cloud.victus.engine.dab.VictusDab.mustFullTick(this);
++            }
++        }
++        // Victus end - DAB
+         ProfilerFiller profiler = Profiler.get();
++        if (dabRun) { // Victus - DAB gate
+         profiler.push("sensing");
+         this.sensing.tick();
+         profiler.pop();
+@@ -842,6 +_,7 @@
+         profiler.push("navigation");
+         this.navigation.tick();
+         profiler.pop();
++        } // Victus - DAB gate
+         profiler.push("mob tick");
+         this.customServerAiStep((ServerLevel)this.level());
+         profiler.pop();

@@ -1,0 +1,11 @@
+--- a/src/main/java/io/papermc/paper/configuration/PaperConfigurations.java
++++ b/src/main/java/io/papermc/paper/configuration/PaperConfigurations.java
+@@ -318,7 +_,7 @@
+     public WorldConfiguration createWorldConfig(final ContextMap contextMap) {
+         final String levelKey = contextMap.require(WORLD_KEY).toString();
+         try {
+-            return super.createWorldConfig(contextMap);
++            final WorldConfiguration victusCfg = super.createWorldConfig(contextMap); cloud.victus.engine.VictusEngine.applyWorldConfig(victusCfg, levelKey); return victusCfg; // Victus
+         } catch (IOException exception) {
+             throw new RuntimeException("Could not create world config for " + levelKey, exception);
+         }

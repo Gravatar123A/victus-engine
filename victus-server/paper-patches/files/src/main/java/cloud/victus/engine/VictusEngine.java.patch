@@ -1,11 +1,12 @@
 --- /dev/null
 +++ b/src/main/java/cloud/victus/engine/VictusEngine.java
-@@ -1,0 +_,97 @@
+@@ -1,0 +_,124 @@
 +// SPDX-License-Identifier: GPL-3.0-only
 +package cloud.victus.engine;
 +
 +import cloud.victus.core.config.ConfigResolver;
 +import cloud.victus.core.config.ResolvedConfig;
++import io.papermc.paper.configuration.WorldConfiguration;
 +import org.yaml.snakeyaml.Yaml;
 +
 +import java.io.BufferedReader;
@@ -72,6 +73,32 @@
 +        } catch (Throwable t) {
 +            LOG.warning("failed to load victus.yml (using defaults): " + t);
 +            config = new ResolvedConfig();
++        }
++    }
++
++    /**
++     * Applies profile-driven optimizations to a freshly-loaded per-world config. Called from
++     * {@code PaperConfigurations.createWorldConfig} for every world, so victus.yml's
++     * {@code optimizations.redstone} (already profile-overlaid in {@link ResolvedConfig}) actually
++     * drives the engine's redstone engine. Never throws.
++     */
++    public static void applyWorldConfig(WorldConfiguration cfg, String worldName) {
++        try {
++            ResolvedConfig c = config;
++            if (c == null || cfg == null || cfg.misc == null) {
++                return;
++            }
++            WorldConfiguration.Misc.RedstoneImplementation target = switch (c.redstone) {
++                case VANILLA -> WorldConfiguration.Misc.RedstoneImplementation.VANILLA;
++                case ALTERNATE_CURRENT -> WorldConfiguration.Misc.RedstoneImplementation.ALTERNATE_CURRENT;
++                case EIGENCRAFT -> WorldConfiguration.Misc.RedstoneImplementation.EIGENCRAFT;
++            };
++            if (cfg.misc.redstoneImplementation != target) {
++                cfg.misc.redstoneImplementation = target;
++                LOG.info("applied redstone=" + target + " to world '" + worldName + "' (profile " + c.profile + ")");
++            }
++        } catch (Throwable t) {
++            LOG.warning("applyWorldConfig failed for " + worldName + ": " + t);
 +        }
 +    }
 +

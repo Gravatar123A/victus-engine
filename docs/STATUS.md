@@ -2,6 +2,30 @@
 
 _Living log of what's real vs. planned. Newest first._
 
+## ⭐ 2026-07-20 — per-subsystem tick timing (first src/minecraft patches — deep layer unblocked)
+
+The first **decompiled-Minecraft** patches land, which unblocks the entire deep-perf patch layer
+(DAB, async pathfinding, threading — all live here).
+- New `cloud.victus.engine.VictusTickTimings` (paper-server) accumulates per-phase tick time on the
+  main thread; hooks in `MinecraftServer.tickServer` (begin/end) and `ServerLevel.tick`
+  (entities + block-entities phases) via `minecraft-patches/sources/`.
+- Every ~10s (200t) the engine logs `tick timings (avg/200t): total=… entities=… (n%)
+  block-entities=… (n%) other=…` and publishes `avgTotalMs/avgEntitiesMs/avgBlockEntitiesMs`
+  for the metrics exporter / `/victus doctor`. Engine-only — a plugin can't measure these phases.
+- **Node-verified** on DE-1: `[Victus] tick timings (avg/200t): total=2.05ms entities=0.02ms (1%)
+  block-entities=0.01ms (0%) other=2.02ms`, clean `Done`.
+- **Reproducibility-proven**: clean re-apply from the patch files (`applyMinecraftSourcePatches
+  --rerun-tasks`) → "Applied 2 patches", BUILD SUCCESSFUL, edits reappear — a from-scratch/CI build
+  includes the feature. Jar rebuilt (`VictusTickTimings.class` verified in jar) + deployed to `e5aa1c05`.
+
+### Minecraft-layer patch workflow (now proven — the key that unblocks DAB/async/threading)
+`edit victus-server/src/minecraft/java/… → (in THAT git repo) git add -A →
+gradlew :victus-server:fixupMinecraftSourcePatches :victus-server:rebuildMinecraftSourcePatches`.
+Non-obvious gotchas: (1) edits made on Windows arrive **CRLF** — `sed -i 's/\r$//'` (LF-normalize)
+before `git add`, else the whole file diffs (~6000 lines) instead of your ~4 lines. (2) set
+`git config user.email/name` in the build container or the fixup commit fails 128. (3) verify with
+`applyMinecraftSourcePatches --rerun-tasks` (re-applies from patch files onto the mache base).
+
 ## ⭐ 2026-07-20 — profile-driven optimizations APPLIED by the engine (node-verified)
 
 The engine reads `victus.yml` and **applies** these per world (via the `PaperConfigurations.createWorldConfig` hook → `VictusEngine.applyWorldConfig`). All node-verified on DE-1 + deployed to `e5aa1c05`.
@@ -19,7 +43,7 @@ Build pipeline lives on **DE-1** (java_25 container, ~1m35s incremental); deploy
 ### Next phase (bigger, engine-unique — beyond config knobs)
 1. **Native observability in the engine** — `/victus` command + Prometheus endpoint served by the
    engine itself (main-thread tick sampler), so hosting features need no bundled plugin.
-2. **Per-subsystem tick timing** (src/minecraft tick hooks) → a real lag-doctor breakdown.
+2. ~~**Per-subsystem tick timing** (src/minecraft tick hooks) → a real lag-doctor breakdown.~~ ✅ DONE (2026-07-20).
 3. **Deep perf patches**: DAB (distance-throttled mob AI, à la Pufferfish), async pathfinding.
 4. Threading tiers (parallel/regionized); hybrid mod loader.
 These are larger multi-step patches (src/minecraft layer) — done via the same build→node-test→

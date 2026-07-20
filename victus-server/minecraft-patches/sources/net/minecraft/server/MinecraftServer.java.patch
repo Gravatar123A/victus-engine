@@ -1,0 +1,18 @@
+--- a/net/minecraft/server/MinecraftServer.java
++++ b/net/minecraft/server/MinecraftServer.java
+@@ -1580,6 +_,7 @@
+     protected void tickServer(final BooleanSupplier haveTime) {
+         org.spigotmc.WatchdogThread.tick(); // Spigot
+         long nano = Util.getNanos();
++        cloud.victus.engine.VictusTickTimings.beginTick(); // Victus - per-subsystem tick timing
+         int emptyTickThreshold = this.pauseWhenEmptySeconds() * 20;
+         this.removeDisabledPluginsBlockingSleep(); // Paper - API to allow/disallow tick sleeping
+         if (emptyTickThreshold > 0) {
+@@ -1661,6 +_,7 @@
+         this.server.spark.tickEnd(((double)(endTime - this.currentTickStart) / 1000000D)); // Paper - spark
+         profiler.push("tallying");
+         long tickTime = Util.getNanos() - nano;
++        cloud.victus.engine.VictusTickTimings.endTick(tickTime); // Victus - per-subsystem tick timing
+         int tickIndex = this.tickCount % 100;
+         this.aggregatedTickTimesNanos = this.aggregatedTickTimesNanos - this.tickTimesNanos[tickIndex];
+         this.aggregatedTickTimesNanos += tickTime;

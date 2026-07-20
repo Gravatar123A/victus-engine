@@ -1,0 +1,75 @@
+--- /dev/null
++++ b/src/main/java/cloud/victus/engine/VictusTickTimings.java
+@@ -1,0 +_,72 @@
++// SPDX-License-Identifier: GPL-3.0-only
++package cloud.victus.engine;
++
++import java.util.Locale;
++import java.util.logging.Logger;
++
++/**
++ * Per-subsystem tick timing, accumulated on the main thread. {@link #beginTick()}/{@link #endTick(long)}
++ * bracket each server tick (from {@code MinecraftServer.tickServer}); {@link #add(int, long)} is called
++ * from per-world subsystem phases (in {@code ServerLevel.tick}), so times sum across all worlds within a
++ * tick. Every {@link #WINDOW_TICKS} ticks it logs an average breakdown and publishes a snapshot for the
++ * metrics exporter / lag-doctor. Engine-only: a plugin cannot measure these phases.
++ */
++public final class VictusTickTimings {
++
++    public static final int ENTITIES = 0;
++    public static final int BLOCK_ENTITIES = 1;
++    private static final int PHASES = 2;
++    /** Averaging/report window (~10s at 20 TPS). */
++    private static final int WINDOW_TICKS = 200;
++
++    private static final Logger LOG = Logger.getLogger("Victus");
++    private static final long[] current = new long[PHASES];
++    private static final long[] windowSum = new long[PHASES];
++    private static long windowTotalNanos = 0L;
++    private static int windowTicks = 0;
++
++    /** Latest window averages in ms — read by the metrics exporter / {@code /victus doctor}. */
++    public static volatile double avgTotalMs = 0.0;
++    public static volatile double avgEntitiesMs = 0.0;
++    public static volatile double avgBlockEntitiesMs = 0.0;
++
++    private VictusTickTimings() {
++    }
++
++    public static void beginTick() {
++        current[ENTITIES] = 0L;
++        current[BLOCK_ENTITIES] = 0L;
++    }
++
++    public static void add(int phase, long nanos) {
++        if (phase >= 0 && phase < PHASES && nanos > 0L) {
++            current[phase] += nanos;
++        }
++    }
++
++    public static void endTick(long totalNanos) {
++        windowTotalNanos += totalNanos;
++        windowSum[ENTITIES] += current[ENTITIES];
++        windowSum[BLOCK_ENTITIES] += current[BLOCK_ENTITIES];
++        if (++windowTicks >= WINDOW_TICKS) {
++            final double n = windowTicks;
++            final double total = windowTotalNanos / n / 1_000_000.0;
++            final double ent = windowSum[ENTITIES] / n / 1_000_000.0;
++            final double be = windowSum[BLOCK_ENTITIES] / n / 1_000_000.0;
++            avgTotalMs = total;
++            avgEntitiesMs = ent;
++            avgBlockEntitiesMs = be;
++            LOG.info(String.format(Locale.ROOT,
++                    "tick timings (avg/%dt): total=%.2fms  entities=%.2fms (%.0f%%)  block-entities=%.2fms (%.0f%%)  other=%.2fms",
++                    windowTicks, total, ent, pct(ent, total), be, pct(be, total), Math.max(0.0, total - ent - be)));
++            windowTotalNanos = 0L;
++            windowSum[ENTITIES] = 0L;
++            windowSum[BLOCK_ENTITIES] = 0L;
++            windowTicks = 0;
++        }
++    }
++
++    private static double pct(double x, double total) {
++        return total > 0.0 ? (x / total) * 100.0 : 0.0;
++    }
++}

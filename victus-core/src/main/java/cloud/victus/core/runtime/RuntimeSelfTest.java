@@ -176,6 +176,14 @@ public final class RuntimeSelfTest {
         check("shared io-threads -> default (-1)", RecommendedFlags.recommendedChunkIoThreads(false, true) == -1);
         check("dedicated+NVMe io-threads -> 3", RecommendedFlags.recommendedChunkIoThreads(true, true) == 3);
 
+        // ---- 13. Elastic heap (low idle RAM) — measured Xms fix ----
+        check("elasticHeapFlags(512,4608) -> -Xms512M/-Xmx4608M",
+                RecommendedFlags.elasticHeapFlags(512, 4608).equals(List.of("-Xms512M", "-Xmx4608M")));
+        check("elasticHeapFlags rejects xms > xmx", throwsIAE(() -> RecommendedFlags.elasticHeapFlags(4096, 1024)));
+        check("elasticHeapFlags rejects <= 0", throwsIAE(() -> RecommendedFlags.elasticHeapFlags(0, 1024)));
+        check("recommendedInitialHeapMb caps at 512 for big xmx", RecommendedFlags.recommendedInitialHeapMb(8192) == 512);
+        check("recommendedInitialHeapMb floors at 256 for tiny xmx", RecommendedFlags.recommendedInitialHeapMb(1024) == 256);
+
         System.out.println();
         System.out.println("RESULT: " + passed + " passed, " + failed + " failed");
         System.out.println("Live collector detected: " + live.displayName()

@@ -46,6 +46,19 @@ docker run --rm --memory=2600m -u 0 -v /root:/root -w /root --entrypoint bash \
 top, and ~10% off the raw heap: 250 MB → 227 MB). Run-to-run ZGC PSS varies ~1.96–2.19 GB (colored-
 pointer mappings); G1 is stable. This is why G1+COH shipped as the default (`RecommendedFlags`).
 
+## Idle-RAM: `-Xms` floor (2026-07-21) — lower `-Xms` = lower idle RSS (elastic heap)
+The live server idled at 1.5 GB because `-Xms1024M` pins 1 GB committed even though it only *uses* ~215 MB.
+A/B (G1+COH, same fresh world, `-Xmx4608M`):
+| `-Xms` | idle PSS | committed | heap used |
+| --- | --- | --- | --- |
+| 1024M | 1.43 GB | 1.42 GB | 215 MB |
+| **512M** | **0.96 GB** | 0.90 GB | 214 MB |
+
+→ **~500 MB (~34%) less idle RAM** from lowering `-Xms` alone (G1 never commits below `-Xms`). Shipped
+`-Xms512M` on `e5aa1c05`. Realistic floor for a *running* MC server with a loaded world is ~0.9–1.0 GB
+(off-heap ≈ 0.4 GB: metaspace/threads/Netty/GC card tables/mmap + ~0.4–0.5 GB working-set heap) — that's
+the JVM+Paper baseline, not bloat. See `RecommendedFlags.elasticHeapFlags`.
+
 ## Chunk-gen baseline — `chunkgen-ab.sh` (2026-07-21, DE-1, `--cpus=8`)
 | Moonrise worker-threads | spawn-area gen | total boot |
 | --- | --- | --- |

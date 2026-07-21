@@ -161,6 +161,32 @@ public final class RecommendedFlags {
     }
 
     /**
+     * ELASTIC heap flags: a low {@code -Xms} so idle RSS tracks the working set (G1 never commits below
+     * {@code -Xms}), with a capped {@code -Xmx}. MEASURED 2026-07-21: a running server used ~365 MB heap
+     * idle but {@code -Xms1024M} pinned 1 GB committed (~500 MB wasted) → total idle PSS ~1.44 GB; dropping
+     * to {@code -Xms512M} lets G1 sit near the working set. Prefer this on shared/oversold/test nodes where
+     * idle footprint matters; use {@link #heapFlags(int)} ({@code -Xms==-Xmx}, no resize) only on dedicated
+     * perf nodes that fill the heap anyway. Do NOT pair with {@code AlwaysPreTouch} (that recommits it all).
+     *
+     * @param xmsMb initial heap (idle floor) in MB
+     * @param xmxMb max heap in MB (&ge; {@code xmsMb})
+     */
+    public static List<String> elasticHeapFlags(int xmsMb, int xmxMb) {
+        if (xmsMb <= 0 || xmxMb <= 0) {
+            throw new IllegalArgumentException("heap sizes must be > 0, got xms=" + xmsMb + " xmx=" + xmxMb);
+        }
+        if (xmsMb > xmxMb) {
+            throw new IllegalArgumentException("-Xms (" + xmsMb + ") must be <= -Xmx (" + xmxMb + ")");
+        }
+        return List.of("-Xms" + xmsMb + "M", "-Xmx" + xmxMb + "M");
+    }
+
+    /** Recommended low initial heap (idle floor) for elastic sizing: small enough to idle near the working set. */
+    public static int recommendedInitialHeapMb(int xmxMb) {
+        return Math.min(512, Math.max(256, xmxMb / 8));
+    }
+
+    /**
      * Recommended {@code -Xmx} (== {@code -Xms}) for a container, using the default ~1.5&nbsp;GB OS reserve.
      *
      * @param containerRamMb the total RAM available to the instance/container, in MB

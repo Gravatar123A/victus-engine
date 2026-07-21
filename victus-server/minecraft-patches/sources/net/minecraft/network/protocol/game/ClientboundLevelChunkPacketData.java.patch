@@ -1,0 +1,146 @@
+--- a/net/minecraft/network/protocol/game/ClientboundLevelChunkPacketData.java
++++ b/net/minecraft/network/protocol/game/ClientboundLevelChunkPacketData.java
+@@ -58,22 +_,27 @@
+             chunkPacketInfo.setBuffer(this.buffer);
+         }
+         extractChunkData(new FriendlyByteBuf(this.getWriteBuffer()), levelChunk, chunkPacketInfo);
+-        this.blockEntitiesData = Lists.newArrayList();
+-        int totalTileEntities = 0; // Paper - Handle oversized block entities in chunks
++        this.blockEntitiesData = buildBlockEntities(levelChunk, this.extraPackets); // Victus - extracted for async chunk send
++    }
+ 
++    // Victus start - async chunk send: block-entity capture shared by the live ctor and the main-thread Snapshot
++    private static List<ClientboundLevelChunkPacketData.BlockEntityInfo> buildBlockEntities(
++            final LevelChunk levelChunk, final List<net.minecraft.network.protocol.Packet<?>> extraOut) {
++        List<ClientboundLevelChunkPacketData.BlockEntityInfo> out = Lists.newArrayList();
++        int totalTileEntities = 0;
+         for (Entry<BlockPos, BlockEntity> entry : levelChunk.getBlockEntities().entrySet()) {
+-            // Paper start - Handle oversized block entities in chunks
+             if (++totalTileEntities > BLOCK_ENTITY_LIMIT) {
+                 net.minecraft.network.protocol.Packet<ClientGamePacketListener> packet = entry.getValue().getUpdatePacket();
+                 if (packet != null) {
+-                    this.extraPackets.add(packet);
++                    extraOut.add(packet);
+                     continue;
+                 }
+             }
+-            // Paper end - Handle oversized block entities in chunks
+-            this.blockEntitiesData.add(ClientboundLevelChunkPacketData.BlockEntityInfo.create(entry.getValue()));
++            out.add(ClientboundLevelChunkPacketData.BlockEntityInfo.create(entry.getValue()));
+         }
++        return out;
+     }
++    // Victus end
+ 
+     public ClientboundLevelChunkPacketData(final RegistryFriendlyByteBuf input, final int x, final int z) {
+         this.heightmaps = HEIGHTMAPS_STREAM_CODEC.decode(input);
+@@ -152,6 +_,109 @@
+     public Map<Heightmap.Types, long[]> getHeightmaps() {
+         return this.heightmaps;
+     }
++
++    // Victus start - async chunk send: main-thread Snapshot + off-thread serialize + byte-equivalence self-test
++    /** Immutable snapshot captured on the MAIN thread; the worker serializes from this only (never the live chunk). */
++    public static final class Snapshot {
++        final Map<Heightmap.Types, long[]> heightmaps;
++        final LevelChunkSection[] sections; // deep copies via LevelChunkSection.copy() — frozen palette
++        final List<ClientboundLevelChunkPacketData.BlockEntityInfo> blockEntities;
++        final List<net.minecraft.network.protocol.Packet<?>> extraPackets;
++        Snapshot(Map<Heightmap.Types, long[]> h, LevelChunkSection[] s,
++                 List<ClientboundLevelChunkPacketData.BlockEntityInfo> be,
++                 List<net.minecraft.network.protocol.Packet<?>> ex) {
++            this.heightmaps = h; this.sections = s; this.blockEntities = be; this.extraPackets = ex;
++        }
++    }
++
++    /** Capture everything the serializer needs, ON THE MAIN THREAD ({@code section.copy()} freezes the palette). */
++    public static Snapshot capture(final LevelChunk levelChunk) {
++        Map<Heightmap.Types, long[]> hm = levelChunk.getHeightmaps()
++            .stream()
++            .filter(e -> ((Heightmap.Types) e.getKey()).sendToClient())
++            .collect(Collectors.toMap(Entry::getKey, e -> (long[]) ((Heightmap) e.getValue()).getRawData().clone()));
++        LevelChunkSection[] live = levelChunk.getSections();
++        LevelChunkSection[] copies = new LevelChunkSection[live.length];
++        for (int i = 0; i < live.length; i++) {
++            copies[i] = live[i].copy();
++        }
++        List<net.minecraft.network.protocol.Packet<?>> extra = new java.util.ArrayList<>();
++        List<ClientboundLevelChunkPacketData.BlockEntityInfo> be = buildBlockEntities(levelChunk, extra);
++        return new Snapshot(hm, copies, be, extra);
++    }
++
++    /** Off-thread entry: build the wire bytes from the frozen Snapshot only. Byte-identical to the live ctor. */
++    public static ClientboundLevelChunkPacketData fromSnapshot(final Snapshot snap) {
++        return new ClientboundLevelChunkPacketData(snap);
++    }
++
++    private ClientboundLevelChunkPacketData(final Snapshot snap) {
++        this.heightmaps = snap.heightmaps;
++        int size = 0;
++        for (LevelChunkSection s : snap.sections) {
++            size += s.getSerializedSize();
++        }
++        this.buffer = new byte[size];
++        FriendlyByteBuf buf = new FriendlyByteBuf(this.getWriteBuffer());
++        int idx = 0;
++        for (LevelChunkSection s : snap.sections) {
++            s.write(buf, null, idx); // v1: no Anti-Xray on the async path (force-sync when shouldModify)
++            idx++;
++        }
++        if (buf.writerIndex() != buf.capacity()) {
++            throw new IllegalStateException("Didn't fill chunk buffer (snapshot): expected "
++                    + buf.capacity() + " bytes, got " + buf.writerIndex());
++        }
++        this.blockEntitiesData = snap.blockEntities;
++        this.extraPackets.addAll(snap.extraPackets);
++    }
++
++    /** Byte-equivalence gate: the live ctor and the snapshot ctor MUST produce identical wire bytes (no Anti-Xray). */
++    public static boolean selfTestEquivalent(final LevelChunk chunk) {
++        ClientboundLevelChunkPacketData vanilla = new ClientboundLevelChunkPacketData(chunk, null);
++        ClientboundLevelChunkPacketData snap = fromSnapshot(capture(chunk));
++        return java.util.Arrays.equals(vanilla.buffer, snap.buffer);
++    }
++
++    /**
++     * Headless byte-equivalence trigger: once a spawn chunk is loaded (and {@code -Dvictus.chunksend.selftest=true}),
++     * serialize it both ways and log PASS/FAIL. Lives in this (minecraft-layer) class so it needs no new
++     * paper-server file. Runs once; zero cost when the flag is off.
++     */
++    private static volatile boolean selfTested = false;
++    public static void maybeSelfTest(final net.minecraft.server.MinecraftServer server) {
++        if (selfTested || !Boolean.getBoolean("victus.chunksend.selftest")) {
++            return;
++        }
++        try {
++            net.minecraft.server.level.ServerLevel ow = server.overworld();
++            if (ow == null) {
++                return;
++            }
++            int sx = 0;
++            int sz = 0;
++            try {
++                BlockPos sp = ow.getRespawnData().globalPos().pos();
++                sx = sp.getX() >> 4;
++                sz = sp.getZ() >> 4;
++            } catch (Throwable ignored) {
++                // fall back to chunk 0,0 if the spawn-data API shape differs
++            }
++            LevelChunk chunk = ow.getChunkSource().getChunkNow(sx, sz);
++            if (chunk == null) {
++                return; // spawn chunk not loaded yet — retry next tick
++            }
++            selfTested = true;
++            boolean ok = selfTestEquivalent(chunk);
++            org.slf4j.LoggerFactory.getLogger("Victus").info("async chunk send byte-equivalence self-test: "
++                    + (ok ? "PASS (snapshot serializer == vanilla @ chunk " + sx + "," + sz + ")"
++                          : "FAIL — snapshot bytes DIFFER from vanilla @ chunk " + sx + "," + sz));
++        } catch (Throwable t) {
++            selfTested = true;
++            org.slf4j.LoggerFactory.getLogger("Victus").warn("async chunk send self-test error (skipped): " + t);
++        }
++    }
++    // Victus end
+ 
+     private static class BlockEntityInfo {
+         public static final StreamCodec<RegistryFriendlyByteBuf, ClientboundLevelChunkPacketData.BlockEntityInfo> STREAM_CODEC = StreamCodec.ofMember(

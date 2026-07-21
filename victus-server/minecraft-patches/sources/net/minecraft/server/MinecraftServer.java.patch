@@ -1,10 +1,11 @@
 --- a/net/minecraft/server/MinecraftServer.java
 +++ b/net/minecraft/server/MinecraftServer.java
-@@ -1580,6 +_,7 @@
+@@ -1580,6 +_,8 @@
      protected void tickServer(final BooleanSupplier haveTime) {
          org.spigotmc.WatchdogThread.tick(); // Spigot
          long nano = Util.getNanos();
 +        cloud.victus.engine.VictusTickTimings.beginTick(); // Victus - per-subsystem tick timing
++        net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData.maybeSelfTest(this); // Victus - async chunk-send byte-equivalence gate
          int emptyTickThreshold = this.pauseWhenEmptySeconds() * 20;
          this.removeDisabledPluginsBlockingSleep(); // Paper - API to allow/disallow tick sleeping
          if (emptyTickThreshold > 0) {

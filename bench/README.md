@@ -54,10 +54,21 @@ A/B (G1+COH, same fresh world, `-Xmx4608M`):
 | 1024M | 1.43 GB | 1.42 GB | 215 MB |
 | **512M** | **0.96 GB** | 0.90 GB | 214 MB |
 
-→ **~500 MB (~34%) less idle RAM** from lowering `-Xms` alone (G1 never commits below `-Xms`). Shipped
-`-Xms512M` on `e5aa1c05`. Realistic floor for a *running* MC server with a loaded world is ~0.9–1.0 GB
-(off-heap ≈ 0.4 GB: metaspace/threads/Netty/GC card tables/mmap + ~0.4–0.5 GB working-set heap) — that's
-the JVM+Paper baseline, not bloat. See `RecommendedFlags.elasticHeapFlags`.
+→ **~500 MB (~34%) less idle RAM** from lowering `-Xms` alone (G1 never commits below `-Xms`).
+
+## Idle-RAM: aggressive G1 uncommit (2026-07-21) — LIVE-MEASURED on e5aa1c05 (client API + jcmd)
+`-Xms512M` alone still idled ~1.28 GB because G1's default `MaxHeapFreeRatio=70` keeps ~688 MB of
+committed-but-unused heap. Adding `-XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=30` (+ periodic GC) lets
+G1 uncommit to the `-Xms` floor. Live, on the real plugin-loaded server (Geyser+Floodgate+ViaVersion):
+| Flags | committed heap | idle PSS (after GC) |
+| --- | --- | --- |
+| G1+COH, `-Xms512M` | 992 MB | 1.28 GB |
+| + `MinHeapFreeRatio=10 MaxHeapFreeRatio=30` | **512 MB** | **0.77 GB** |
+
+→ **Full RAM journey: ~1.5 GB (ZGC) → ~0.77 GB (~half), WITH the crossplay plugin stack loaded.**
+Trade-off: aggressive uncommit adds a little GC when the heap re-grows under load — ideal for
+shared/oversold/idle, relax for a hot dedicated box. Now in `RecommendedFlags.G1_AIKAR_FLAGS`.
+Remaining ~0.5 GB is real working set + plugin off-heap (Geyser ≈ 250 MB), not JVM bloat.
 
 ## Chunk-gen baseline — `chunkgen-ab.sh` (2026-07-21, DE-1, `--cpus=8`)
 | Moonrise worker-threads | spawn-area gen | total boot |

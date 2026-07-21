@@ -56,7 +56,12 @@ public final class RecommendedFlags {
             "-XX:InitiatingHeapOccupancyPercent=15", "-XX:G1MixedGCLiveThresholdPercent=90",
             "-XX:G1RSetUpdatingPauseTimePercent=5", "-XX:SurvivorRatio=32",
             "-XX:+PerfDisableSharedMem", "-XX:MaxTenuringThreshold=1",
-            // Periodic idle GC → returns committed heap to the OS on oversold/shared nodes (lower idle RAM).
+            // Aggressive uncommit: with an elastic heap, let G1 return committed heap to the OS down to
+            // -Xms (MEASURED live: committed 992MB→512MB, idle PSS 1278MB→783MB on a plugin-loaded server).
+            // Default MaxHeapFreeRatio=70 keeps ~688MB idle buffer; 30 shrinks it. Trades a little extra GC
+            // when the heap re-grows under load — ideal for shared/oversold/idle; relax for a hot dedicated box.
+            "-XX:MinHeapFreeRatio=10", "-XX:MaxHeapFreeRatio=30",
+            // Periodic idle GC → triggers the uncommit above on an idle server without waiting for allocation.
             "-XX:G1PeriodicGCInterval=180000", "-XX:-G1PeriodicGCInvokesConcurrent",
             "-XX:G1PeriodicGCSystemLoadThreshold=0");
 

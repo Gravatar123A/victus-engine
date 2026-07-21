@@ -42,6 +42,25 @@ public final class ResolvedConfig {
     public boolean asyncPathfindingFlying = false;
     /** Offload water/amphibious navigation (v2 — the known async regression; off). */
     public boolean asyncPathfindingWater = false;
+
+    /**
+     * Async chunk send: serialize chunk packets on a worker (snapshot-on-main → serialize-off-thread →
+     * send via Paper's existing isReady() FIFO). Default {@code false} — opt-in pending a gameplay soak
+     * (see docs/phase-3/02-async-chunk-send-design.md); ordering is Paper's proven rail but it still
+     * touches the network hot path, so it ships disabled.
+     */
+    public boolean asyncChunkSend = false;
+    /** Serializer worker threads; -1 = auto ({@code clamp(cores/4, 1, 4)}). */
+    public int asyncChunkSendThreads = -1;
+    /** Bounded work-queue capacity; -1 = auto; overflow runs inline on main (CallerRuns = safe sync fallback). */
+    public int asyncChunkSendQueueCapacity = -1;
+    /** A not-ready shell past this many ms is force-rebuilt on the main thread (anti-stall watchdog). */
+    public long asyncChunkSendWatchdogMs = 1500L;
+    /** When true, chunks needing Anti-Xray always take the vanilla synchronous path (max-conservative). */
+    public boolean asyncChunkSendAntiXrayForceSync = false;
+    /** On a worker exception, rebuild the packet synchronously on main (true) vs rethrow (debug only). */
+    public boolean asyncChunkSendFallbackOnException = true;
+
     public boolean perPlayerMobSpawns = true;
     public int maxMspt = 45;
     /** Per-world monster spawn cap; -1 = use the server/vanilla default. */
@@ -68,6 +87,8 @@ public final class ResolvedConfig {
                 + ", asyncPathfindingMaxThreads=" + asyncPathfindingMaxThreads
                 + ", asyncPathfindingQueueSize=" + asyncPathfindingQueueSize
                 + ", asyncPathfindingGround=" + asyncPathfindingGround
+                + ", asyncChunkSend=" + asyncChunkSend
+                + ", asyncChunkSendThreads=" + asyncChunkSendThreads
                 + ", perPlayerMobSpawns=" + perPlayerMobSpawns
                 + ", maxMspt=" + maxMspt
                 + ", monsterSpawnCap=" + monsterSpawnCap

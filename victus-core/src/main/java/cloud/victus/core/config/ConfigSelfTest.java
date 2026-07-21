@@ -144,6 +144,24 @@ public final class ConfigSelfTest {
         check("async-pathfinding bad reject-policy falls back to CALLER_RUNS",
                 new ConfigResolver(apBad).resolve(null).asyncPathfindingRejectPolicy.equals("CALLER_RUNS"));
 
+        // 13. async chunk send: OFF by default (opt-in pending soak), knobs resolve + defaults
+        ResolvedConfig acs = new ConfigResolver(cfg("engine.profile", "smp")).resolve(null);
+        check("async-chunk-send OFF by default", !acs.asyncChunkSend);
+        check("async-chunk-send threads default -1 (auto)", acs.asyncChunkSendThreads == -1);
+        check("async-chunk-send watchdog default 1500ms", acs.asyncChunkSendWatchdogMs == 1500L);
+        check("async-chunk-send fallback-on-exception default true", acs.asyncChunkSendFallbackOnException);
+        check("async-chunk-send anti-xray force-sync default false", !acs.asyncChunkSendAntiXrayForceSync);
+        Map<String, Object> acsOn = cfg("engine.profile", "smp");
+        put(acsOn, "optimizations.chunks.async-send", true);
+        put(acsOn, "optimizations.chunks.async-send-threads", 3);
+        ResolvedConfig acsR = new ConfigResolver(acsOn).resolve(null);
+        check("async-chunk-send explicit enable", acsR.asyncChunkSend);
+        check("async-chunk-send explicit threads=3", acsR.asyncChunkSendThreads == 3);
+        Map<String, Object> acsWd = cfg("engine.profile", "smp");
+        put(acsWd, "optimizations.chunks.async-send-watchdog-ms", 50);
+        check("async-chunk-send watchdog floored >=100ms",
+                new ConfigResolver(acsWd).resolve(null).asyncChunkSendWatchdogMs == 100L);
+
         System.out.println();
         System.out.println("RESULT: " + passed + " passed, " + failed + " failed");
         System.out.println("Sample resolved (smp): " + smp);

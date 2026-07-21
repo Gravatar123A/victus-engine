@@ -65,6 +65,14 @@ public final class ConfigResolver {
         c.asyncPathfindingGround = boolVal(resolveWithProfile("optimizations.entities.async-pathfinding-ground", Boolean.TRUE));
         c.asyncPathfindingFlying = boolVal(resolveWithProfile("optimizations.entities.async-pathfinding-flying", Boolean.FALSE));
         c.asyncPathfindingWater = boolVal(resolveWithProfile("optimizations.entities.async-pathfinding-water", Boolean.FALSE));
+
+        c.asyncChunkSend = boolVal(resolveWithProfile("optimizations.chunks.async-send", Boolean.FALSE));
+        c.asyncChunkSendThreads = toInt(resolveWithProfile("optimizations.chunks.async-send-threads", -1), -1);
+        c.asyncChunkSendQueueCapacity = toInt(resolveWithProfile("optimizations.chunks.async-send-queue-capacity", -1), -1);
+        c.asyncChunkSendWatchdogMs = Math.max(100L, toInt(resolveWithProfile("optimizations.chunks.async-send-watchdog-ms", 1500), 1500));
+        c.asyncChunkSendAntiXrayForceSync = boolVal(resolveWithProfile("optimizations.chunks.async-send-anti-xray-force-sync", Boolean.FALSE));
+        c.asyncChunkSendFallbackOnException = boolVal(resolveWithProfile("optimizations.chunks.async-send-fallback-on-exception", Boolean.TRUE));
+
         c.perPlayerMobSpawns = boolVal(resolveWithProfile("optimizations.entities.per-player-mob-spawns", Boolean.TRUE));
         c.maxMspt = intVal("hosting.limits.max-mspt", 45);
         c.monsterSpawnCap = toInt(resolveWithProfile("optimizations.entities.monster-spawn-cap", -1), -1);

@@ -45,3 +45,15 @@ docker run --rm --memory=2600m -u 0 -v /root:/root -w /root --entrypoint bash \
 → **G1+COH ≈ 58% less RAM than ZGC** (G1 ~half of ZGC; CompactObjectHeaders trims another ~12% on
 top, and ~10% off the raw heap: 250 MB → 227 MB). Run-to-run ZGC PSS varies ~1.96–2.19 GB (colored-
 pointer mappings); G1 is stable. This is why G1+COH shipped as the default (`RecommendedFlags`).
+
+## Chunk-gen baseline — `chunkgen-ab.sh` (2026-07-21, DE-1, `--cpus=8`)
+| Moonrise worker-threads | spawn-area gen | total boot |
+| --- | --- | --- |
+| 1 (Moonrise ≤6-core / shared default) | 13.4 s | 26.3 s |
+| 8 (dedicated, uncapped) | **5.9 s** | **18.1 s** |
+
+→ **~2.3× faster chunk generation** (and ~31% faster boot) from uncapping worker-threads, override
+confirmed applied (`using 8 worker threads` in the log). Validates the dedicated-node advisory
+(`RecommendedFlags.recommendedChunkWorkerThreads`) — apply on **dedicated** nodes only (on shared
+nodes it steals cores from co-located servers). Bigger workloads (a Chunky/bot pregen, S6) will show
+a larger absolute win; this small spawn workload already shows the direction and magnitude.

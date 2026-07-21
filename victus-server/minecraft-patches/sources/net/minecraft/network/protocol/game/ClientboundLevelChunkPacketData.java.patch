@@ -34,7 +34,7 @@
  
      public ClientboundLevelChunkPacketData(final RegistryFriendlyByteBuf input, final int x, final int z) {
          this.heightmaps = HEIGHTMAPS_STREAM_CODEC.decode(input);
-@@ -152,6 +_,109 @@
+@@ -152,6 +_,174 @@
      public Map<Heightmap.Types, long[]> getHeightmaps() {
          return this.heightmaps;
      }
@@ -138,6 +138,71 @@
 +        } catch (Throwable t) {
 +            selfTested = true;
 +            org.slf4j.LoggerFactory.getLogger("Victus").warn("async chunk send self-test error (skipped): " + t);
++        }
++    }
++
++    // --- async dispatch executor (v1). Inlined here (minecraft layer) to avoid the paperweight new-file issue. ---
++    private static volatile boolean asyncEnabled = false;
++    private static volatile java.util.concurrent.ThreadPoolExecutor asyncPool;
++
++    public static boolean asyncEnabled() {
++        java.util.concurrent.ThreadPoolExecutor p = asyncPool;
++        return asyncEnabled && p != null && !p.isShutdown();
++    }
++
++    /** Configure the serializer pool from resolved config (restart-only). enabled=false → fully inert. */
++    public static synchronized void configureAsync(final boolean enabled, final int threads, final int queue) {
++        shutdownAsync();
++        if (!enabled) {
++            asyncEnabled = false;
++            return;
++        }
++        int cores = Runtime.getRuntime().availableProcessors();
++        int t = threads > 0 ? threads : Math.max(1, Math.min(4, cores / 4));
++        int q = queue > 0 ? queue : Math.max(64, t * 256);
++        java.util.concurrent.atomic.AtomicInteger n = new java.util.concurrent.atomic.AtomicInteger(1);
++        java.util.concurrent.ThreadPoolExecutor ex = new java.util.concurrent.ThreadPoolExecutor(
++                t, t, 0L, java.util.concurrent.TimeUnit.MILLISECONDS,
++                new java.util.concurrent.ArrayBlockingQueue<>(q),
++                r -> {
++                    Thread th = new Thread(r, "Victus Async Chunk Serializer #" + n.getAndIncrement());
++                    th.setDaemon(true);
++                    th.setPriority(Thread.NORM_PRIORITY - 1);
++                    return th;
++                },
++                new java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy()); // overflow → serialize inline on main (safe)
++        asyncPool = ex;
++        asyncEnabled = true;
++        org.slf4j.LoggerFactory.getLogger("Victus").info("async chunk send enabled (threads=" + t + " queue=" + q + ")");
++    }
++
++    public static void submitAsync(final Runnable r) {
++        java.util.concurrent.ThreadPoolExecutor p = asyncPool;
++        if (p == null || p.isShutdown()) {
++            r.run();
++            return;
++        }
++        try {
++            p.execute(r);
++        } catch (Throwable t) {
++            r.run(); // last-resort inline
++        }
++    }
++
++    public static synchronized void shutdownAsync() {
++        asyncEnabled = false;
++        java.util.concurrent.ThreadPoolExecutor p = asyncPool;
++        asyncPool = null;
++        if (p == null) {
++            return;
++        }
++        try {
++            p.shutdown();
++            if (!p.awaitTermination(2L, java.util.concurrent.TimeUnit.SECONDS)) {
++                p.shutdownNow();
++            }
++        } catch (Throwable t) {
++            try { p.shutdownNow(); } catch (Throwable ignored) { }
 +        }
 +    }
 +    // Victus end

@@ -1,0 +1,37 @@
+--- a/net/minecraft/network/protocol/game/ClientboundLevelChunkWithLightPacket.java
++++ b/net/minecraft/network/protocol/game/ClientboundLevelChunkWithLightPacket.java
+@@ -16,7 +_,7 @@
+     );
+     private final int x;
+     private final int z;
+-    private final ClientboundLevelChunkPacketData chunkData;
++    private ClientboundLevelChunkPacketData chunkData; // Victus - async chunk send: settable (filled off-thread, published via `ready`)
+     private final ClientboundLightUpdatePacketData lightData;
+     // Paper start - Async-Anti-Xray - Ready flag for the connection, add chunk packet info
+     private volatile boolean ready;
+@@ -56,6 +_,25 @@
+         this.lightData = new ClientboundLightUpdatePacketData(chunkPos, lightEngine, skyChangedLightSectionFilter, blockChangedLightSectionFilter);
+         levelChunk.getLevel().chunkPacketBlockController.modifyBlocks(this, chunkPacketInfo); // Paper - Anti-Xray - Modify blocks
+     }
++
++    // Victus start - async chunk send: deferred shell — chunkData filled off-thread, published via the `ready` flag
++    private ClientboundLevelChunkWithLightPacket(final int x, final int z, final ClientboundLightUpdatePacketData lightData) {
++        this.x = x;
++        this.z = z;
++        this.chunkData = null;
++        this.lightData = lightData;
++        this.ready = false;
++    }
++
++    /** A not-ready shell: reserve the per-player FIFO slot on the main thread; the worker sets chunkData + ready. */
++    public static ClientboundLevelChunkWithLightPacket deferred(final ChunkPos pos, final ClientboundLightUpdatePacketData lightData) {
++        return new ClientboundLevelChunkWithLightPacket(pos.x(), pos.z(), lightData);
++    }
++
++    public void setChunkData(final ClientboundLevelChunkPacketData chunkData) {
++        this.chunkData = chunkData; // plain write; published by the volatile setReady(true) that follows (happens-before)
++    }
++    // Victus end
+ 
+     private ClientboundLevelChunkWithLightPacket(final RegistryFriendlyByteBuf input) {
+         this.x = input.readInt();

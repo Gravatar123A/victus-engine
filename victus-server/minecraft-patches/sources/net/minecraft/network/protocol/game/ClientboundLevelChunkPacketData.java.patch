@@ -34,7 +34,7 @@
  
      public ClientboundLevelChunkPacketData(final RegistryFriendlyByteBuf input, final int x, final int z) {
          this.heightmaps = HEIGHTMAPS_STREAM_CODEC.decode(input);
-@@ -152,6 +_,174 @@
+@@ -152,6 +_,175 @@
      public Map<Heightmap.Types, long[]> getHeightmaps() {
          return this.heightmaps;
      }
@@ -51,6 +51,7 @@
 +                 List<net.minecraft.network.protocol.Packet<?>> ex) {
 +            this.heightmaps = h; this.sections = s; this.blockEntities = be; this.extraPackets = ex;
 +        }
++        public java.util.List<net.minecraft.network.protocol.Packet<?>> extraPackets() { return this.extraPackets; }
 +    }
 +
 +    /** Capture everything the serializer needs, ON THE MAIN THREAD ({@code section.copy()} freezes the palette). */

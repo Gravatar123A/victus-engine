@@ -1,37 +1,55 @@
 --- a/net/minecraft/network/protocol/game/ClientboundLevelChunkWithLightPacket.java
 +++ b/net/minecraft/network/protocol/game/ClientboundLevelChunkWithLightPacket.java
-@@ -16,7 +_,7 @@
+@@ -16,7 +_,8 @@
      );
      private final int x;
      private final int z;
 -    private final ClientboundLevelChunkPacketData chunkData;
 +    private ClientboundLevelChunkPacketData chunkData; // Victus - async chunk send: settable (filled off-thread, published via `ready`)
++    private java.util.List<net.minecraft.network.protocol.Packet<?>> deferredExtraPackets; // Victus - extra packets captured on main (getExtraPackets is read at send-time, before chunkData is filled)
      private final ClientboundLightUpdatePacketData lightData;
      // Paper start - Async-Anti-Xray - Ready flag for the connection, add chunk packet info
      private volatile boolean ready;
-@@ -56,6 +_,25 @@
-         this.lightData = new ClientboundLightUpdatePacketData(chunkPos, lightEngine, skyChangedLightSectionFilter, blockChangedLightSectionFilter);
+@@ -57,6 +_,28 @@
          levelChunk.getLevel().chunkPacketBlockController.modifyBlocks(this, chunkPacketInfo); // Paper - Anti-Xray - Modify blocks
      }
-+
+ 
 +    // Victus start - async chunk send: deferred shell — chunkData filled off-thread, published via the `ready` flag
-+    private ClientboundLevelChunkWithLightPacket(final int x, final int z, final ClientboundLightUpdatePacketData lightData) {
++    private ClientboundLevelChunkWithLightPacket(final int x, final int z, final ClientboundLightUpdatePacketData lightData,
++                                                 final java.util.List<net.minecraft.network.protocol.Packet<?>> extraPackets) {
 +        this.x = x;
 +        this.z = z;
 +        this.chunkData = null;
++        this.deferredExtraPackets = extraPackets; // read at send-time by Connection.buildExtraPackets, before chunkData is filled
 +        this.lightData = lightData;
 +        this.ready = false;
 +    }
 +
 +    /** A not-ready shell: reserve the per-player FIFO slot on the main thread; the worker sets chunkData + ready. */
-+    public static ClientboundLevelChunkWithLightPacket deferred(final ChunkPos pos, final ClientboundLightUpdatePacketData lightData) {
-+        return new ClientboundLevelChunkWithLightPacket(pos.x(), pos.z(), lightData);
++    public static ClientboundLevelChunkWithLightPacket deferred(final ChunkPos pos, final ClientboundLightUpdatePacketData lightData,
++                                                                final java.util.List<net.minecraft.network.protocol.Packet<?>> extraPackets) {
++        return new ClientboundLevelChunkWithLightPacket(pos.x(), pos.z(), lightData, extraPackets);
 +    }
 +
 +    public void setChunkData(final ClientboundLevelChunkPacketData chunkData) {
 +        this.chunkData = chunkData; // plain write; published by the volatile setReady(true) that follows (happens-before)
 +    }
 +    // Victus end
- 
++
      private ClientboundLevelChunkWithLightPacket(final RegistryFriendlyByteBuf input) {
          this.x = input.readInt();
+         this.z = input.readInt();
+@@ -100,7 +_,12 @@
+     // Paper start - Handle oversized block entities in chunks
+     @Override
+     public java.util.List<Packet<?>> getExtraPackets() {
+-        return this.chunkData.getExtraPackets();
++        // Victus - null-safe: Connection.buildExtraPackets reads this at SEND time, before the async worker fills chunkData.
++        ClientboundLevelChunkPacketData d = this.chunkData;
++        if (d != null) {
++            return d.getExtraPackets();
++        }
++        return this.deferredExtraPackets != null ? this.deferredExtraPackets : java.util.List.of();
+     }
+     // Paper end - Handle oversized block entities in chunks
+ }

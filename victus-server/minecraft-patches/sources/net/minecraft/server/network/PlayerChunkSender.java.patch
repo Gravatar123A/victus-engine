@@ -12,7 +12,7 @@
 +                    net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData.capture(chunk); // MAIN: freeze palette/heightmaps/block-entities
 +            final net.minecraft.network.protocol.game.ClientboundLightUpdatePacketData lightData =
 +                    new net.minecraft.network.protocol.game.ClientboundLightUpdatePacketData(cpos, level.getLightEngine(), null, null); // MAIN: light read
-+            final ClientboundLevelChunkWithLightPacket shell = ClientboundLevelChunkWithLightPacket.deferred(cpos, lightData);
++            final ClientboundLevelChunkWithLightPacket shell = ClientboundLevelChunkWithLightPacket.deferred(cpos, lightData, snap.extraPackets());
 +            connection.send(shell); // MAIN: reserve the per-player FIFO slot IN ORDER (ready=false holds later packets behind it)
 +            final net.minecraft.server.MinecraftServer srv = level.getServer();
 +            net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData.submitAsync(() -> {

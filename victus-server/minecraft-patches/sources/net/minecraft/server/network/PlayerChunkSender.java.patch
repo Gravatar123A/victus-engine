@@ -1,6 +1,6 @@
 --- a/net/minecraft/server/network/PlayerChunkSender.java
 +++ b/net/minecraft/server/network/PlayerChunkSender.java
-@@ -81,7 +_,38 @@
+@@ -81,7 +_,22 @@
      public static void sendChunk(final ServerGamePacketListenerImpl connection, final ServerLevel level, final LevelChunk chunk) { // Paper - rewrite chunk system - public
          // Paper start - Anti-Xray
          final boolean shouldModify = level.chunkPacketBlockController.shouldModify(connection.player, chunk);
@@ -14,25 +14,9 @@
 +                    new net.minecraft.network.protocol.game.ClientboundLightUpdatePacketData(cpos, level.getLightEngine(), null, null); // MAIN: light read
 +            final ClientboundLevelChunkWithLightPacket shell = ClientboundLevelChunkWithLightPacket.deferred(cpos, lightData, snap.extraPackets());
 +            connection.send(shell); // MAIN: reserve the per-player FIFO slot IN ORDER (ready=false holds later packets behind it)
-+            final net.minecraft.server.MinecraftServer srv = level.getServer();
-+            net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData.submitAsync(() -> {
-+                net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData data = null;
-+                try {
-+                    data = net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData.fromSnapshot(snap); // WORKER: serialize from frozen snapshot
-+                } catch (Throwable t) {
-+                    org.slf4j.LoggerFactory.getLogger("Victus").warn("async chunk serialize failed; main-thread fallback: " + t);
-+                }
-+                if (data != null) {
-+                    shell.setChunkData(data);
-+                    shell.setReady(true); // publishes chunkData (happens-before) + releases the FIFO
-+                } else {
-+                    srv.execute(() -> { // R7: rebuild on main from the same safe snapshot, then release
-+                        try { shell.setChunkData(net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData.fromSnapshot(snap)); }
-+                        catch (Throwable t2) { org.slf4j.LoggerFactory.getLogger("Victus").warn("async chunk fallback failed: " + t2); }
-+                        shell.setReady(true);
-+                    });
-+                }
-+            });
++            // Serialize off-thread; submitAsyncChunk owns the settle-guard, main-thread fallback AND the
++            // anti-stall watchdog, so the per-player FIFO slot is ALWAYS released (even if a worker dies).
++            net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData.submitAsyncChunk(shell, snap, level.getServer());
 +        } else {
 +            connection.send(new ClientboundLevelChunkWithLightPacket(chunk, level.getLightEngine(), null, null, shouldModify));
 +        }

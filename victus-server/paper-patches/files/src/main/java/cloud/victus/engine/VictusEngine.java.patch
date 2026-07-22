@@ -1,6 +1,6 @@
 --- /dev/null
 +++ b/src/main/java/cloud/victus/engine/VictusEngine.java
-@@ -1,0 +_,184 @@
+@@ -1,0 +_,164 @@
 +// SPDX-License-Identifier: GPL-3.0-only
 +package cloud.victus.engine;
 +
@@ -51,7 +51,7 @@
 +                    }
 +                }
 +            } else {
-+                Files.writeString(f, DEFAULT_YML, StandardCharsets.UTF_8);
++                Files.writeString(f, cloud.victus.core.config.DefaultConfig.YML, StandardCharsets.UTF_8);
 +                LOG.info("wrote a default victus.yml to the server directory");
 +            }
 +            config = new ConfigResolver(map).resolve(null);
@@ -70,6 +70,7 @@
 +            // Async chunk send (v1): configure the serializer pool from resolved config (default off).
 +            net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData.configureAsync(
 +                    config.asyncChunkSend, config.asyncChunkSendThreads, config.asyncChunkSendQueueCapacity);
++            net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData.setWatchdogMs(config.asyncChunkSendWatchdogMs);
 +            // Native GC advice — HEAP-AWARE (measured 2026-07-20: Generational ZGC uses ~2x the RAM of
 +            // G1 at idle on small/oversold nodes). G1+Aikar is recommended by default; ZGC only pays off
 +            // on large, dedicated, many-core heaps where its pause-time win outweighs its RAM/CPU cost.
@@ -95,8 +96,11 @@
 +                }
 +            }
 +        } catch (Throwable t) {
-+            LOG.warning("failed to load victus.yml (using defaults): " + t);
-+            config = new ResolvedConfig();
++            // review #2: do NOT reset to hard defaults — a single malformed key on /victus reload would
++            // otherwise silently discard a good running config. Keep the last-good config (on first boot
++            // that is the hard-default ResolvedConfig the static field was initialized with).
++            LOG.warning("failed to load/apply victus.yml; keeping the last-good config (profile="
++                    + config.profile + "): " + t);
 +        }
 +    }
 +
@@ -158,30 +162,6 @@
 +        }
 +    }
 +
-+    private static final String DEFAULT_YML = ""
-+            + "# Victus Engine config. See docs/VICTUS-CONFIG.md for the full schema.\n"
-+            + "engine:\n"
-+            + "  profile: smp            # smp | technical | minigames | modded | network\n"
-+            + "threading:\n"
-+            + "  mode: single            # single | parallel | regionized\n"
-+            + "optimizations:\n"
-+            + "  # These are left commented so the chosen 'profile' decides them. Uncomment to force a\n"
-+            + "  # value regardless of profile (e.g. technical wants vanilla redstone + dab off).\n"
-+            + "  #redstone: alternate-current   # vanilla | alternate-current | eigencraft\n"
-+            + "  entities:\n"
-+            + "    #dab: true                   # distance-throttle far mob AI (profile decides if unset)\n"
-+            + "    #dab-start-distance: 12      # blocks within which mobs always full-tick AI\n"
-+            + "    #dab-max-tick-interval: 20   # a far mob ticks AI at most once every N ticks\n"
-+            + "    async-pathfinding: true\n"
-+            + "    per-player-mob-spawns: true\n"
-+            + "  network:\n"
-+            + "    compression: libdeflate     # zlib | libdeflate (NOT zstd — breaks clients)\n"
-+            + "hosting:\n"
-+            + "  limits:\n"
-+            + "    max-mspt: 45\n"
-+            + "  metrics:\n"
-+            + "    prometheus:\n"
-+            + "      enabled: true\n"
-+            + "      bind: 127.0.0.1\n"
-+            + "      port: 9940\n";
++    // The default victus.yml template now lives in cloud.victus.core.config.DefaultConfig — a single owner
++    // shared with VictusPlugin so the two templates cannot drift, and testable in victus-core (review #3/#6).
 +}

@@ -57,6 +57,17 @@ public final class ConfigSelfTest {
         check("dab boolean-or-map coercion (enabled:false)",
                 !new ConfigResolver(mapForm).resolve(null).dab);
 
+        // 6b. unknown nested dab sub-keys warn (only 'enabled' is honored) — review #8
+        Map<String, Object> dabNested = cfg("engine.profile", "smp");
+        Map<String, Object> dabNestedMap = new LinkedHashMap<>();
+        dabNestedMap.put("enabled", true);
+        dabNestedMap.put("throttle-navigation-travel", true);
+        put(dabNested, "optimizations.entities.dab", dabNestedMap);
+        ResolvedConfig dabNestedR = new ConfigResolver(dabNested).resolve(null);
+        check("unknown nested dab sub-key emits a warning (review #8)",
+                dabNestedR.warnings.stream().anyMatch(w -> w.contains("throttle-navigation-travel")));
+        check("nested dab {enabled:true} still resolves dab on", dabNestedR.dab);
+
         // 7. regionized threading emits a compat warning
         Map<String, Object> reg = cfg("engine.profile", "smp");
         put(reg, "threading.mode", "regionized");
@@ -115,6 +126,12 @@ public final class ConfigSelfTest {
         put(dabClamp, "optimizations.entities.dab-max-tick-interval", 0);
         check("dab max-tick-interval floored at >=1",
                 new ConfigResolver(dabClamp).resolve(null).dabMaxTickInterval == 1);
+        Map<String, Object> dabHiMod = cfg("engine.profile", "smp");
+        put(dabHiMod, "optimizations.entities.dab-activation-dist-mod", 40);
+        ResolvedConfig dabHiModR = new ConfigResolver(dabHiMod).resolve(null);
+        check("dab activation-dist-mod clamped to <=16 (review #7)", dabHiModR.dabActivationDistMod == 16);
+        check("dab activation-dist-mod over-max emits a warning (review #7)",
+                dabHiModR.warnings.stream().anyMatch(w -> w.contains("dab-activation-dist-mod")));
         Map<String, Object> dabBl = cfg("engine.profile", "smp");
         java.util.List<String> bl = new java.util.ArrayList<>();
         bl.add("minecraft:villager");
@@ -161,6 +178,16 @@ public final class ConfigSelfTest {
         put(acsWd, "optimizations.chunks.async-send-watchdog-ms", 50);
         check("async-chunk-send watchdog floored >=100ms",
                 new ConfigResolver(acsWd).resolve(null).asyncChunkSendWatchdogMs == 100L);
+
+        // 14. default template must NOT force-enable the un-soaked, opt-in async-pathfinding (review #6)
+        boolean forcesAsyncPath = false;
+        for (String line : DefaultConfig.YML.split("\n")) {
+            String s = line.trim();
+            if (!s.startsWith("#") && s.startsWith("async-pathfinding") && s.contains("true")) forcesAsyncPath = true;
+        }
+        check("default template does not force async-pathfinding on (review #6)", !forcesAsyncPath);
+        check("default template offers async-pathfinding as a commented opt-in (review #6)",
+                DefaultConfig.YML.contains("#async-pathfinding"));
 
         System.out.println();
         System.out.println("RESULT: " + passed + " passed, " + failed + " failed");

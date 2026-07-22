@@ -1,6 +1,6 @@
 --- /dev/null
 +++ b/src/main/java/cloud/victus/engine/dab/VictusDab.java
-@@ -1,0 +_,140 @@
+@@ -1,0 +_,157 @@
 +// SPDX-License-Identifier: GPL-3.0-only
 +package cloud.victus.engine.dab;
 +
@@ -104,7 +104,10 @@
 +                if (d < best) best = d;
 +            }
 +            if (best <= startDistanceSq) return 1;
-+            long shifted = ((long) best) >> distMod;
++            // review #9: throttle by distance BEYOND the full-tick radius so dab-start-distance actually
++            // takes effect. Previously the `shifted<=1` guard subsumed the start-distance check for typical
++            // values (~<22.6 blocks at distMod=8), making the per-profile start distances a no-op.
++            long shifted = (((long) best) - startDistanceSq) >> distMod;
 +            if (shifted <= 1L) return 1;
 +            return shifted >= maxInterval ? maxInterval : (int) shifted;
 +        } catch (Throwable t) {
@@ -135,9 +138,23 @@
 +            // operator blacklist (zero cost when empty; allocation-free identity lookup)
 +            Set<EntityType<?>> bl = blacklist;
 +            if (!bl.isEmpty() && bl.contains(mob.getType())) return true;
++            // proximity short-circuit (review #10): the interval is recomputed only every ~16 ticks, so a
++            // player who ender-pearls/teleports into the full-tick bubble WITHOUT a combat trigger would
++            // otherwise get up-to-15-tick-delayed sensing/aggro. Catch it here (most expensive check, last).
++            if (anyPlayerWithin(mob, startDistanceSq)) return true;
 +            return false;
 +        } catch (Throwable t) {
 +            return true;   // fail safe = full tick
 +        }
++    }
++
++    /** True if any player is within {@code distSq} (squared blocks) of the mob. Scans the world player list
++     *  (usually small); only reached for already-throttled mobs on ticks they would otherwise skip. */
++    private static boolean anyPlayerWithin(Mob mob, int distSq) {
++        List<? extends Player> players = mob.level().players();
++        for (int i = 0, n = players.size(); i < n; i++) {
++            if (players.get(i).distanceToSqr(mob) <= distSq) return true;
++        }
++        return false;
 +    }
 +}

@@ -39,6 +39,25 @@
      private ClientboundLevelChunkWithLightPacket(final RegistryFriendlyByteBuf input) {
          this.x = input.readInt();
          this.z = input.readInt();
+@@ -67,7 +_,17 @@
+     private void write(final RegistryFriendlyByteBuf output) {
+         output.writeInt(this.x);
+         output.writeInt(this.z);
+-        this.chunkData.write(output);
++        // Victus - async chunk send: the netty encoder must NEVER see a null chunkData. settleOnMain (main
++        // thread) rebuilds from the frozen snapshot before releasing the shell, so a null here means a
++        // deterministic double serialize failure (a core bug that also breaks the sync path). Fail THIS one
++        // packet cleanly — a clear EncoderException closes just this connection — instead of NPE-ing the loop.
++        final ClientboundLevelChunkPacketData d = this.chunkData;
++        if (d == null) {
++            org.slf4j.LoggerFactory.getLogger("Victus")
++                .error("async chunk send: null chunkData reached the encoder @ " + this.x + "," + this.z + " — dropping packet");
++            throw new io.netty.handler.codec.EncoderException("Victus async chunk send: null chunkData @ " + this.x + "," + this.z);
++        }
++        d.write(output);
+         this.lightData.write(output);
+     }
+ 
 @@ -100,7 +_,12 @@
      // Paper start - Handle oversized block entities in chunks
      @Override

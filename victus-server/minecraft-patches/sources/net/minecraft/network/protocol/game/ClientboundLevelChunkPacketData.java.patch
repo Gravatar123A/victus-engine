@@ -34,7 +34,7 @@
  
      public ClientboundLevelChunkPacketData(final RegistryFriendlyByteBuf input, final int x, final int z) {
          this.heightmaps = HEIGHTMAPS_STREAM_CODEC.decode(input);
-@@ -152,6 +_,175 @@
+@@ -152,6 +_,298 @@
      public Map<Heightmap.Types, long[]> getHeightmaps() {
          return this.heightmaps;
      }
@@ -151,16 +151,35 @@
 +        return asyncEnabled && p != null && !p.isShutdown();
 +    }
 +
-+    /** Configure the serializer pool from resolved config (restart-only). enabled=false → fully inert. */
++    private static int effectiveThreads(final int threads) {
++        if (threads > 0) return threads;
++        int cores = Runtime.getRuntime().availableProcessors();
++        return Math.max(1, Math.min(4, cores / 4));
++    }
++
++    private static int effectiveQueue(final int threads, final int queue) {
++        return queue > 0 ? queue : Math.max(64, effectiveThreads(threads) * 256);
++    }
++
++    /** Configure the serializer pool from resolved config. enabled=false → fully inert. Safe to call on
++     *  {@code /victus reload}: a no-op reconfigure (same enabled/threads/queue) returns WITHOUT touching the
++     *  pool, and any real swap closes the OLD pool OFF the main thread so the tick never blocks on
++     *  awaitTermination and no queued task is silently dropped (review #1/#3 + async-send review #3). */
 +    public static synchronized void configureAsync(final boolean enabled, final int threads, final int queue) {
-+        shutdownAsync();
++        final java.util.concurrent.ThreadPoolExecutor old = asyncPool;
++        final int t = effectiveThreads(threads);
++        final int q = effectiveQueue(threads, queue);
++        if (old != null && enabled && asyncEnabled
++                && old.getCorePoolSize() == t
++                && (old.getQueue().remainingCapacity() + old.getQueue().size()) == q) {
++            return; // no-op reconfigure — don't stall the tick tearing a healthy pool down and back up
++        }
 +        if (!enabled) {
 +            asyncEnabled = false;
++            asyncPool = null;
++            if (old != null) closePoolOffThread(old);
 +            return;
 +        }
-+        int cores = Runtime.getRuntime().availableProcessors();
-+        int t = threads > 0 ? threads : Math.max(1, Math.min(4, cores / 4));
-+        int q = queue > 0 ? queue : Math.max(64, t * 256);
 +        java.util.concurrent.atomic.AtomicInteger n = new java.util.concurrent.atomic.AtomicInteger(1);
 +        java.util.concurrent.ThreadPoolExecutor ex = new java.util.concurrent.ThreadPoolExecutor(
 +                t, t, 0L, java.util.concurrent.TimeUnit.MILLISECONDS,
@@ -174,7 +193,32 @@
 +                new java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy()); // overflow → serialize inline on main (safe)
 +        asyncPool = ex;
 +        asyncEnabled = true;
++        if (old != null) closePoolOffThread(old); // swap in the new pool immediately; drain the old one off-thread
 +        org.slf4j.LoggerFactory.getLogger("Victus").info("async chunk send enabled (threads=" + t + " queue=" + q + ")");
++    }
++
++    /** Close a retired pool OFF the main thread (drains queued tasks so their reserved shells still release). */
++    private static void closePoolOffThread(final java.util.concurrent.ThreadPoolExecutor pool) {
++        Thread closer = new Thread(() -> closePool(pool), "Victus Chunk Pool Closer");
++        closer.setDaemon(true);
++        closer.start();
++    }
++
++    /** Graceful drain: run the queued-but-unstarted tasks {@code shutdownNow()} hands back, so every chunk
++     *  shell they would have released still gets {@code setReady(true)} instead of stranding (review async-send #1). */
++    private static void closePool(final java.util.concurrent.ThreadPoolExecutor pool) {
++        try {
++            pool.shutdown();
++            if (!pool.awaitTermination(2L, java.util.concurrent.TimeUnit.SECONDS)) {
++                for (Runnable r : pool.shutdownNow()) {
++                    try { r.run(); } catch (Throwable ignored) { }
++                }
++            }
++        } catch (Throwable t) {
++            for (Runnable r : pool.shutdownNow()) {
++                try { r.run(); } catch (Throwable ignored) { }
++            }
++        }
 +    }
 +
 +    public static void submitAsync(final Runnable r) {
@@ -197,14 +241,93 @@
 +        if (p == null) {
 +            return;
 +        }
-+        try {
-+            p.shutdown();
-+            if (!p.awaitTermination(2L, java.util.concurrent.TimeUnit.SECONDS)) {
-+                p.shutdownNow();
-+            }
-+        } catch (Throwable t) {
-+            try { p.shutdownNow(); } catch (Throwable ignored) { }
++        closePool(p); // drain queued tasks so their reserved shells still get setReady (review async-send #1)
++    }
++    // Victus end
++
++    // Victus start - async chunk send anti-stall watchdog (guarantees every reserved FIFO slot is released)
++    private static volatile long watchdogMs = 1500L;
++    private static final java.util.Queue<PendingChunk> WATCHDOG_QUEUE = new java.util.concurrent.ConcurrentLinkedQueue<>();
++    private static volatile Thread watchdogThread;
++
++    public static void setWatchdogMs(final long ms) { watchdogMs = ms >= 100L ? ms : 1500L; }
++
++    /** One in-flight dispatch. {@code settled} = the single owner-election flag (worker vs watchdog). */
++    private static final class PendingChunk {
++        final ClientboundLevelChunkWithLightPacket shell;
++        final Snapshot snap;
++        final net.minecraft.server.MinecraftServer srv;
++        final long deadlineNanos;
++        final java.util.concurrent.atomic.AtomicBoolean settled = new java.util.concurrent.atomic.AtomicBoolean(false);
++        PendingChunk(ClientboundLevelChunkWithLightPacket shell, Snapshot snap,
++                     net.minecraft.server.MinecraftServer srv, long deadlineNanos) {
++            this.shell = shell; this.snap = snap; this.srv = srv; this.deadlineNanos = deadlineNanos;
 +        }
++    }
++
++    /** Dispatch a chunk for async serialization WITH watchdog protection. Replaces the caller's raw
++     *  submitAsync(...) + manual setReady so the settle-guard and stall recovery live in one place. */
++    public static void submitAsyncChunk(final ClientboundLevelChunkWithLightPacket shell,
++                                        final Snapshot snap,
++                                        final net.minecraft.server.MinecraftServer srv) {
++        final PendingChunk pc = new PendingChunk(shell, snap, srv, System.nanoTime() + watchdogMs * 1_000_000L);
++        WATCHDOG_QUEUE.add(pc);
++        ensureWatchdog();
++        submitAsync(() -> {
++            ClientboundLevelChunkPacketData data = null;
++            try { data = fromSnapshot(snap); }
++            catch (Throwable t) { org.slf4j.LoggerFactory.getLogger("Victus").warn("async chunk serialize failed; main fallback: " + t); }
++            if (data != null) {
++                if (pc.settled.compareAndSet(false, true)) { shell.setChunkData(data); shell.setReady(true); }
++            } else if (pc.settled.compareAndSet(false, true)) {
++                settleOnMain(pc); // serialize threw → guarded main-thread rebuild
++            }
++        });
++    }
++
++    /** Rebuild + release on the MAIN thread; this caller already won the {@code settled} election. We must
++     *  still {@code setReady(true)} to unblock the per-player FIFO, so on rebuild failure the shell is
++     *  released with null chunkData and the encoder path (see ClientboundLevelChunkWithLightPacket.write)
++     *  drops that ONE packet cleanly instead of NPE-ing the netty loop. */
++    private static void settleOnMain(final PendingChunk pc) {
++        try {
++            pc.srv.execute(() -> {
++                try {
++                    pc.shell.setChunkData(fromSnapshot(pc.snap));
++                } catch (Throwable t) {
++                    org.slf4j.LoggerFactory.getLogger("Victus")
++                        .warn("async chunk main-rebuild failed; releasing null-safe shell to unblock FIFO: " + t);
++                }
++                pc.shell.setReady(true); // release regardless — write() tolerates a null shell (drops that packet)
++            });
++        } catch (Throwable rejected) {
++            pc.shell.setReady(true); // server executor gone (shutdown) — release anyway so the FIFO drains
++        }
++    }
++
++    private static synchronized void ensureWatchdog() {
++        if (watchdogThread != null) return;
++        Thread wt = new Thread(() -> {
++            while (true) {
++                try { Thread.sleep(250L); } catch (InterruptedException ie) { return; }
++                long now = System.nanoTime();
++                for (java.util.Iterator<PendingChunk> it = WATCHDOG_QUEUE.iterator(); it.hasNext();) {
++                    PendingChunk pc = it.next();
++                    if (pc.settled.get()) { it.remove(); continue; }        // worker already owns it
++                    if (now - pc.deadlineNanos >= 0L) {                      // overflow-safe deadline compare
++                        if (pc.settled.compareAndSet(false, true)) {
++                            org.slf4j.LoggerFactory.getLogger("Victus")
++                                .warn("async chunk send: serializer stalled >" + watchdogMs + "ms — main-thread recovery");
++                            settleOnMain(pc);
++                        }
++                        it.remove();
++                    }
++                }
++            }
++        }, "Victus Async Chunk Watchdog");
++        wt.setDaemon(true);
++        watchdogThread = wt;
++        wt.start();
 +    }
 +    // Victus end
  

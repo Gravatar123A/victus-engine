@@ -17,12 +17,10 @@ public final class RuntimeSelfTest {
     private static int passed = 0, failed = 0;
 
     public static void main(String[] args) {
-        // ---- 1. RecommendedFlags: exact GC flag list, in order ----
-        check("gc flags = exact Generational-ZGC set in order",
-                RecommendedFlags.gcFlags().equals(List.of(
-                        "-XX:+UseZGC", "-XX:+ZGenerational",
-                        "-XX:+AlwaysPreTouch", "-XX:+PerfDisableSharedMem")));
-        check("gc flags list is immutable", isImmutable(RecommendedFlags.gcFlags()));
+        // ---- 1. RecommendedFlags: gcFlags() delegates to the heap-aware policy (no ZGC-always constant) ----
+        check("gcFlags(heap,dedicated) delegates to recommendedGcFlags",
+                RecommendedFlags.gcFlags(6144, false).equals(RecommendedFlags.recommendedGcFlags(6144, false)));
+        check("gc flags list is immutable", isImmutable(RecommendedFlags.gcFlags(6144, false)));
 
         // ---- 2. Heap flags: -Xms == -Xmx, MB suffixed ----
         check("heapFlags(4096) -> -Xms4096M/-Xmx4096M",
@@ -44,20 +42,24 @@ public final class RuntimeSelfTest {
                 RecommendedFlags.osReserveNote().contains("1024-1536 MB")
                         && RecommendedFlags.osReserveNote().toLowerCase().contains("off-heap"));
 
-        // ---- 4. Full launch command ----
+        // ---- 4. Full launch command (heap-aware: collector depends on heapMb/dedicated) ----
         List<String> cmd = RecommendedFlags.launchCommand("victus-engine.jar", 6656, true);
         check("launchCommand starts with java + fixed heap",
                 cmd.get(0).equals("java") && cmd.contains("-Xms6656M") && cmd.contains("-Xmx6656M"));
-        check("launchCommand contains all GC flags", cmd.containsAll(RecommendedFlags.GC_FLAGS));
-        check("launchCommand includes string dedup when asked", cmd.contains("-XX:+UseStringDeduplication"));
+        check("launchCommand contains the heap-aware GC flags",
+                cmd.containsAll(RecommendedFlags.recommendedGcFlags(6656, true)));
+        check("launchCommand always includes string dedup (additive policy)",
+                cmd.contains("-XX:+UseStringDeduplication"));
         check("launchCommand carries the aikars-flags=false marker",
                 cmd.contains("-Dusing.aikars.flags=false"));
         check("launchCommand ends with -jar <jar> --nogui",
                 cmd.get(cmd.size() - 3).equals("-jar")
                         && cmd.get(cmd.size() - 2).equals("victus-engine.jar")
                         && cmd.get(cmd.size() - 1).equals("--nogui"));
-        check("launchCommand omits string dedup when not asked",
-                !RecommendedFlags.launchCommand(null, 4096, false).contains("-XX:+UseStringDeduplication"));
+        check("small dedicated heap -> G1 (not ZGC) in the launch line",
+                cmd.contains("-XX:+UseG1GC") && !cmd.contains("-XX:+UseZGC"));
+        check("big dedicated heap launch line -> Generational ZGC",
+                RecommendedFlags.launchCommand("s.jar", 32768, true).contains("-XX:+UseZGC"));
         check("launchCommand defaults blank jar to victus-engine.jar",
                 RecommendedFlags.launchCommand("  ", 4096, false).contains("victus-engine.jar"));
 
@@ -182,7 +184,12 @@ public final class RuntimeSelfTest {
         check("elasticHeapFlags rejects xms > xmx", throwsIAE(() -> RecommendedFlags.elasticHeapFlags(4096, 1024)));
         check("elasticHeapFlags rejects <= 0", throwsIAE(() -> RecommendedFlags.elasticHeapFlags(0, 1024)));
         check("recommendedInitialHeapMb caps at 512 for big xmx", RecommendedFlags.recommendedInitialHeapMb(8192) == 512);
-        check("recommendedInitialHeapMb floors at 256 for tiny xmx", RecommendedFlags.recommendedInitialHeapMb(1024) == 256);
+        check("recommendedInitialHeapMb floors at 256 for normal xmx", RecommendedFlags.recommendedInitialHeapMb(1024) == 256);
+        check("recommendedInitialHeapMb never exceeds a tiny xmx (review #5)",
+                RecommendedFlags.recommendedInitialHeapMb(128) == 128);
+        check("elasticHeapFlags(recommendedInitialHeapMb, tiny xmx) does not throw (review #5)",
+                RecommendedFlags.elasticHeapFlags(RecommendedFlags.recommendedInitialHeapMb(128), 128)
+                        .equals(List.of("-Xms128M", "-Xmx128M")));
 
         System.out.println();
         System.out.println("RESULT: " + passed + " passed, " + failed + " failed");

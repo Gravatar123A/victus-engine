@@ -43,13 +43,32 @@ public final class ConfigResolver {
 
         c.compression = CompressionBackend.fromConfig(str("optimizations.network.compression", "libdeflate"));
         c.compressionThreshold = intVal("optimizations.network.compression-threshold", 256);
-        c.dab = boolVal(resolveWithProfile("optimizations.entities.dab", Boolean.TRUE));
+        Object dabRaw = resolveWithProfile("optimizations.entities.dab", Boolean.TRUE);
+        c.dab = boolVal(dabRaw);
+        if (dabRaw instanceof Map<?, ?> dabMap) {
+            // Only 'enabled' is honored inside a dab:{} map; the tuning knobs are hyphenated siblings.
+            // Warn (don't silently swallow) so an operator's nested keys don't vanish without a trace (review #8).
+            for (Object k : dabMap.keySet()) {
+                if (!"enabled".equals(String.valueOf(k))) {
+                    c.warnings.add("optimizations.entities.dab." + k + " is not a recognized sub-key "
+                            + "(only 'enabled' is read inside dab:{}); use the hyphenated siblings instead "
+                            + "(dab-start-distance / dab-max-tick-interval / dab-activation-dist-mod / dab-blacklist).");
+                }
+            }
+        }
         // Clamp to a sane range: 0..4096 blocks. Upper bound also prevents the int square below
         // from overflowing (46341^2 > Integer.MAX_VALUE).
         c.dabStartDistance = Math.min(4096, Math.max(0, toInt(resolveWithProfile("optimizations.entities.dab-start-distance", 12), 12)));
         c.dabStartDistanceSq = c.dabStartDistance * c.dabStartDistance;
         c.dabMaxTickInterval = Math.max(1, toInt(resolveWithProfile("optimizations.entities.dab-max-tick-interval", 20), 20));
-        c.dabActivationDistMod = Math.max(1, toInt(resolveWithProfile("optimizations.entities.dab-activation-dist-mod", 8), 8));
+        int rawDabDistMod = toInt(resolveWithProfile("optimizations.entities.dab-activation-dist-mod", 8), 8);
+        // Clamp to [1,16]: it is a right-shift exponent on squared distance, so a large value (>=~19)
+        // shifts the interval to 0 and turns DAB into a silent no-op while it still logs "enabled" (review #7).
+        c.dabActivationDistMod = Math.min(16, Math.max(1, rawDabDistMod));
+        if (rawDabDistMod > 16) {
+            c.warnings.add("optimizations.entities.dab-activation-dist-mod=" + rawDabDistMod
+                    + " is too high (a large right-shift would make DAB a silent no-op); clamped to 16.");
+        }
         Object dabBl = resolveWithProfile("optimizations.entities.dab-blacklist", null);
         if (dabBl instanceof java.util.List<?> list) {
             for (Object o : list) {
@@ -129,7 +148,9 @@ public final class ConfigResolver {
         }
     }
 
-    /** Supports the "boolean-or-map" coercion (e.g. {@code dab: {enabled: true, ...}}). */
+    /** Supports the "boolean-or-map" coercion: a bare boolean, or a {@code {enabled: <bool>}} map.
+     *  NOTE: only the {@code enabled} key is read here; other sub-keys are not implemented — the dab
+     *  resolution site warns on any unknown nested sub-key (review #8). */
     private static boolean boolVal(Object v) {
         if (v instanceof Boolean) return (Boolean) v;
         if (v instanceof Map) {

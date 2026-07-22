@@ -24,7 +24,7 @@ import java.util.Map;
  */
 public final class VictusPlugin extends JavaPlugin {
 
-    private ResolvedConfig config;
+    private ResolvedConfig config = new ResolvedConfig(); // review #2: never null — onEnable reads it immediately even if the first load fails
     private final MetricRegistry registry = new MetricRegistry();
     private MetricsHttpEndpoint endpoint;
     private int samplerTask = -1;
@@ -33,7 +33,10 @@ public final class VictusPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         MetricCatalog.registerDefaults(registry);
-        victusYml = new File(getServer().getWorldContainer(), "victus.yml");
+        // review #3: use the SAME canonical path as the native engine (VictusEngine uses Path.of("victus.yml")
+        // = the server working dir), so plugin and engine never read/write two different files under a
+        // non-default --universe. victus.yml is a server-global engine config, not per-world.
+        victusYml = new File("victus.yml").getAbsoluteFile();
         reloadVictusConfig();
 
         getLogger().info("Victus Engine loaded — profile=" + config.profile + ", threading=" + config.threadingMode
@@ -86,9 +89,17 @@ public final class VictusPlugin extends JavaPlugin {
         if (!victusYml.exists()) {
             writeDefaultVictusYml();
         }
-        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(victusYml);
-        Map<String, Object> map = YamlMaps.toNestedMap(yaml);
-        this.config = new ConfigResolver(map).resolve(null);
+        try {
+            YamlConfiguration yaml = YamlConfiguration.loadConfiguration(victusYml);
+            Map<String, Object> map = YamlMaps.toNestedMap(yaml);
+            // review #2: publish to the field only on success. A single malformed key must NOT crash
+            // onEnable() (Bukkit would disable the whole plugin) or throw raw out of /victus reload —
+            // keep the last-good config, exactly as the native VictusEngine.init() does.
+            this.config = new ConfigResolver(map).resolve(null);
+        } catch (Throwable t) {
+            getLogger().warning("victus.yml: failed to load/apply; keeping the last-good config (profile="
+                    + config.profile + "): " + t);
+        }
         // Re-push runtime-changeable engine settings (DAB) so a reload/doctor-apply actually takes
         // effect. The engine owns victus.yml natively; call it reflectively since this plugin does
         // not compile against server internals (and must still work if run as a pure plugin).
@@ -100,37 +111,9 @@ public final class VictusPlugin extends JavaPlugin {
     }
 
     private void writeDefaultVictusYml() {
-        String def = ""
-                + "# Victus Engine per-server config. See docs/VICTUS-CONFIG.md for the full schema.\n"
-                + "engine:\n"
-                + "  profile: smp            # smp | technical | minigames | modded | network\n"
-                + "threading:\n"
-                + "  mode: single            # single | parallel | regionized\n"
-                + "optimizations:\n"
-                + "  # Left commented so the chosen 'profile' decides. Uncomment to force regardless\n"
-                + "  # of profile (e.g. technical wants vanilla redstone + dab off).\n"
-                + "  #redstone: alternate-current   # vanilla | alternate-current | eigencraft\n"
-                + "  entities:\n"
-                + "    #dab: true                   # distance-throttle far mob AI (profile decides if unset)\n"
-                + "    async-pathfinding: true\n"
-                + "    per-player-mob-spawns: true\n"
-                + "  network:\n"
-                + "    compression: libdeflate     # zlib | libdeflate (NOT zstd — breaks clients)\n"
-                + "    compression-threshold: 256\n"
-                + "hosting:\n"
-                + "  limits:\n"
-                + "    max-mspt: 45\n"
-                + "  metrics:\n"
-                + "    prometheus:\n"
-                + "      enabled: true\n"
-                + "      bind: 127.0.0.1\n"
-                + "      port: 9940\n"
-                + "  logging:\n"
-                + "    format: text            # text | json\n"
-                + "  lag-doctor:\n"
-                + "    enabled: true\n";
         try {
-            Files.writeString(victusYml.toPath(), def, StandardCharsets.UTF_8);
+            // one canonical template, owned by victus-core and shared with the native engine (review #3/#6)
+            Files.writeString(victusYml.toPath(), cloud.victus.core.config.DefaultConfig.YML, StandardCharsets.UTF_8);
             getLogger().info("Wrote a default victus.yml to the server directory.");
         } catch (IOException e) {
             getLogger().warning("Could not write default victus.yml: " + e.getMessage());

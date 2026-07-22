@@ -13,28 +13,22 @@ import java.util.List;
  * (production) — which is the only place that can pick a collector. This class exists so that flag set
  * is pinned in one testable place and cannot silently drift.
  *
- * <p>The rules encoded here (all from the spec):
+ * <p>The policy encoded here is heap-aware and MEASURED (see {@link #recommendedGcFlags(int, boolean)}):
  * <ul>
- *   <li>Collector: {@code -XX:+UseZGC -XX:+ZGenerational} (generational must be on for JDK 21/22).</li>
- *   <li>Latency: {@code -XX:+AlwaysPreTouch} (no first-touch page-fault stalls mid-tick) and
- *       {@code -XX:+PerfDisableSharedMem} (no {@code /tmp/hsperfdata} safepoint hiccups).</li>
- *   <li>Fixed heap: {@code -Xms == -Xmx} to avoid resize churn and pair with {@code AlwaysPreTouch}.</li>
+ *   <li>Default collector: G1 + Aikar tuning ({@link #G1_AIKAR_FLAGS}) — measured ~half the idle RAM
+ *       of Generational ZGC on small / shared / oversold nodes.</li>
+ *   <li>Generational ZGC ({@code -XX:+UseZGC -XX:+ZGenerational}) ONLY on large
+ *       ({@code >=}{@link #ZGC_MIN_HEAP_MB}) <i>dedicated</i> heaps, where its pause win beats its RAM/CPU cost.</li>
+ *   <li>{@code -XX:+AlwaysPreTouch} ONLY on dedicated boxes (it pins RSS at boot and defeats oversell).</li>
+ *   <li>Additive universal wins ({@link #ADDITIVE_FLAGS}) layered on any collector.</li>
  *   <li>Headroom: leave ~1&ndash;1.5&nbsp;GB of container RAM for OS + off-heap — see {@link #osReserveNote()}.</li>
- *   <li>Never overlay old G1/Aikar flags — the migration is a clean replacement, not an overlay.</li>
  * </ul>
  */
 public final class RecommendedFlags {
 
-    /**
-     * The exact recommended Generational-ZGC flag list (collector + latency flags), in order.
-     * {@code -XX:+UseStringDeduplication} and the {@code -Dusing.aikars.flags=false} marker ride the
-     * same launch line but are owned elsewhere; see {@link #launchCommand(String, int, boolean)}.
-     */
-    public static final List<String> GC_FLAGS = List.of(
-            "-XX:+UseZGC",
-            "-XX:+ZGenerational",
-            "-XX:+AlwaysPreTouch",
-            "-XX:+PerfDisableSharedMem");
+    // (removed) GC_FLAGS — this unconditional ZGC-always constant was a SECOND source of GC truth that
+    // contradicted the measured heap-aware policy (review #4). Callers now go through
+    // recommendedGcFlags(heapMb, dedicated) so the collector actually depends on heap size + node type.
 
     // === Heap-aware GC policy (2026-07-20) — MEASURED on DE-1, not assumed ==================
     // A/B on the node (elastic heap, PSS via smaps_rollup): a near-idle server used
@@ -146,9 +140,10 @@ public final class RecommendedFlags {
         return dedicated && nvme ? 3 : -1; // -1 = Moonrise default (1)
     }
 
-    /** The recommended Generational-ZGC GC/latency flags. Immutable. */
-    public static List<String> gcFlags() {
-        return GC_FLAGS;
+    /** The recommended GC/latency flags for a heap — the measured heap-aware policy (delegates to
+     *  {@link #recommendedGcFlags(int, boolean)}). Immutable. */
+    public static List<String> gcFlags(int heapMb, boolean dedicated) {
+        return recommendedGcFlags(heapMb, dedicated);
     }
 
     /**
@@ -186,9 +181,11 @@ public final class RecommendedFlags {
         return List.of("-Xms" + xmsMb + "M", "-Xmx" + xmxMb + "M");
     }
 
-    /** Recommended low initial heap (idle floor) for elastic sizing: small enough to idle near the working set. */
+    /** Recommended low initial heap (idle floor) for elastic sizing: small enough to idle near the working
+     *  set, but never above {@code -Xmx} — for a tiny xmx the 256 floor would otherwise make Xms &gt; Xmx and
+     *  {@link #elasticHeapFlags(int, int)} would throw (review #5). */
     public static int recommendedInitialHeapMb(int xmxMb) {
-        return Math.min(512, Math.max(256, xmxMb / 8));
+        return Math.min(xmxMb, Math.min(512, Math.max(256, xmxMb / 8)));
     }
 
     /**
@@ -235,23 +232,21 @@ public final class RecommendedFlags {
     }
 
     /**
-     * The full recommended launch command line for a Victus instance, matching the spec's example:
-     * {@code java -Xms<N>M -Xmx<N>M} + {@link #GC_FLAGS} [+ {@code -XX:+UseStringDeduplication}]
-     * {@code -Dusing.aikars.flags=false -jar <jar> --nogui}.
+     * The full recommended launch command line for a Victus instance, using the measured heap-aware GC
+     * policy: {@code java -Xms<N>M -Xmx<N>M} + {@link #recommendedGcFlags(int, boolean)} (which already
+     * includes {@link #ADDITIVE_FLAGS} — String dedup + compact object headers + native trim) +
+     * {@code -Dusing.aikars.flags=false -jar <jar> --nogui}. The collector now depends on
+     * {@code heapMb}/{@code dedicated} instead of being an unconditional ZGC set (review #4).
      *
-     * @param jarName          the server jar (defaults to {@code victus-engine.jar} if null/blank)
-     * @param heapMb           the fixed heap size in MB
-     * @param includeStringDedup include {@code -XX:+UseStringDeduplication} (owned by the memory spec,
-     *                           rides the same line)
+     * @param jarName   the server jar (defaults to {@code victus-engine.jar} if null/blank)
+     * @param heapMb    the fixed heap size in MB
+     * @param dedicated true for a dedicated box (may pretouch / use ZGC on big heaps); false = shared/oversold
      */
-    public static List<String> launchCommand(String jarName, int heapMb, boolean includeStringDedup) {
+    public static List<String> launchCommand(String jarName, int heapMb, boolean dedicated) {
         List<String> cmd = new ArrayList<>();
         cmd.add("java");
         cmd.addAll(heapFlags(heapMb));
-        cmd.addAll(GC_FLAGS);
-        if (includeStringDedup) {
-            cmd.add("-XX:+UseStringDeduplication");
-        }
+        cmd.addAll(recommendedGcFlags(heapMb, dedicated)); // heap-aware collector + additive wins (incl. String dedup)
         cmd.add("-Dusing.aikars.flags=false");
         cmd.add("-jar");
         cmd.add(jarName == null || jarName.isBlank() ? "victus-engine.jar" : jarName);

@@ -68,13 +68,21 @@ only on a real stall. A single daemon thread scans a `ConcurrentLinkedQueue` eve
         });
     }
 
-    /** Rebuild + release on the main thread; guard already won by the caller. */
+    /** Rebuild + release on the main thread; guard already won by the caller.
+     *  REVIEW FIX #2: only publish chunkData when the rebuild SUCCEEDS; a null-data shell must never
+     *  reach the encoder (ClientboundLevelChunkWithLightPacket.write() → chunkData.write() = NPE on the
+     *  netty event loop). We must still setReady(true) to unblock the FIFO, so the encoder path is made
+     *  null-safe (see Edit 4) to emit an empty-chunk packet instead of NPE-ing. */
     private static void settleOnMain(final PendingChunk pc) {
         try {
             pc.srv.execute(() -> {
-                try { pc.shell.setChunkData(fromSnapshot(pc.snap)); }
-                catch (Throwable t) { org.slf4j.LoggerFactory.getLogger("Victus").warn("async chunk main-rebuild failed: " + t); }
-                pc.shell.setReady(true);
+                try {
+                    pc.shell.setChunkData(fromSnapshot(pc.snap));
+                } catch (Throwable t) {
+                    org.slf4j.LoggerFactory.getLogger("Victus")
+                        .warn("async chunk main-rebuild failed; releasing null-safe shell to unblock FIFO: " + t);
+                }
+                pc.shell.setReady(true); // release regardless — write() (Edit 4) tolerates null chunkData
             });
         } catch (Throwable rejected) {
             pc.shell.setReady(true); // server executor gone (shutdown) — release anyway so the FIFO drains
@@ -135,6 +143,79 @@ only on a real stall. A single daemon thread scans a `ConcurrentLinkedQueue` eve
 5. **Memory publish** — `setChunkData` (plain write) then `setReady(true)` (Paper's volatile flag) gives a
    happens-before to the connection flush thread; identical to the existing live path.
 6. **Visibility** — `settled` is an `AtomicBoolean`; `deadlineNanos` is final; `System.nanoTime()` is monotonic.
+
+## Review fixes folded into this build (adversarial review 2026-07-22, wf_a31f1f37)
+
+The review of the shipped async-send code confirmed 3 real defects. All ship in THIS build with the
+watchdog (the watchdog alone already mitigates #1, but we fix the root causes too).
+
+### Edit 4 — `ClientboundLevelChunkWithLightPacket.java`: null-safe encode (fixes #2 blast radius)
+
+`write()` dereferences `this.chunkData` unconditionally. If a null-data shell is ever released (double
+serialize failure), the netty encoder NPEs on the event loop → disconnect. Make it null-tolerant so a
+released-but-empty shell degrades to a harmless empty chunk (the client re-requests via normal
+re-tracking) instead of killing the connection:
+
+```java
+    @Override
+    public void write(final RegistryFriendlyByteBuf output) {
+        output.writeInt(this.x);
+        output.writeInt(this.z);
+        ClientboundLevelChunkPacketData d = this.chunkData;
+        if (d == null) { // Victus review-fix #2: never NPE the netty loop; emit an empty chunk instead
+            d = ClientboundLevelChunkPacketData.emptyFor(this.x, this.z);
+            org.slf4j.LoggerFactory.getLogger("Victus").warn("encoded empty chunk for null shell @ " + this.x + "," + this.z);
+        }
+        d.write(output);
+        this.lightData.write(output);
+    }
+```
+(Add a small `static ClientboundLevelChunkPacketData emptyFor(int x,int z)` that builds a valid, empty
+section payload — or, simpler and preferred: on unrecoverable rebuild failure send a
+`ClientboundForgetLevelChunkPacket(pos)` from the main thread and mark the shell as a no-op. Decide at
+build time; the invariant is **the netty encoder must never see a null chunkData**.)
+
+### Edit 5 — `ClientboundLevelChunkPacketData.shutdownAsync()`: drain, don't drop (fixes #1)
+
+`p.shutdownNow()` returns the never-started queued tasks; the current code discards them, orphaning
+every shell those tasks would have released. Run them so their shells still get `setReady`:
+
+```java
+        try {
+            p.shutdown();
+            if (!p.awaitTermination(2L, java.util.concurrent.TimeUnit.SECONDS)) {
+                java.util.List<Runnable> dropped = p.shutdownNow();
+                for (Runnable r : dropped) { try { r.run(); } catch (Throwable ignored) {} } // release orphaned shells
+            }
+        } catch (Throwable t) {
+            java.util.List<Runnable> dropped = p.shutdownNow();
+            for (Runnable r : dropped) { try { r.run(); } catch (Throwable ignored) {} }
+        }
+```
+(With Edit 2 + the watchdog also live, the WATCHDOG_QUEUE is static and survives the pool swap, so any
+still-missed shell is force-settled within `watchdogMs` — belt and suspenders.)
+
+### Edit 6 — `configureAsync()`: don't block the main thread / skip no-op rebuilds (fixes #3)
+
+`/victus reload` runs on the main thread and unconditionally tears down the pool (up to 2 s
+`awaitTermination`). Two mitigations: (a) if `enabled/threads/queue` are unchanged, just flip the flag
+and return without touching the pool; (b) otherwise hand the old pool to a short detached daemon that
+does `shutdown()/awaitTermination/shutdownNow+drain` off the main thread, and swap in the new pool
+immediately.
+
+```java
+    public static synchronized void configureAsync(final boolean enabled, final int threads, final int queue) {
+        java.util.concurrent.ThreadPoolExecutor old = asyncPool;
+        if (old != null && enabled && asyncEnabled && old.getCorePoolSize() == effectiveThreads(threads)
+                && old.getQueue().remainingCapacity() + old.getQueue().size() == effectiveQueue(threads, queue)) {
+            return; // no-op reconfigure — don't stall the tick
+        }
+        // ... build the new pool (or clear on disable), set asyncPool/asyncEnabled, THEN close `old` off-thread:
+        if (old != null) { Thread t = new Thread(() -> closePool(old), "Victus Chunk Pool Closer"); t.setDaemon(true); t.start(); }
+    }
+```
+(`closePool` = the old shutdown()/awaitTermination/shutdownNow+drain from Edit 5. Extract the
+threads/queue defaulting into `effectiveThreads`/`effectiveQueue` helpers so the no-op check matches.)
 
 ## Verify after build
 

@@ -1,38 +1,68 @@
 --- /dev/null
 +++ b/src/main/java/cloud/victus/engine/VictusHybrid.java
-@@ -1,0 +_,87 @@
+@@ -1,0 +_,281 @@
 +// SPDX-License-Identifier: GPL-3.0-only
 +package cloud.victus.engine;
 +
 +import cloud.victus.core.config.ResolvedConfig;
 +
++import com.google.gson.JsonElement;
++import com.google.gson.JsonObject;
++import com.google.gson.JsonParser;
++
 +import java.io.File;
++import java.io.InputStreamReader;
++import java.lang.reflect.Method;
++import java.net.URL;
++import java.net.URLClassLoader;
++import java.nio.charset.StandardCharsets;
 +import java.util.ArrayList;
++import java.util.HashMap;
 +import java.util.List;
++import java.util.Map;
++import java.util.concurrent.atomic.AtomicBoolean;
 +import java.util.logging.Logger;
++import java.util.zip.ZipEntry;
 +import java.util.zip.ZipFile;
 +
 +/**
-+ * Hybrid mod bridge — the seam that will let Victus Engine run Fabric/NeoForge mods alongside
-+ * Bukkit/Spigot/Paper plugins on one server (ARCHITECTURE §6, ROADMAP Phase 4).
++ * Hybrid mod bridge — lets Victus Engine run Fabric mods alongside Bukkit/Spigot/Paper plugins on one
++ * server (ARCHITECTURE §6, ROADMAP Phase 4). Isolated + off by default ({@code hybrid.enabled=false}); a
++ * pure-plugin server never runs a line of it.
 + *
-+ * <p><b>Honest status:</b> this is the FOUNDATION, not the finished runtime. Today it:
-+ * <ul>
-+ *   <li>is fully <b>isolated + off by default</b> ({@code hybrid.enabled=false}) — a pure-plugin server
-+ *       never runs a line of it;</li>
-+ *   <li>when enabled, <b>discovers</b> the mod jars in {@code mods/} and classifies them by loader; and</li>
-+ *   <li>holds the <b>safe-mode</b> registry seam for auto-disabling known-bad mod↔plugin combinations.</li>
-+ * </ul>
-+ * It does <b>not yet execute</b> the mods — embedding the Fabric/NeoForge loader runtime + bridging it to
-+ * the Bukkit API is the remaining (large) work tracked in {@code docs/phase-4/04-hybrid-mod-bridge-plan.md}.
-+ * We log that plainly rather than pretend otherwise.
++ * <p><b>What works today (H1 — verified):</b> when enabled it discovers the mod jars in {@code mods/},
++ * classifies each by loader, and then <b>actually executes</b> the declared Fabric server-side entrypoints
++ * — it reflectively instantiates each mod's {@code ModInitializer} / {@code DedicatedServerModInitializer}
++ * (as named in that mod's {@code fabric.mod.json}) on a child classloader and invokes
++ * {@code onInitialize()} / {@code onInitializeServer()} in-process, just before plugins enable. This runs
++ * on the same JVM/classloader parent as the server, so a mod compiled against our Mojang-mapped runtime
++ * binds directly with no remap.
++ *
++ * <p><b>Honest scope of H1:</b> this executes the Fabric <i>entrypoint contract</i>; it does <b>not</b> yet
++ * bring up the full fabric-loader runtime (no {@code FabricLoaderImpl.load()/freeze()}, no dependency
++ * resolution, no Mixin, no {@code fabric-api} lifecycle). So it runs mixin-free, loader-API-light mods that
++ * are Mojang-mapped; arbitrary Intermediary-mapped Modrinth/CurseForge mods and fabric-api-dependent mods
++ * need the transforming-classloader + remap work tracked in {@code docs/phase-4/04-hybrid-mod-bridge-plan.md}
++ * (Strategy B). We log exactly what ran rather than pretend.
 + */
 +public final class VictusHybrid {
 +
 +    private static final Logger LOG = Logger.getLogger("Victus");
 +
++    /** Loader/synthetic mod ids that are never user entrypoints. */
++    private static final List<String> BUILTIN_IDS = List.of("fabricloader", "fabric-loader", "java", "minecraft", "mixinextras");
++
 +    /** Known-bad mod↔plugin interaction ids that safe-mode disables. Grows as the runtime lands. */
 +    private static final List<String> SAFE_MODE_BLOCKLIST = new ArrayList<>();
++
++    /**
++     * The classloader hosting the executed mods. Kept for the JVM lifetime on purpose — mods may spawn
++     * threads / register listeners that keep running after {@link #init} returns, so it must NOT be closed.
++     */
++    private static volatile URLClassLoader hybridLoader;
++
++    /** Fires mod entrypoints exactly once per JVM — {@link #init} is invoked more than once during boot. */
++    private static final AtomicBoolean MODS_STARTED = new AtomicBoolean(false);
 +
 +    private VictusHybrid() {
 +    }
@@ -66,11 +96,175 @@
 +            if (total > 0) {
 +                LOG.info("hybrid: " + String.join(", ", names));
 +            }
-+            LOG.warning("hybrid: the loader RUNTIME is still in development (Phase 4) — mods above are DETECTED "
-+                    + "but NOT yet executed. Track/enable progress via docs/phase-4/04-hybrid-mod-bridge-plan.md.");
++
++            // H1: actually execute the discovered Fabric server-side entrypoints. init() runs more than once
++            // during boot (native CraftServer construction, then plugin-enable); firing is deferred until the
++            // Bukkit server is live (STDOUT/services ready) and then happens exactly once (see MODS_STARTED).
++            final boolean wantFabric = !"neoforge".equalsIgnoreCase(config.hybridLoader);
++            int fired = 0;
++            if (wantFabric && modsDir.isDirectory()) {
++                fired = executeFabricServerEntrypoints(modsDir);
++            }
++            if (fired < 0) {
++                LOG.info("hybrid: mod entrypoints deferred until the server is fully initialized "
++                        + "(they fire exactly once at the plugin-enable phase).");
++            } else if (fired > 0) {
++                LOG.warning("hybrid: executed " + fired + " Fabric entrypoint(s) in-process (H1: Mojmap-native, "
++                        + "loader-API-light, mixin-free mods run now). Intermediary/fabric-api/mixin mods need the "
++                        + "transforming-loader + remap work in docs/phase-4/04-hybrid-mod-bridge-plan.md (Strategy B).");
++            } else {
++                LOG.warning("hybrid: 0 Fabric entrypoints executed (no H1-compatible mods present). Full mod-loader "
++                        + "runtime (Intermediary remap, fabric-api, Mixin) is Phase 4 Strategy B — see docs/phase-4/04.");
++            }
++            if (neoforge > 0) {
++                LOG.warning("hybrid: " + neoforge + " NeoForge mod(s) detected but NOT executed — NeoForge is a later "
++                        + "track (Fabric first). See docs/phase-4/04-hybrid-mod-bridge-plan.md.");
++            }
 +        } catch (Throwable t) {
 +            LOG.warning("hybrid init failed (staying disabled): " + t);
 +        }
++    }
++
++    /**
++     * Reflectively fire the {@code "main"} and {@code "server"} Fabric entrypoints declared by each mod's
++     * {@code fabric.mod.json}. Honors the Fabric entrypoint contract (real {@code ModInitializer} /
++     * {@code DedicatedServerModInitializer} instances) without standing up the full loader runtime.
++     *
++     * @return the number of entrypoints successfully invoked
++     */
++    private static int executeFabricServerEntrypoints(final File modsDir) {
++        // Defer until the Bukkit server object exists. During early CraftServer construction the console /
++        // System.out redirect and other services aren't wired yet (mod code that touches them throws), so
++        // mods must be started at the plugin-enable phase — still before worlds load. Returns -1 = deferred.
++        try {
++            if (org.bukkit.Bukkit.getServer() == null) {
++                return -1;
++            }
++        } catch (Throwable notReady) {
++            return -1;
++        }
++        // Exactly once per JVM (init() is called more than once during boot).
++        if (!MODS_STARTED.compareAndSet(false, true)) {
++            return -1;
++        }
++        final File[] jars = modsDir.listFiles((d, n) -> n.toLowerCase().endsWith(".jar"));
++        if (jars == null || jars.length == 0) {
++            return 0;
++        }
++        // Child classloader: parent = our (server/app) loader, so mod classes resolve Minecraft/Paper by
++        // delegation, and the Fabric API interfaces (net.fabricmc.api.*) resolve from any fabric-loader jar
++        // the operator drops into mods/. Parent-first delegation keeps a single defining loader per class.
++        final List<URL> urls = new ArrayList<>();
++        for (final File jar : jars) {
++            try {
++                urls.add(jar.toURI().toURL());
++            } catch (Throwable ignored) {
++                // unreadable path — skip
++            }
++        }
++        if (urls.isEmpty()) {
++            return 0;
++        }
++        final URLClassLoader child = new URLClassLoader("victus-hybrid",
++                urls.toArray(new URL[0]), VictusHybrid.class.getClassLoader());
++        hybridLoader = child; // keep alive for the JVM lifetime (mods may hold threads/listeners)
++        int fired = 0;
++        for (final File jar : jars) {
++            fired += fireEntrypointsIn(jar, child);
++        }
++        return fired;
++    }
++
++    /** Read one jar's {@code fabric.mod.json} and fire its main/server entrypoints on {@code loader}. */
++    private static int fireEntrypointsIn(final File jar, final ClassLoader loader) {
++        final JsonObject meta;
++        try (ZipFile zf = new ZipFile(jar)) {
++            final ZipEntry e = zf.getEntry("fabric.mod.json");
++            if (e == null) {
++                return 0; // not a Fabric mod (NeoForge/other handled elsewhere)
++            }
++            try (InputStreamReader r = new InputStreamReader(zf.getInputStream(e), StandardCharsets.UTF_8)) {
++                final JsonElement parsed = JsonParser.parseReader(r);
++                if (!parsed.isJsonObject()) {
++                    return 0;
++                }
++                meta = parsed.getAsJsonObject();
++            }
++        } catch (Throwable t) {
++            LOG.warning("hybrid: could not read fabric.mod.json in " + jar.getName() + ": " + t);
++            return 0;
++        }
++        final String id = meta.has("id") && meta.get("id").isJsonPrimitive()
++                ? meta.get("id").getAsString() : jar.getName();
++        if (BUILTIN_IDS.contains(id.toLowerCase())) {
++            return 0; // skip the loader/synthetic builtins
++        }
++        if (SAFE_MODE_BLOCKLIST.contains(id)) {
++            LOG.warning("hybrid: safe-mode blocked mod '" + id + "' (known-bad) — skipped.");
++            return 0;
++        }
++        if (!meta.has("entrypoints") || !meta.get("entrypoints").isJsonObject()) {
++            return 0; // no entrypoints to run
++        }
++        final JsonObject eps = meta.getAsJsonObject("entrypoints");
++        final Map<String, Object> instances = new HashMap<>(); // one instance per class across stages
++        int fired = 0;
++        fired += fireStage(eps, "main", "onInitialize", id, loader, instances);
++        fired += fireStage(eps, "server", "onInitializeServer", id, loader, instances);
++        return fired;
++    }
++
++    /** Fire one entrypoint stage; {@code entrypoints[stage]} is an array of class-name strings or objects. */
++    private static int fireStage(final JsonObject eps, final String stage, final String method,
++                                 final String id, final ClassLoader loader, final Map<String, Object> instances) {
++        if (!eps.has(stage) || !eps.get(stage).isJsonArray()) {
++            return 0;
++        }
++        int fired = 0;
++        for (final JsonElement el : eps.getAsJsonArray(stage)) {
++            String cn = null;
++            boolean hasAdapter = false;
++            if (el.isJsonPrimitive()) {
++                cn = el.getAsString();
++            } else if (el.isJsonObject()) {
++                final JsonObject o = el.getAsJsonObject();
++                if (o.has("value") && o.get("value").isJsonPrimitive()) {
++                    cn = o.get("value").getAsString();
++                }
++                hasAdapter = o.has("adapter"); // kotlin/scala language adapters
++            }
++            if (cn == null || cn.isEmpty()) {
++                continue;
++            }
++            if (hasAdapter) {
++                LOG.warning("hybrid: mod '" + id + "' " + stage + " entrypoint '" + cn + "' uses a language "
++                        + "adapter — unsupported in H1, skipped.");
++                continue;
++            }
++            try {
++                Object inst = instances.get(cn);
++                if (inst == null) {
++                    final Class<?> c = Class.forName(cn, true, loader);
++                    inst = c.getDeclaredConstructor().newInstance();
++                    instances.put(cn, inst);
++                }
++                final Method m = inst.getClass().getMethod(method);
++                m.invoke(inst);
++                fired++;
++                LOG.info("hybrid: fired '" + stage + "' entrypoint " + cn + " (mod " + id + ")");
++            } catch (Throwable t) {
++                // A NoSuchMethodError/NoClassDefFoundError here typically means an Intermediary-mapped or
++                // fabric-api/mixin mod that H1 can't run yet — log honestly, never crash the boot. Unwrap
++                // the reflective wrapper so the real cause is visible.
++                Throwable cause = t;
++                if (t instanceof java.lang.reflect.InvocationTargetException ite && ite.getCause() != null) {
++                    cause = ite.getCause();
++                }
++                LOG.warning("hybrid: entrypoint '" + stage + "' " + cn + " (mod " + id + ") failed — likely needs "
++                        + "the Phase 4 loader runtime (remap/fabric-api/mixin): " + cause);
++            }
++        }
++        return fired;
 +    }
 +
 +    /** Classify a mod jar by the loader metadata it carries. */

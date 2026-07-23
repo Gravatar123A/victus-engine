@@ -1,9 +1,24 @@
 # Phase 4 — Hybrid mod bridge (Fabric/NeoForge + Bukkit) — plan & foundation status
 
-**Status:** foundation shipped (config seam + isolated `VictusHybrid` module + mod discovery + safe-mode
-seam), **runtime NOT yet functional**. This is the honest tracker for making mods actually execute
-alongside plugins. It is the single hardest, highest-maintenance module in the project (ARCHITECTURE §6,
-ROADMAP Phase 4) — Arclight/Mohist/Cardboard-class — so it lands in gated, soak-verified steps, never faked.
+**Status:** **H1 SHIPPED + VERIFIED** — Victus Engine executes real Fabric mod server entrypoints
+(`ModInitializer.onInitialize` + `DedicatedServerModInitializer.onInitializeServer`) in-process on the
+Server thread, alongside Bukkit/Spigot/Paper plugins, gated behind `hybrid.enabled` (off by default) and
+proven on test server e5aa1c05 (positive: a probe mod's `onInitializeServer` fires once at the ready phase
++ a spawned thread stays alive; negative: `enabled=false` → probe jar in `mods/` is fully inert). The
+**full loader runtime** (arbitrary Intermediary-mapped Modrinth/CurseForge mods, `fabric-api`, Mixin) is
+the remaining work below (H2+). It is the single hardest, highest-maintenance module in the project
+(ARCHITECTURE §6, ROADMAP Phase 4) — Arclight/Mohist/Cardboard-class — so it lands in gated, soak-verified
+steps, never faked.
+
+## H1 as-built (what actually runs today)
+`VictusHybrid.executeFabricServerEntrypoints` reads each `mods/*.jar`'s `fabric.mod.json` (gson), builds a
+child `URLClassLoader` (parent = the server/app loader, so mod classes bind our Mojang-mapped Minecraft
+directly), and reflectively instantiates + invokes each declared `main`/`server` entrypoint — honoring the
+Fabric entrypoint contract without standing up the full loader. Firing is **deferred until the Bukkit
+server is live** (console/services ready) and happens **exactly once** per JVM (`MODS_STARTED` CAS), since
+`VictusEngine.init()` runs multiple times during boot. Never throws into boot; each entrypoint is
+individually try/caught with the real cause unwrapped. **Scope:** Mojang-mapped, loader-API-light,
+mixin-free mods. Intermediary linkage / `fabric-api` / Mixin → H2 (below).
 
 ## What "fully works" actually requires (why it's not one session)
 Running a Fabric/NeoForge mod on a Bukkit/Spigot/Paper server means reconciling **two runtimes that were

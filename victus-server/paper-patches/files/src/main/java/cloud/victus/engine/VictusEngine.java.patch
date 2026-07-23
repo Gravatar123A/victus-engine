@@ -1,6 +1,6 @@
 --- /dev/null
 +++ b/src/main/java/cloud/victus/engine/VictusEngine.java
-@@ -1,0 +_,238 @@
+@@ -1,0 +_,254 @@
 +// SPDX-License-Identifier: GPL-3.0-only
 +package cloud.victus.engine;
 +
@@ -186,6 +186,22 @@
 +        } catch (Throwable ignored) {
 +        }
 +        return config;
++    }
++
++    /** Observability snapshot for the plugin's Prometheus sampler (invoked reflectively — the plugin
++     *  compiles against the API only and cannot see server internals). Order:
++     *  [asyncEnabled 0/1, asyncDispatched, watchdogFires, chunkWorkerThreads, chunkIoThreads]. Never throws. */
++    public static long[] observabilitySnapshot() {
++        try {
++            boolean on = net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData.asyncEnabled();
++            long dispatched = net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData.asyncDispatchedCount();
++            long fires = net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData.asyncWatchdogFireCount();
++            return new long[]{ on ? 1L : 0L, dispatched, fires,
++                    ca.spottedleaf.moonrise.common.util.MoonriseCommon.victusAppliedWorkerThreads,
++                    ca.spottedleaf.moonrise.common.util.MoonriseCommon.victusAppliedIoThreads };
++        } catch (Throwable t) {
++            return new long[]{0L, 0L, 0L, -1L, -1L};
++        }
 +    }
 +    // Victus end
 +

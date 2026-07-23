@@ -22,6 +22,10 @@ final class MetricsSampler implements Runnable {
     private final MetricRegistry registry;
     /** collector name -> [cumulative count, cumulative time-ms] from the previous sample. */
     private final Map<String, long[]> gcPrev = new HashMap<>();
+    /** Reflectively-resolved cloud.victus.engine.VictusEngine.observabilitySnapshot() — server internals
+     *  the plugin cannot see at compile time; null when running as a pure plugin without the native engine. */
+    private java.lang.reflect.Method obsSnapshot;
+    private boolean obsResolved;
 
     MetricsSampler(Server server, MetricRegistry registry) {
         this.server = server;
@@ -51,6 +55,32 @@ final class MetricsSampler implements Runnable {
         }
 
         sampleGc();
+        sampleEngine();
+    }
+
+    /** Reflectively pull the native engine's async-chunk-send + chunk-thread counters into the registry.
+     *  The plugin compiles against the API only, so server internals are reached via VictusEngine. */
+    private void sampleEngine() {
+        try {
+            if (!obsResolved) {
+                obsResolved = true;
+                try {
+                    obsSnapshot = Class.forName("cloud.victus.engine.VictusEngine").getMethod("observabilitySnapshot");
+                } catch (Throwable notPresent) {
+                    obsSnapshot = null; // pure-plugin mode (no native engine) — skip these metrics
+                }
+            }
+            if (obsSnapshot == null) return;
+            long[] s = (long[]) obsSnapshot.invoke(null);
+            if (s == null || s.length < 5) return;
+            registry.gauge(MetricCatalog.ASYNC_CHUNK_SEND_ENABLED).set(s[0]);
+            registry.gauge(MetricCatalog.ASYNC_CHUNK_SEND_DISPATCHED).set(s[1]);
+            registry.gauge(MetricCatalog.ASYNC_CHUNK_SEND_WATCHDOG_FIRES).set(s[2]);
+            if (s[3] >= 0) registry.gauge(MetricCatalog.CHUNK_WORKER_THREADS).set(s[3]);
+            if (s[4] >= 0) registry.gauge(MetricCatalog.CHUNK_IO_THREADS).set(s[4]);
+        } catch (Throwable ignored) {
+            // engine internals unavailable this tick — skip these metrics silently
+        }
     }
 
     /** Records the average pause of any GC that occurred since the last sample, per collector. JMX

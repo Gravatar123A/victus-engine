@@ -17,7 +17,7 @@
  
          int workerThreads = configWorkerThreads;
  
-@@ -54,7 +_,17 @@
+@@ -54,13 +_,29 @@
              workerThreads = defaultWorkerThreads;
          }
  
@@ -36,3 +36,15 @@
  
          WORKER_POOL.adjustThreadCount(workerThreads);
          IO_POOL.adjustThreadCount(ioThreads);
++        victusAppliedWorkerThreads = workerThreads; // Victus - surface to the Prometheus sampler (via VictusEngine)
++        victusAppliedIoThreads = ioThreads; // Victus
+ 
+         LOGGER.info(PlatformHooks.get().getBrand() + " is using " + workerThreads + " worker threads, " + ioThreads + " I/O threads");
+     }
++
++    // Victus - last-applied chunk-system thread counts, surfaced as Prometheus metrics via VictusEngine.observabilitySnapshot()
++    public static volatile int victusAppliedWorkerThreads = -1;
++    public static volatile int victusAppliedIoThreads = -1;
+ 
+     public static final long IO_QUEUE_HOLD_TIME = (long)(25.0e6); // 25ms
+     public static final BalancedPrioritisedThreadPool IO_POOL = new BalancedPrioritisedThreadPool(

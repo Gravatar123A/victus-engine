@@ -34,7 +34,7 @@
  
      public ClientboundLevelChunkPacketData(final RegistryFriendlyByteBuf input, final int x, final int z) {
          this.heightmaps = HEIGHTMAPS_STREAM_CODEC.decode(input);
-@@ -152,6 +_,298 @@
+@@ -152,6 +_,305 @@
      public Map<Heightmap.Types, long[]> getHeightmaps() {
          return this.heightmaps;
      }
@@ -249,6 +249,11 @@
 +    private static volatile long watchdogMs = 1500L;
 +    private static final java.util.Queue<PendingChunk> WATCHDOG_QUEUE = new java.util.concurrent.ConcurrentLinkedQueue<>();
 +    private static volatile Thread watchdogThread;
++    // Victus observability counters (sampled once/sec by the plugin's Prometheus endpoint via VictusEngine).
++    private static final java.util.concurrent.atomic.AtomicLong asyncDispatched = new java.util.concurrent.atomic.AtomicLong();
++    private static final java.util.concurrent.atomic.AtomicLong asyncWatchdogFires = new java.util.concurrent.atomic.AtomicLong();
++    public static long asyncDispatchedCount() { return asyncDispatched.get(); }
++    public static long asyncWatchdogFireCount() { return asyncWatchdogFires.get(); }
 +
 +    public static void setWatchdogMs(final long ms) { watchdogMs = ms >= 100L ? ms : 1500L; }
 +
@@ -271,6 +276,7 @@
 +                                        final Snapshot snap,
 +                                        final net.minecraft.server.MinecraftServer srv) {
 +        final PendingChunk pc = new PendingChunk(shell, snap, srv, System.nanoTime() + watchdogMs * 1_000_000L);
++        asyncDispatched.incrementAndGet();
 +        WATCHDOG_QUEUE.add(pc);
 +        ensureWatchdog();
 +        submitAsync(() -> {
@@ -316,6 +322,7 @@
 +                    if (pc.settled.get()) { it.remove(); continue; }        // worker already owns it
 +                    if (now - pc.deadlineNanos >= 0L) {                      // overflow-safe deadline compare
 +                        if (pc.settled.compareAndSet(false, true)) {
++                            asyncWatchdogFires.incrementAndGet();
 +                            org.slf4j.LoggerFactory.getLogger("Victus")
 +                                .warn("async chunk send: serializer stalled >" + watchdogMs + "ms — main-thread recovery");
 +                            settleOnMain(pc);

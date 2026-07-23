@@ -47,6 +47,16 @@ public final class MetricCatalog {
     public static final String CGROUP_CPU_QUOTA = "victus_cgroup_cpu_quota";
     /** cgroup memory limit in bytes (gauge) — from module 04. */
     public static final String CGROUP_MEM_LIMIT_BYTES = "victus_cgroup_mem_limit_bytes";
+    /** Chunk-system worker threads currently in use (gauge). */
+    public static final String CHUNK_WORKER_THREADS = "victus_chunk_worker_threads";
+    /** Chunk-system I/O threads currently in use (gauge). */
+    public static final String CHUNK_IO_THREADS = "victus_chunk_io_threads";
+    /** Async chunk send enabled, 0/1 (gauge). */
+    public static final String ASYNC_CHUNK_SEND_ENABLED = "victus_async_chunk_send_enabled";
+    /** Cumulative async chunk sends dispatched to serializer workers (gauge). */
+    public static final String ASYNC_CHUNK_SEND_DISPATCHED = "victus_async_chunk_send_dispatched";
+    /** Cumulative async chunk-send anti-stall watchdog recoveries — should stay 0 (gauge). */
+    public static final String ASYNC_CHUNK_SEND_WATCHDOG_FIRES = "victus_async_chunk_send_watchdog_fires";
 
     // ---- label keys ----
 
@@ -97,5 +107,10 @@ public final class MetricCatalog {
         registry.describe(NETLOOP_CPU_RATIO, MetricType.GAUGE, "Network event-loop CPU utilisation ratio (0..1) by loop.");
         registry.describe(CGROUP_CPU_QUOTA, MetricType.GAUGE, "cgroup CPU quota granted to this instance.");
         registry.describe(CGROUP_MEM_LIMIT_BYTES, MetricType.GAUGE, "cgroup memory limit in bytes for this instance.");
+        registry.describe(CHUNK_WORKER_THREADS, MetricType.GAUGE, "Chunk-system worker threads in use.");
+        registry.describe(CHUNK_IO_THREADS, MetricType.GAUGE, "Chunk-system I/O threads in use.");
+        registry.describe(ASYNC_CHUNK_SEND_ENABLED, MetricType.GAUGE, "Async chunk send enabled (1) or off (0).");
+        registry.describe(ASYNC_CHUNK_SEND_DISPATCHED, MetricType.GAUGE, "Cumulative async chunk sends dispatched to serializer workers.");
+        registry.describe(ASYNC_CHUNK_SEND_WATCHDOG_FIRES, MetricType.GAUGE, "Cumulative async chunk-send watchdog stall recoveries (should stay 0).");
     }
 }

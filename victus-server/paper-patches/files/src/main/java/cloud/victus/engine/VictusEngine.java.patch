@@ -1,6 +1,6 @@
 --- /dev/null
 +++ b/src/main/java/cloud/victus/engine/VictusEngine.java
-@@ -1,0 +_,254 @@
+@@ -1,0 +_,294 @@
 +// SPDX-License-Identifier: GPL-3.0-only
 +package cloud.victus.engine;
 +
@@ -27,6 +27,8 @@
 +
 +    private static final Logger LOG = Logger.getLogger("Victus");
 +    private static volatile ResolvedConfig config = new ResolvedConfig();
++    /** PARALLEL tick engine (EXPERIMENTAL, opt-in). Non-null + enabled only under threading.mode=parallel. */
++    private static volatile cloud.victus.core.threading.ParallelTickExecutor tickExecutor;
 +
 +    private VictusEngine() {
 +    }
@@ -71,6 +73,20 @@
 +            net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData.configureAsync(
 +                    config.asyncChunkSend, config.asyncChunkSendThreads, config.asyncChunkSendQueueCapacity);
 +            net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData.setWatchdogMs(config.asyncChunkSendWatchdogMs);
++            // PARALLEL tick engine (EXPERIMENTAL — opt-in via threading.mode=parallel). Default SINGLE leaves
++            // the classic serial tick untouched. NOT production-safe yet: world ticks share state (cross-world
++            // entity moves, plugin events on worker threads, static per-world fields) — see docs/phase-4/03.
++            if (config.threadingMode == cloud.victus.core.config.ThreadingMode.PARALLEL) {
++                int tcores = config.nodeCores > 0 ? config.nodeCores : Runtime.getRuntime().availableProcessors();
++                cloud.victus.core.threading.ParallelTickExecutor ex = new cloud.victus.core.threading.ParallelTickExecutor(Math.max(2, Math.min(tcores, 8)));
++                ex.enable();
++                tickExecutor = ex;
++                LOG.warning("threading.mode=parallel — EXPERIMENTAL parallel world ticking ENABLED. Not yet "
++                        + "soak-verified and world-tick thread-safety is incomplete (see docs/phase-4). Test only.");
++            } else if (tickExecutor != null) {
++                tickExecutor.disable();
++                tickExecutor = null;
++            }
 +            // Native GC advice — HEAP-AWARE (measured 2026-07-20: Generational ZGC uses ~2x the RAM of
 +            // G1 at idle on small/oversold nodes). G1+Aikar is recommended by default; ZGC only pays off
 +            // on large, dedicated, many-core heaps where its pause-time win outweighs its RAM/CPU cost.
@@ -201,6 +217,30 @@
 +                    ca.spottedleaf.moonrise.common.util.MoonriseCommon.victusAppliedIoThreads };
 +        } catch (Throwable t) {
 +            return new long[]{0L, 0L, 0L, -1L, -1L};
++        }
++    }
++
++    /** True only under threading.mode=parallel with a live executor — the tick loop takes the parallel path.
++     *  EXPERIMENTAL; default (SINGLE) is always false, so the classic serial tick runs unchanged. */
++    public static boolean parallelWorldTicking() {
++        cloud.victus.core.threading.ParallelTickExecutor ex = tickExecutor;
++        return ex != null && ex.isParallel();
++    }
++
++    /** Tick each level via the parallel executor (barrier-synced; exceptions rethrown on the caller). The
++     *  caller MUST have applied plugin-visible / static per-world state serially first. Falls back to serial
++     *  if the executor is gone. EXPERIMENTAL — see docs/phase-4/03 for the world-tick safety caveats. */
++    public static void tickWorldsParallel(final java.util.List<net.minecraft.server.level.ServerLevel> levels,
++                                          final java.util.function.Consumer<net.minecraft.server.level.ServerLevel> tickFn) {
++        cloud.victus.core.threading.ParallelTickExecutor ex = tickExecutor;
++        java.util.List<Runnable> units = new java.util.ArrayList<>(levels.size());
++        for (final net.minecraft.server.level.ServerLevel level : levels) {
++            units.add(() -> tickFn.accept(level));
++        }
++        if (ex != null) {
++            ex.runAll(units);
++        } else {
++            for (Runnable r : units) r.run();
 +        }
 +    }
 +    // Victus end

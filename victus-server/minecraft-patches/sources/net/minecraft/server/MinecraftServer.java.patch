@@ -17,3 +17,48 @@
          int tickIndex = this.tickCount % 100;
          this.aggregatedTickTimesNanos = this.aggregatedTickTimesNanos - this.tickTimesNanos[tickIndex];
          this.aggregatedTickTimesNanos += tickTime;
+@@ -1812,6 +_,35 @@
+         this.updateEffectiveRespawnData();
+ 
+         this.isIteratingOverLevels = true; // Paper - Throw exception on world create while being ticked
++        // Victus start - PARALLEL tick engine (EXPERIMENTAL; opt-in threading.mode=parallel). Default SINGLE
++        // takes the original serial loop in the else branch below (byte-identical, zero behaviour change).
++        if (cloud.victus.engine.VictusEngine.parallelWorldTicking()) {
++            java.util.List<ServerLevel> victusLevels = new java.util.ArrayList<>();
++            for (ServerLevel level : this.getAllLevels()) victusLevels.add(level);
++            // Serial pre-pass on the MAIN thread for plugin-visible + static per-world state (safe), THEN tick
++            // the worlds in parallel. skipHopperEvents is a single static shared across worlds, so it cannot be
++            // per-world under parallel ticking — set once CONSERVATIVELY (fire events unless nobody listens;
++            // per-world hopper.disableMoveEvent is not honoured in parallel — see docs/phase-4).
++            final boolean victusPhysics = org.bukkit.event.block.BlockPhysicsEvent.getHandlerList().getRegisteredListeners().length > 0;
++            final boolean victusEntityMove = io.papermc.paper.event.entity.EntityMoveEvent.getHandlerList().getRegisteredListeners().length > 0;
++            for (ServerLevel level : victusLevels) {
++                level.hasPhysicsEvent = victusPhysics;
++                level.hasEntityMoveEvent = victusEntityMove;
++                level.updateLagCompensationTick();
++            }
++            net.minecraft.world.level.block.entity.HopperBlockEntity.skipHopperEvents = org.bukkit.event.inventory.InventoryMoveItemEvent.getHandlerList().getRegisteredListeners().length == 0;
++            final java.util.function.BooleanSupplier victusHaveTime = haveTime;
++            cloud.victus.engine.VictusEngine.tickWorldsParallel(victusLevels, level -> {
++                try {
++                    level.tick(victusHaveTime);
++                } catch (Throwable t) {
++                    CrashReport report = CrashReport.forThrowable(t, "Exception ticking world");
++                    level.fillReportDetails(report);
++                    throw new ReportedException(report);
++                }
++                level.explosionDensityCache.clear(); // Paper - Optimize explosions
++            });
++        } else {
+         for (ServerLevel level : this.getAllLevels()) {
+             level.hasPhysicsEvent = org.bukkit.event.block.BlockPhysicsEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper - BlockPhysicsEvent
+             level.hasEntityMoveEvent = io.papermc.paper.event.entity.EntityMoveEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper - Add EntityMoveEvent
+@@ -1832,6 +_,8 @@
+             profiler.pop();
+             level.explosionDensityCache.clear(); // Paper - Optimize explosions
+         }
++        }
++        // Victus end
+         this.isIteratingOverLevels = false; // Paper - Throw exception on world create while being ticked
+ 
+         profiler.popPush("connection");

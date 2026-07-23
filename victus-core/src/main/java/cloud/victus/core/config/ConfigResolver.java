@@ -97,6 +97,14 @@ public final class ConfigResolver {
         c.dedicated = boolAt("hosting.dedicated", false);
         c.nodeCores = intVal("hosting.node-cores", -1);
         c.nodeNvme = boolAt("hosting.node-nvme", false);
+        c.hybridEnabled = boolAt("hybrid.enabled", false);
+        String hybLoader = str("hybrid.loader", "auto").trim().toLowerCase(java.util.Locale.ROOT);
+        c.hybridLoader = (hybLoader.equals("fabric") || hybLoader.equals("neoforge")) ? hybLoader : "auto";
+        c.hybridSafeMode = boolAt("hybrid.safe-mode", true);
+        if (c.hybridEnabled) {
+            c.warnings.add("hybrid.enabled=true — the mod bridge is EXPERIMENTAL; its loader runtime is still "
+                    + "in development (Phase 4), so mods are discovered but may not fully run yet. See docs/phase-4/04.");
+        }
         c.monsterSpawnCap = toInt(resolveWithProfile("optimizations.entities.monster-spawn-cap", -1), -1);
         c.projectileSaveLimit = toInt(resolveWithProfile("optimizations.entities.projectile-save-limit", -1), -1);
 

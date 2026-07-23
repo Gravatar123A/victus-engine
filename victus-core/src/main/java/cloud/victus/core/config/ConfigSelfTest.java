@@ -208,6 +208,26 @@ public final class ConfigSelfTest {
         check("shared 16-core → keep Moonrise default (-1)",
                 cloud.victus.core.runtime.RecommendedFlags.recommendedChunkWorkerThreads(16, false) == -1);
 
+        // 16. hybrid mod bridge config (Phase 4 foundation)
+        ResolvedConfig hybDef = new ConfigResolver(cfg("engine.profile", "smp")).resolve(null);
+        check("hybrid disabled by default", !hybDef.hybridEnabled);
+        check("hybrid loader default auto", hybDef.hybridLoader.equals("auto"));
+        check("hybrid safe-mode default true", hybDef.hybridSafeMode);
+        Map<String, Object> hybOn = cfg("engine.profile", "smp");
+        put(hybOn, "hybrid.enabled", true);
+        put(hybOn, "hybrid.loader", "fabric");
+        put(hybOn, "hybrid.safe-mode", false);
+        ResolvedConfig hybR = new ConfigResolver(hybOn).resolve(null);
+        check("hybrid enabled explicit", hybR.hybridEnabled);
+        check("hybrid loader fabric", hybR.hybridLoader.equals("fabric"));
+        check("hybrid safe-mode false", !hybR.hybridSafeMode);
+        check("hybrid enabled emits experimental warning",
+                hybR.warnings.stream().anyMatch(w -> w.contains("EXPERIMENTAL")));
+        Map<String, Object> hybBad = cfg("engine.profile", "smp");
+        put(hybBad, "hybrid.loader", "banana");
+        check("hybrid bad loader falls back to auto",
+                new ConfigResolver(hybBad).resolve(null).hybridLoader.equals("auto"));
+
         System.out.println();
         System.out.println("RESULT: " + passed + " passed, " + failed + " failed");
         System.out.println("Sample resolved (smp): " + smp);

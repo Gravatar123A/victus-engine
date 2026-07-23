@@ -1,0 +1,90 @@
+--- /dev/null
++++ b/src/main/java/cloud/victus/engine/VictusHybrid.java
+@@ -1,0 +_,87 @@
++// SPDX-License-Identifier: GPL-3.0-only
++package cloud.victus.engine;
++
++import cloud.victus.core.config.ResolvedConfig;
++
++import java.io.File;
++import java.util.ArrayList;
++import java.util.List;
++import java.util.logging.Logger;
++import java.util.zip.ZipFile;
++
++/**
++ * Hybrid mod bridge — the seam that will let Victus Engine run Fabric/NeoForge mods alongside
++ * Bukkit/Spigot/Paper plugins on one server (ARCHITECTURE §6, ROADMAP Phase 4).
++ *
++ * <p><b>Honest status:</b> this is the FOUNDATION, not the finished runtime. Today it:
++ * <ul>
++ *   <li>is fully <b>isolated + off by default</b> ({@code hybrid.enabled=false}) — a pure-plugin server
++ *       never runs a line of it;</li>
++ *   <li>when enabled, <b>discovers</b> the mod jars in {@code mods/} and classifies them by loader; and</li>
++ *   <li>holds the <b>safe-mode</b> registry seam for auto-disabling known-bad mod↔plugin combinations.</li>
++ * </ul>
++ * It does <b>not yet execute</b> the mods — embedding the Fabric/NeoForge loader runtime + bridging it to
++ * the Bukkit API is the remaining (large) work tracked in {@code docs/phase-4/04-hybrid-mod-bridge-plan.md}.
++ * We log that plainly rather than pretend otherwise.
++ */
++public final class VictusHybrid {
++
++    private static final Logger LOG = Logger.getLogger("Victus");
++
++    /** Known-bad mod↔plugin interaction ids that safe-mode disables. Grows as the runtime lands. */
++    private static final List<String> SAFE_MODE_BLOCKLIST = new ArrayList<>();
++
++    private VictusHybrid() {
++    }
++
++    /** Wire the hybrid module from resolved config. Inert unless {@code hybrid.enabled}. Never throws. */
++    public static void init(final ResolvedConfig config) {
++        try {
++            if (config == null || !config.hybridEnabled) {
++                return; // isolated: nothing loads on a pure-plugin/single server
++            }
++            final File modsDir = new File("mods");
++            int fabric = 0, neoforge = 0, unknown = 0, total = 0;
++            final List<String> names = new ArrayList<>();
++            if (modsDir.isDirectory()) {
++                final File[] jars = modsDir.listFiles((d, n) -> n.toLowerCase().endsWith(".jar"));
++                if (jars != null) {
++                    for (final File jar : jars) {
++                        total++;
++                        switch (classify(jar)) {
++                            case "fabric" -> fabric++;
++                            case "neoforge" -> neoforge++;
++                            default -> unknown++;
++                        }
++                        names.add(jar.getName());
++                    }
++                }
++            }
++            LOG.warning("hybrid mod bridge ENABLED (loader=" + config.hybridLoader + ", safe-mode="
++                    + config.hybridSafeMode + "). Discovered " + total + " mod jar(s) in mods/ [fabric=" + fabric
++                    + " neoforge=" + neoforge + " unknown=" + unknown + "].");
++            if (total > 0) {
++                LOG.info("hybrid: " + String.join(", ", names));
++            }
++            LOG.warning("hybrid: the loader RUNTIME is still in development (Phase 4) — mods above are DETECTED "
++                    + "but NOT yet executed. Track/enable progress via docs/phase-4/04-hybrid-mod-bridge-plan.md.");
++        } catch (Throwable t) {
++            LOG.warning("hybrid init failed (staying disabled): " + t);
++        }
++    }
++
++    /** Classify a mod jar by the loader metadata it carries. */
++    private static String classify(final File jar) {
++        try (ZipFile zf = new ZipFile(jar)) {
++            if (zf.getEntry("fabric.mod.json") != null) {
++                return "fabric";
++            }
++            if (zf.getEntry("META-INF/neoforge.mods.toml") != null || zf.getEntry("META-INF/mods.toml") != null) {
++                return "neoforge";
++            }
++        } catch (Throwable ignored) {
++            // unreadable/not a zip — treat as unknown
++        }
++        return "unknown";
++    }
++}

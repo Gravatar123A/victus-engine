@@ -79,6 +79,17 @@ public final class ResolvedConfig {
     /** Hosting: node storage is NVMe/SSD → worth extra chunk I/O threads (dedicated boxes only). */
     public boolean nodeNvme = false;
 
+    /**
+     * Hybrid mod bridge — run Fabric/NeoForge mods alongside Bukkit/Spigot/Paper plugins on one server.
+     * Isolated module, OFF by default: the loader RUNTIME is still in development (Phase 4 — see
+     * docs/phase-4/04). When enabled, mods are discovered from {@code mods/}; full execution lands later.
+     */
+    public boolean hybridEnabled = false;
+    /** Mod loader to bootstrap: {@code auto} | {@code fabric} | {@code neoforge}. */
+    public String hybridLoader = "auto";
+    /** Auto-disable known-bad mod↔plugin interactions when the bridge runs. */
+    public boolean hybridSafeMode = true;
+
     /** Non-fatal advisories surfaced at boot and in {@code /victus doctor}. */
     public final List<String> warnings = new ArrayList<>();
 

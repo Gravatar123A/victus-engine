@@ -35,6 +35,8 @@ public final class DefaultConfig {
             + "    compression: libdeflate     # zlib | libdeflate (NOT zstd — breaks clients)\n"
             + "    compression-threshold: 256\n"
             + "hosting:\n"
+            + "  #dedicated: false        # true ONLY on a dedicated node → uncaps chunk worker-threads (never on shared/oversold)\n"
+            + "  #node-nvme: false        # true if the node uses NVMe/SSD → extra chunk I/O threads (dedicated only)\n"
             + "  limits:\n"
             + "    max-mspt: 45\n"
             + "  metrics:\n"

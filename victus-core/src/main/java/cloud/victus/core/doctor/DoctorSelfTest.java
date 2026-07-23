@@ -131,6 +131,17 @@ public final class DoctorSelfTest {
         check("view-distance writes server.properties",
                 cat.get("view-distance").writes().file().equals(ConfigPatch.SERVER_PROPERTIES));
 
+        // chunk-workers-uncap (dedicated-node auto-tuning)
+        check("CHUNK_GEN suggests chunk-workers-uncap",
+                containsId(cat.forSubsystem(Subsystem.CHUNK_GEN), "chunk-workers-uncap"));
+        check("CHUNK_IO suggests chunk-workers-uncap",
+                containsId(cat.forSubsystem(Subsystem.CHUNK_IO), "chunk-workers-uncap"));
+        check("chunk-workers-uncap reverts to chunk-workers-default",
+                cat.revertOf(cat.get("chunk-workers-uncap")).id().equals("chunk-workers-default"));
+        check("chunk-workers-uncap writes hosting.dedicated=true",
+                cat.get("chunk-workers-uncap").writes().key().equals("hosting.dedicated")
+                        && Boolean.TRUE.equals(cat.get("chunk-workers-uncap").writes().value()));
+
         // catalog validation: duplicate id rejected
         check("duplicate remediation id rejected", throwsIAE(() -> new RemediationCatalog(
                 List.of(cat.get("dab-on"), cat.get("dab-on")), Map.of())));

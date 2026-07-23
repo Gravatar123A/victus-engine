@@ -1,6 +1,6 @@
 --- /dev/null
 +++ b/src/main/java/cloud/victus/engine/VictusEngine.java
-@@ -1,0 +_,164 @@
+@@ -1,0 +_,238 @@
 +// SPDX-License-Identifier: GPL-3.0-only
 +package cloud.victus.engine;
 +
@@ -95,6 +95,17 @@
 +                    LOG.info("GC: running " + gc.displayName());
 +                }
 +            }
++            // Proactive dedicated-node advisory (mirrors the GC advisory): a big box left on the shared
++            // default leaves chunk worker-threads capped at Moonrise's ~cores/4.
++            int cores = config.nodeCores > 0 ? config.nodeCores : Runtime.getRuntime().availableProcessors();
++            if (!config.dedicated && cores >= 8) {
++                LOG.info("hosting: " + cores + " cores detected but hosting.dedicated=false — set it true on a "
++                        + "DEDICATED node to uncap chunk worker-threads (~2.3x faster chunk gen); keep false on shared hosting.");
++            }
++            // One-line tuning summary so ops/support see every active Victus optimization at a glance.
++            LOG.info("tuning summary: gc=" + gc.displayName() + " heap=" + heapMb + "MB cores=" + cores
++                    + " dedicated=" + config.dedicated + " async-send=" + config.asyncChunkSend
++                    + " dab=" + config.dab + " redstone=" + config.redstone + " compression=" + config.compression);
 +        } catch (Throwable t) {
 +            // review #2: do NOT reset to hard defaults — a single malformed key on /victus reload would
 +            // otherwise silently discard a good running config. Keep the last-good config (on first boot
@@ -114,6 +125,69 @@
 +    public static void reload() {
 +        init();
 +    }
++
++    // Victus start - dedicated-node chunk auto-tuning. MoonriseCommon.adjustWorkerThreads runs during
++    // global-config load — BEFORE CraftServer constructs and calls init() — so these read victus.yml
++    // directly (once, cached) rather than relying on config()/init() ordering. Never throw.
++    private static volatile int cachedChunkWorkers = Integer.MIN_VALUE;
++    private static volatile int cachedChunkIo = Integer.MIN_VALUE;
++
++    /** Recommended {@code chunk-system.worker-threads} from victus.yml {@code hosting.dedicated} + cores,
++     *  or {@code -1} to keep Moonrise's conservative shared-hosting default. Cached; safe at any phase. */
++    public static int recommendedChunkWorkerThreads(final int detectedCores) {
++        int c = cachedChunkWorkers;
++        if (c != Integer.MIN_VALUE) return c;
++        int result = -1;
++        try {
++            ResolvedConfig cfg = earlyConfig();
++            int cores = cfg.nodeCores > 0 ? cfg.nodeCores : detectedCores;
++            result = cloud.victus.core.runtime.RecommendedFlags.recommendedChunkWorkerThreads(cores, cfg.dedicated);
++            if (result > 0) {
++                LOG.info("dedicated node → chunk-system worker-threads=" + result
++                        + " (uncapped from Moonrise's ~cores/4 shared default; cores=" + cores + ")");
++            }
++        } catch (Throwable ignored) {
++            result = -1;
++        }
++        cachedChunkWorkers = result;
++        return result;
++    }
++
++    /** Recommended {@code chunk-system.io-threads}, or {@code -1} to keep the default (1). */
++    public static int recommendedChunkIoThreads() {
++        int c = cachedChunkIo;
++        if (c != Integer.MIN_VALUE) return c;
++        int result = -1;
++        try {
++            ResolvedConfig cfg = earlyConfig();
++            result = cloud.victus.core.runtime.RecommendedFlags.recommendedChunkIoThreads(cfg.dedicated, cfg.nodeNvme);
++        } catch (Throwable ignored) {
++            result = -1;
++        }
++        cachedChunkIo = result;
++        return result;
++    }
++
++    /** One-off lightweight resolve of victus.yml (independent of init() ordering); falls back to the loaded
++     *  config if the file is absent/unreadable. Never throws. */
++    private static ResolvedConfig earlyConfig() {
++        try {
++            Path f = Path.of("victus.yml");
++            if (Files.exists(f)) {
++                try (BufferedReader r = Files.newBufferedReader(f, StandardCharsets.UTF_8)) {
++                    Object parsed = new Yaml().load(r);
++                    if (parsed instanceof Map<?, ?> m) {
++                        @SuppressWarnings("unchecked")
++                        Map<String, Object> cast = (Map<String, Object>) m;
++                        return new ConfigResolver(cast).resolve(null);
++                    }
++                }
++            }
++        } catch (Throwable ignored) {
++        }
++        return config;
++    }
++    // Victus end
 +
 +    /**
 +     * Applies profile-driven optimizations to a freshly-loaded per-world config. Called from

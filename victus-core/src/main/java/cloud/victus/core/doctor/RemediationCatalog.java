@@ -212,6 +212,20 @@ public final class RemediationCatalog {
                 ConfigPatch.serverProperty("simulation-distance", 10),
                 "sim-distance"));
 
+        // --- chunk threading (dedicated-node auto-uncap) ---
+        r.add(new Remediation("chunk-workers-uncap",
+                "Uncap chunk worker-threads (mark node dedicated)",
+                "~2.3x faster chunk generation (measured) on a multi-core box",
+                "DEDICATED nodes only — on shared/oversold hosting it steals cores from co-located servers",
+                ConfigPatch.victus("hosting.dedicated", Boolean.TRUE),
+                "chunk-workers-default"));
+        r.add(new Remediation("chunk-workers-default",
+                "Restore Moonrise's default chunk worker-threads",
+                "shared-hosting-safe (never steals a neighbour's cores)",
+                "loses the parallel chunk-gen speed-up on a dedicated box",
+                ConfigPatch.victus("hosting.dedicated", Boolean.FALSE),
+                "chunk-workers-uncap"));
+
         Map<Subsystem, List<String>> suggestions = new EnumMap<>(Subsystem.class);
         suggestions.put(Subsystem.ENTITIES,
                 List.of("dab-on", "per-player-spawns", "async-tracker", "activation-range"));
@@ -220,9 +234,9 @@ public final class RemediationCatalog {
         suggestions.put(Subsystem.REDSTONE,
                 List.of("ac-redstone"));
         suggestions.put(Subsystem.CHUNK_GEN,
-                List.of("view-distance", "sim-distance"));
+                List.of("chunk-workers-uncap", "view-distance", "sim-distance"));
         suggestions.put(Subsystem.CHUNK_IO,
-                List.of("view-distance", "sim-distance"));
+                List.of("chunk-workers-uncap", "view-distance", "sim-distance"));
         suggestions.put(Subsystem.NETWORK,
                 List.of("compression-threshold"));
         // PLUGINS + OTHER have no config lever: the doctor points at the offender instead.

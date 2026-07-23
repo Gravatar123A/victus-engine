@@ -94,6 +94,9 @@ public final class ConfigResolver {
 
         c.perPlayerMobSpawns = boolVal(resolveWithProfile("optimizations.entities.per-player-mob-spawns", Boolean.TRUE));
         c.maxMspt = intVal("hosting.limits.max-mspt", 45);
+        c.dedicated = boolAt("hosting.dedicated", false);
+        c.nodeCores = intVal("hosting.node-cores", -1);
+        c.nodeNvme = boolAt("hosting.node-nvme", false);
         c.monsterSpawnCap = toInt(resolveWithProfile("optimizations.entities.monster-spawn-cap", -1), -1);
         c.projectileSaveLimit = toInt(resolveWithProfile("optimizations.entities.projectile-save-limit", -1), -1);
 
@@ -135,6 +138,12 @@ public final class ConfigResolver {
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("expected an integer at " + dotted + ", got: " + v);
         }
+    }
+
+    /** Boolean at a dotted path (hosting.* — operator settings, NOT profile-overlaid); {@code def} if absent. */
+    private boolean boolAt(String dotted, boolean def) {
+        Object v = path(victus, dotted);
+        return v == null ? def : Boolean.parseBoolean(String.valueOf(v));
     }
 
     /** Coerce a resolved value (from victus.yml / profile / default) to an int. */

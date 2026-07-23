@@ -189,6 +189,25 @@ public final class ConfigSelfTest {
         check("default template offers async-pathfinding as a commented opt-in (review #6)",
                 DefaultConfig.YML.contains("#async-pathfinding"));
 
+        // 15. hosting.dedicated / node-cores / node-nvme (dedicated-node auto-tuning)
+        ResolvedConfig hostDef = new ConfigResolver(cfg("engine.profile", "smp")).resolve(null);
+        check("hosting.dedicated default false", !hostDef.dedicated);
+        check("hosting.node-nvme default false", !hostDef.nodeNvme);
+        check("hosting.node-cores default -1", hostDef.nodeCores == -1);
+        Map<String, Object> hostOn = cfg("engine.profile", "smp");
+        put(hostOn, "hosting.dedicated", true);
+        put(hostOn, "hosting.node-nvme", true);
+        put(hostOn, "hosting.node-cores", 16);
+        ResolvedConfig hostR = new ConfigResolver(hostOn).resolve(null);
+        check("hosting.dedicated explicit true", hostR.dedicated);
+        check("hosting.node-nvme explicit true", hostR.nodeNvme);
+        check("hosting.node-cores explicit 16", hostR.nodeCores == 16);
+        // recommendedChunkWorkerThreads maps dedicated+cores → uncapped; shared/tiny → -1 (keep default)
+        check("dedicated 16-core → uncapped chunk workers (cores-2)",
+                cloud.victus.core.runtime.RecommendedFlags.recommendedChunkWorkerThreads(16, true) == 14);
+        check("shared 16-core → keep Moonrise default (-1)",
+                cloud.victus.core.runtime.RecommendedFlags.recommendedChunkWorkerThreads(16, false) == -1);
+
         System.out.println();
         System.out.println("RESULT: " + passed + " passed, " + failed + " failed");
         System.out.println("Sample resolved (smp): " + smp);

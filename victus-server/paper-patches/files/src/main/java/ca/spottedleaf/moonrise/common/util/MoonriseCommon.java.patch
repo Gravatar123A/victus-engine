@@ -1,0 +1,38 @@
+--- a/src/main/java/ca/spottedleaf/moonrise/common/util/MoonriseCommon.java
++++ b/src/main/java/ca/spottedleaf/moonrise/common/util/MoonriseCommon.java
+@@ -47,6 +_,16 @@
+             defaultWorkerThreads = defaultWorkerThreads / 2;
+         }
+         defaultWorkerThreads = Integer.getInteger(PlatformHooks.get().getBrand() + ".WorkerThreadCount", Integer.valueOf(defaultWorkerThreads));
++        // Victus start - dedicated-node chunk auto-uncap: when neither config/paper-global.yml nor an explicit
++        // -D<brand>.WorkerThreadCount overrode, use Victus's dedicated recommendation (from victus.yml
++        // hosting.dedicated + cores). -1 = shared / not-dedicated / tiny box → keep Moonrise's default.
++        if (configWorkerThreads <= 0 && System.getProperty(PlatformHooks.get().getBrand() + ".WorkerThreadCount") == null) {
++            final int victusWorkers = cloud.victus.engine.VictusEngine.recommendedChunkWorkerThreads(OSNuma.getNativeInstance().getTotalCores());
++            if (victusWorkers > 0) {
++                defaultWorkerThreads = victusWorkers;
++            }
++        }
++        // Victus end
+ 
+         int workerThreads = configWorkerThreads;
+ 
+@@ -54,7 +_,17 @@
+             workerThreads = defaultWorkerThreads;
+         }
+ 
+-        final int ioThreads = Math.max(1, configIoThreads);
++        // Victus start - dedicated-node chunk I/O auto-tune (NVMe): bump I/O threads when the operator hasn't
++        // set config/paper-global.yml io-threads and victus.yml marks the node dedicated + NVMe.
++        int effIoThreads = configIoThreads;
++        if (effIoThreads <= 0) {
++            final int victusIo = cloud.victus.engine.VictusEngine.recommendedChunkIoThreads();
++            if (victusIo > 0) {
++                effIoThreads = victusIo;
++            }
++        }
++        final int ioThreads = Math.max(1, effIoThreads);
++        // Victus end
+ 
+         WORKER_POOL.adjustThreadCount(workerThreads);
+         IO_POOL.adjustThreadCount(ioThreads);

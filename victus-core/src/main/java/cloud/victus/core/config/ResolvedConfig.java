@@ -68,6 +68,17 @@ public final class ResolvedConfig {
     /** Per-chunk save cap for pile-prone projectiles/orbs (arrows, XP, etc.); -1 = off (vanilla). */
     public int projectileSaveLimit = -1;
 
+    /**
+     * Hosting: true only on a DEDICATED (not shared/oversold) node. Unlocks core-hungry tuning that would
+     * steal cores from co-located servers on a shared box — chiefly uncapping Moonrise chunk worker-threads
+     * (Moonrise deliberately caps to ~cores/4 for shared-hosting fairness). Default {@code false} = safe.
+     */
+    public boolean dedicated = false;
+    /** Hosting: physical cores available to this instance; -1 = auto-detect at runtime. */
+    public int nodeCores = -1;
+    /** Hosting: node storage is NVMe/SSD → worth extra chunk I/O threads (dedicated boxes only). */
+    public boolean nodeNvme = false;
+
     /** Non-fatal advisories surfaced at boot and in {@code /victus doctor}. */
     public final List<String> warnings = new ArrayList<>();
 
@@ -93,6 +104,8 @@ public final class ResolvedConfig {
                 + ", maxMspt=" + maxMspt
                 + ", monsterSpawnCap=" + monsterSpawnCap
                 + ", projectileSaveLimit=" + projectileSaveLimit
+                + ", dedicated=" + dedicated
+                + ", nodeNvme=" + nodeNvme
                 + ", warnings=" + warnings + "}";
     }
 }

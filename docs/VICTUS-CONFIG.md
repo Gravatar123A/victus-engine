@@ -47,6 +47,9 @@ optimizations:
     worker-threads: auto
     io-threads: auto
     max-generate-rate: 8        # chunks/sec/player, throttles gen spikes (0 = unlimited)
+    async-send: false           # experimental Java-client chunk serialization offload
+                                # Geyser/Floodgate Bedrock players always use synchronous send:
+                                # deferred FIFO packets can stall server-authoritative movement
   memory:
     dedup: true                 # block-state/model + string deduplication
   gc:

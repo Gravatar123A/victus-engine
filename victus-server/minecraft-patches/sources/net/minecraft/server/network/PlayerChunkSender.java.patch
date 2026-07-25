@@ -6,7 +6,9 @@
          final boolean shouldModify = level.chunkPacketBlockController.shouldModify(connection.player, chunk);
 -        connection.send(new ClientboundLevelChunkWithLightPacket(chunk, level.getLightEngine(), null, null, shouldModify));
 +        // Victus start - async chunk send (v1: non-Anti-Xray only; snapshot-on-main → serialize-on-worker → in-order via Paper's isReady FIFO)
-+        if (!shouldModify && net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData.asyncEnabled()) {
++        if (!shouldModify
++                && net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData.asyncEnabled()
++                && !cloud.victus.engine.VictusClientCompatibility.requiresSynchronousChunkSend(connection.player.getUUID())) {
 +            final ChunkPos cpos = chunk.getPos();
 +            final net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData.Snapshot snap =
 +                    net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData.capture(chunk); // MAIN: freeze palette/heightmaps/block-entities

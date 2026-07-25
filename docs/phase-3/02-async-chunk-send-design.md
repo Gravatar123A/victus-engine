@@ -17,7 +17,7 @@ The four reports converge on one thing: **the offload rail already exists in-tre
 
 ## 1. V1 SCOPE DECISION
 
-**SHIP:** *Snapshot-on-main â†’ serialize-on-worker â†’ send-in-order via the existing ready-gate.* Default **OFF**, profile-gated (like async-path/DAB v1).
+**SHIP:** *Snapshot-on-main â†’ serialize-on-worker â†’ send-in-order via the existing ready-gate.* Default **OFF**, profile-gated (like async-path/DAB v1). Geyser/Floodgate Bedrock clients are excluded and use Paper's original synchronous construction path: Bedrock movement is server-authoritative, so head-of-line blocking behind a not-ready chunk shell presents as movement freezes followed by position corrections on mobile.
 
 The split:
 - **MAIN (in patched `PlayerChunkSender.sendChunk`, line 81):** read all live world state â€” `shouldModify` [83], light data, block-entity NBT, heightmap `long[]` clone, and a **`section.copy()` snapshot of each non-empty section** [LCS 337]. Then enqueue a `ready=false` packet **shell** via `connection.send(...)` **immediately, in send order** â€” this reserves the per-player FIFO slot. Fire `PlayerChunkLoadEvent` [87] on main.
@@ -220,6 +220,7 @@ Resolution: master off â‡’ helper is fully inert (vanilla path only, zero o
 - Redstone-heavy / fast-block-change area sent during load (R2/R3 window).
 - Anti-xray on, with a client that attempts x-ray, to confirm no ore leak (R8).
 - ViaVersion/ViaBackwards + ProtocolLib in the pipeline (R9) â€” legacy clients + packet listeners must render chunks correctly.
+- Geyser/Floodgate mobile movement soak with async send enabled: verify Bedrock players take the synchronous bypass and can walk continuously while chunks load (no freeze/correction cycle); Java players should continue through the async path.
 
 **Prove the MSPT win:** spark sampler, main-thread only, before/after. Expect **self-time on `ClientboundLevelChunkPacketData.extractChunkData` / `LevelChunkSection.write` / `states.write` and `ChunkPacketBlockControllerAntiXray.modifyBlocks` to drop toward zero on the main thread** and reappear on "Victus Async Chunk Serializer" threads. Net main-thread cost should be dominated by the new `section.copy()` in `capture()` (verify it is materially cheaper than the removed encode+obfuscate â€” the Amdahl honesty check). Measure MSPT during a scripted join-storm with `/tps` + spark `tickmonitor`.
 

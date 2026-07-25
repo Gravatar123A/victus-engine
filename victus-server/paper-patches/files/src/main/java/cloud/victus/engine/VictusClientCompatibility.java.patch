@@ -1,0 +1,129 @@
+--- /dev/null
++++ b/src/main/java/cloud/victus/engine/VictusClientCompatibility.java
+@@ -0,0 +1,126 @@
++// SPDX-License-Identifier: GPL-3.0-only
++package cloud.victus.engine;
++
++import org.bukkit.Bukkit;
++import org.bukkit.plugin.Plugin;
++
++import java.lang.reflect.Method;
++import java.util.Map;
++import java.util.UUID;
++import java.util.concurrent.ConcurrentHashMap;
++import java.util.logging.Level;
++import java.util.logging.Logger;
++
++/** Compatibility decisions for clients connected through protocol translators. */
++public final class VictusClientCompatibility {
++
++    private static final Logger LOG = Logger.getLogger("Victus");
++    private static final long CACHE_NANOS = 30_000_000_000L;
++    private static final Map<UUID, CachedDecision> DECISIONS = new ConcurrentHashMap<>();
++    private static final Map<UUID, Boolean> BYPASS_LOGGED = new ConcurrentHashMap<>();
++    private static volatile Detector geyserDetector;
++    private static volatile Detector floodgateDetector;
++
++    private VictusClientCompatibility() {
++    }
++
++    /**
++     * Bedrock movement through Geyser is server-authoritative. A deferred chunk packet at the head of
++     * Paper's outbound FIFO can therefore freeze visible movement until the async serializer releases
++     * the queue, followed by a position correction. Keep those clients on Paper's synchronous packet
++     * construction path; Java clients may still use Victus async chunk serialization.
++     */
++    public static boolean requiresSynchronousChunkSend(final UUID playerId) {
++        final long now = System.nanoTime();
++        final CachedDecision cached = DECISIONS.get(playerId);
++        if (cached != null && now - cached.createdNanos < CACHE_NANOS) {
++            if (cached.synchronous) logBypassOnce(playerId);
++            return cached.synchronous;
++        }
++
++        final Detection geyser = detectGeyser(playerId);
++        final Detection floodgate = detectFloodgate(playerId);
++        final boolean synchronous = geyser == Detection.BEDROCK || floodgate == Detection.BEDROCK
++                || geyser == Detection.ERROR || floodgate == Detection.ERROR;
++        DECISIONS.put(playerId, new CachedDecision(synchronous, now));
++        if (synchronous) logBypassOnce(playerId);
++        return synchronous;
++    }
++
++    private static Detection detectGeyser(final UUID playerId) {
++        Detector detector = geyserDetector;
++        if (detector == null) {
++            detector = createDetector("Geyser-Spigot", "org.geysermc.geyser.api.GeyserApi", "api");
++            if (detector != Detector.ABSENT) {
++                geyserDetector = detector;
++            }
++        }
++        return detector.detect(playerId);
++    }
++
++    private static Detection detectFloodgate(final UUID playerId) {
++        Detector detector = floodgateDetector;
++        if (detector == null) {
++            detector = createDetector("floodgate", "org.geysermc.floodgate.api.FloodgateApi", "getInstance");
++            if (detector != Detector.ABSENT) {
++                floodgateDetector = detector;
++            }
++        }
++        return detector.detect(playerId);
++    }
++
++    private static Detector createDetector(final String pluginName, final String apiClassName,
++                                           final String accessorName) {
++        final Plugin plugin = Bukkit.getPluginManager().getPlugin(pluginName);
++        if (plugin == null || !plugin.isEnabled()) {
++            return Detector.ABSENT;
++        }
++        try {
++            final Class<?> apiClass = Class.forName(apiClassName, true, plugin.getClass().getClassLoader());
++            final Object api = apiClass.getMethod(accessorName).invoke(null);
++            final Method check = apiClass.getMethod(
++                    pluginName.equals("floodgate") ? "isFloodgatePlayer" : "isBedrockPlayer", UUID.class);
++            return playerId -> {
++                try {
++                    return Boolean.TRUE.equals(check.invoke(api, playerId)) ? Detection.BEDROCK : Detection.JAVA;
++                } catch (ReflectiveOperationException | RuntimeException ex) {
++                    LOG.log(Level.WARNING, "Could not query " + pluginName
++                            + " client type; forcing synchronous chunk send for safety", ex);
++                    return Detection.ERROR;
++                }
++            };
++        } catch (ReflectiveOperationException | LinkageError ex) {
++            LOG.log(Level.WARNING, pluginName + " is enabled but its API could not be initialized; "
++                    + "forcing synchronous chunk send for safety", ex);
++            return Detector.ERROR;
++        }
++    }
++
++    private static void logBypassOnce(final UUID playerId) {
++        if (BYPASS_LOGGED.putIfAbsent(playerId, Boolean.TRUE) == null) {
++            LOG.fine("Bedrock or conservatively classified player " + playerId
++                    + " will use synchronous chunk send to preserve movement packet latency");
++        }
++        // Opportunistic cleanup prevents UUIDs from accumulating forever on long-running servers.
++        if (BYPASS_LOGGED.size() > 4096) {
++            BYPASS_LOGGED.clear();
++        }
++        if (DECISIONS.size() > 4096) {
++            final long cutoff = System.nanoTime() - CACHE_NANOS;
++            DECISIONS.entrySet().removeIf(entry -> entry.getValue().createdNanos < cutoff);
++        }
++    }
++
++    private enum Detection { BEDROCK, JAVA, ABSENT, ERROR }
++
++    private record CachedDecision(boolean synchronous, long createdNanos) {
++    }
++
++    @FunctionalInterface
++    private interface Detector {
++        Detector ABSENT = ignored -> Detection.ABSENT;
++        Detector ERROR = ignored -> Detection.ERROR;
++
++        Detection detect(UUID playerId);
++    }
++}

@@ -1,0 +1,4362 @@
+{
+  "$schema": "./versions.schema.json",
+  "formatVersion": 1,
+  "catalogScope": {
+    "firstRelease": "1.8",
+    "lastRelease": "26.2",
+    "officialReleaseCount": 74,
+    "paperBaselineCount": 53,
+    "paperGapCount": 21,
+    "implementedSourceLineCount": 1
+  },
+  "frozenUpstream": {
+    "refreshedAt": "2026-08-09T12:12:01Z",
+    "sources": {
+      "mojang": "https://launchermeta.mojang.com/mc/game/version_manifest_v2.json",
+      "paper": "https://fill.papermc.io/v3/projects/paper"
+    },
+    "note": "Regenerate offline from upstream-snapshot.json; use --refresh only for an explicit metadata update."
+  },
+  "capabilityKeys": [
+    "pluginApi",
+    "victusCore",
+    "nativeConfig",
+    "dab",
+    "asyncChunkSend",
+    "lagDoctor",
+    "metrics",
+    "parallelTicking",
+    "regionizedThreading",
+    "fabricBridge",
+    "neoForgeBridge"
+  ],
+  "versions": [
+    {
+      "minecraftVersion": "26.2",
+      "family": "26.2",
+      "mojang": {
+        "releaseTime": "2026-06-16T12:03:33+00:00",
+        "manifestSha1": "4b74f58f68a2baae3547d5a20274079f29cafc06",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/4b74f58f68a2baae3547d5a20274079f29cafc06/26.2.json"
+      },
+      "paperBaseline": true,
+      "availability": "implemented",
+      "unavailableReason": null,
+      "java": {
+        "build": 25,
+        "runtime": 25
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": "9.4.1",
+        "paperweight": "2.0.0-beta.21",
+        "task": "./gradlew applyAllPatches build",
+        "artifactPath": "victus-server/build/libs/*.jar"
+      },
+      "sourceBranch": "main",
+      "sourceImplemented": true,
+      "supportTier": "beta",
+      "capabilities": {
+        "pluginApi": true,
+        "victusCore": true,
+        "nativeConfig": true,
+        "dab": true,
+        "asyncChunkSend": true,
+        "lagDoctor": true,
+        "metrics": true,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": true,
+        "unit": true,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "26.2",
+        "build": 111,
+        "channel": "stable",
+        "buildTime": "2026-08-07T16:16:19Z",
+        "commit": "f5706462f8833a858fee5fe1bccc05b60c248922",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/3ec81e3ea50cc6090b94aab024491846a202702e8a874308a5d7510f6b3aa012/paper-26.2-111.jar",
+          "sha256": "3ec81e3ea50cc6090b94aab024491846a202702e8a874308a5d7510f6b3aa012",
+          "size": 61859543
+        },
+        "sourceRef": "75c0b485bf038c175d6f3e6efc67519cd5cd524d",
+        "sourceBuild": 62
+      }
+    },
+    {
+      "minecraftVersion": "26.1.2",
+      "family": "26.1",
+      "mojang": {
+        "releaseTime": "2026-04-09T10:12:23+00:00",
+        "manifestSha1": "d3fd35143b65049d54ffc0dd8e51bfbad6d958d8",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/d3fd35143b65049d54ffc0dd8e51bfbad6d958d8/26.1.2.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 25,
+        "runtime": 25
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "26.1.2",
+        "build": 74,
+        "channel": "stable",
+        "buildTime": "2026-07-06T16:51:09Z",
+        "commit": null,
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/1d70b1dab9cf4a6de615209a536f3a45a2186240253c428213ce2188ab95e5f7/paper-26.1.2-74.jar",
+          "sha256": "1d70b1dab9cf4a6de615209a536f3a45a2186240253c428213ce2188ab95e5f7",
+          "size": 52893229
+        }
+      }
+    },
+    {
+      "minecraftVersion": "26.1.1",
+      "family": "26.1",
+      "mojang": {
+        "releaseTime": "2026-04-01T09:06:36+00:00",
+        "manifestSha1": "832bdf7eafaff2edb3106e89bacdc2844e50561d",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/832bdf7eafaff2edb3106e89bacdc2844e50561d/26.1.1.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 25,
+        "runtime": 25
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "26.1.1",
+        "build": 29,
+        "channel": "alpha",
+        "buildTime": "2026-04-06T17:01:17Z",
+        "commit": "106a934df2f892f5895b239f80c12bf13c164657",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/43d08ed52c7af4e9f72769122501a5c15f99c7ace0c428a3eef040fd3f6fdbc5/paper-26.1.1-29.jar",
+          "sha256": "43d08ed52c7af4e9f72769122501a5c15f99c7ace0c428a3eef040fd3f6fdbc5",
+          "size": 52896049
+        }
+      }
+    },
+    {
+      "minecraftVersion": "26.1",
+      "family": "26.1",
+      "mojang": {
+        "releaseTime": "2026-03-24T12:11:04+00:00",
+        "manifestSha1": "d6e4071ad771d30003e17727e8acd41283aef208",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/d6e4071ad771d30003e17727e8acd41283aef208/26.1.json"
+      },
+      "paperBaseline": false,
+      "availability": "unavailable",
+      "unavailableReason": "Paper never shipped a build for this exact Mojang release.",
+      "java": {
+        "build": 25,
+        "runtime": 25
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "unavailable",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "26.1"
+      }
+    },
+    {
+      "minecraftVersion": "1.21.11",
+      "family": "1.21",
+      "mojang": {
+        "releaseTime": "2025-12-09T12:23:30+00:00",
+        "manifestSha1": "53338515d3ee0af37b9ba26553c0d5464bc51082",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/53338515d3ee0af37b9ba26553c0d5464bc51082/1.21.11.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 21,
+        "runtime": 21
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.21.11",
+        "build": 132,
+        "channel": "stable",
+        "buildTime": "2026-05-11T11:43:09Z",
+        "commit": "c5eb0790f199da6c38d0a650e1e5cd5415b28185",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba/paper-1.21.11-132.jar",
+          "sha256": "5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba",
+          "size": 54846016
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.21.10",
+      "family": "1.21",
+      "mojang": {
+        "releaseTime": "2025-10-07T09:17:23+00:00",
+        "manifestSha1": "5716a18364fcdbe52a3921d22a05e597ff2a0527",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/5716a18364fcdbe52a3921d22a05e597ff2a0527/1.21.10.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 21,
+        "runtime": 21
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.21.10",
+        "build": 130,
+        "channel": "stable",
+        "buildTime": "2026-01-04T21:00:59Z",
+        "commit": "2f7f1397628914e44154c326b56e5e7e9adf6721",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/158703f75a26f842ea656b3dc6d75bf3d1ec176b97a2c36384d0b80b3871af53/paper-1.21.10-130.jar",
+          "sha256": "158703f75a26f842ea656b3dc6d75bf3d1ec176b97a2c36384d0b80b3871af53",
+          "size": 54475623
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.21.9",
+      "family": "1.21",
+      "mojang": {
+        "releaseTime": "2025-09-30T11:58:43+00:00",
+        "manifestSha1": "6ce2a3b90099e62be348070638ba0b2d039bd593",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/6ce2a3b90099e62be348070638ba0b2d039bd593/1.21.9.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 21,
+        "runtime": 21
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.21.9",
+        "build": 59,
+        "channel": "alpha",
+        "buildTime": "2025-10-07T11:51:44.734Z",
+        "commit": "0ff899dae303f986b86ae9c520e477d9a02f5b92",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/aec002e77c7566e49494fdf05430b96078ffd1d7430e652d4f338fef951e7a10/paper-1.21.9-59.jar",
+          "sha256": "aec002e77c7566e49494fdf05430b96078ffd1d7430e652d4f338fef951e7a10",
+          "size": 53440323
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.21.8",
+      "family": "1.21",
+      "mojang": {
+        "releaseTime": "2025-07-17T12:04:02+00:00",
+        "manifestSha1": "9180a2c4587e3c31e3879f9899bf2b1c21cf7720",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/9180a2c4587e3c31e3879f9899bf2b1c21cf7720/1.21.8.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 21,
+        "runtime": 21
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.21.8",
+        "build": 60,
+        "channel": "stable",
+        "buildTime": "2025-09-06T21:50:11.982Z",
+        "commit": "29c8822d90899c89d2689338e81a98f690bcba12",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/8de7c52c3b02403503d16fac58003f1efef7dd7a0256786843927fa92ee57f1e/paper-1.21.8-60.jar",
+          "sha256": "8de7c52c3b02403503d16fac58003f1efef7dd7a0256786843927fa92ee57f1e",
+          "size": 52811717
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.21.7",
+      "family": "1.21",
+      "mojang": {
+        "releaseTime": "2025-06-30T09:32:16+00:00",
+        "manifestSha1": "ea4619772b0ce39dd9e22d793b196ae178e5465a",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/ea4619772b0ce39dd9e22d793b196ae178e5465a/1.21.7.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 21,
+        "runtime": 21
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.21.7",
+        "build": 32,
+        "channel": "stable",
+        "buildTime": "2025-07-16T20:11:08.497Z",
+        "commit": "e792779dd8d8ba06d6448ca34bdd98da1daed481",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/83838188699cb2837e55b890fb1a1d39ad0710285ed633fbf9fc14e9f47ce078/paper-1.21.7-32.jar",
+          "sha256": "83838188699cb2837e55b890fb1a1d39ad0710285ed633fbf9fc14e9f47ce078",
+          "size": 52771702
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.21.6",
+      "family": "1.21",
+      "mojang": {
+        "releaseTime": "2025-06-17T11:10:28+00:00",
+        "manifestSha1": "dffcce716f50a3a35fcc0619fb60aa7003ba3045",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/dffcce716f50a3a35fcc0619fb60aa7003ba3045/1.21.6.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 21,
+        "runtime": 21
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.21.6",
+        "build": 48,
+        "channel": "stable",
+        "buildTime": "2025-06-30T09:49:31.805Z",
+        "commit": "4d854e66b80dad9898d71a0f0b1f83cd39b97119",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/35e2dfa66b3491b9d2f0bb033679fa5aca1e1fdf097e7a06a80ce8afeda5c214/paper-1.21.6-48.jar",
+          "sha256": "35e2dfa66b3491b9d2f0bb033679fa5aca1e1fdf097e7a06a80ce8afeda5c214",
+          "size": 52639704
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.21.5",
+      "family": "1.21",
+      "mojang": {
+        "releaseTime": "2025-03-25T12:14:58+00:00",
+        "manifestSha1": "632cae4ca5ac00077483e571542c490703ed8e24",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/632cae4ca5ac00077483e571542c490703ed8e24/1.21.5.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 21,
+        "runtime": 21
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.21.5",
+        "build": 114,
+        "channel": "alpha",
+        "buildTime": "2025-06-18T11:03:41.500Z",
+        "commit": "a1b30587d9d5a5d9bf1530f7d1e289f2e29991b6",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/2ae6ae22adf417699746e0f89fc2ef6cb6ee050a5f6608cee58f0535d60b509e/paper-1.21.5-114.jar",
+          "sha256": "2ae6ae22adf417699746e0f89fc2ef6cb6ee050a5f6608cee58f0535d60b509e",
+          "size": 51427274
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.21.4",
+      "family": "1.21",
+      "mojang": {
+        "releaseTime": "2024-12-03T10:12:57+00:00",
+        "manifestSha1": "aafe0d11f3524b0623cc13814256d9cbd3ba2d9a",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/aafe0d11f3524b0623cc13814256d9cbd3ba2d9a/1.21.4.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 21,
+        "runtime": 21
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.21.4",
+        "build": 232,
+        "channel": "stable",
+        "buildTime": "2025-06-09T10:18:55.778Z",
+        "commit": "12d8fe0beb21c1a1d9b093fb411884367cce9e7e",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/5ee4f542f628a14c644410b08c94ea42e772ef4d29fe92973636b6813d4eaffc/paper-1.21.4-232.jar",
+          "sha256": "5ee4f542f628a14c644410b08c94ea42e772ef4d29fe92973636b6813d4eaffc",
+          "size": 51437498
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.21.3",
+      "family": "1.21",
+      "mojang": {
+        "releaseTime": "2024-10-23T12:28:15+00:00",
+        "manifestSha1": "d2ec1fb0a227258b233667841b2d5d1d2bb7cf2f",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/d2ec1fb0a227258b233667841b2d5d1d2bb7cf2f/1.21.3.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 21,
+        "runtime": 21
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.21.3",
+        "build": 83,
+        "channel": "stable",
+        "buildTime": "2025-03-28T15:59:22.645Z",
+        "commit": "d6c81daebcec6c595dda004bdc13f3cfb305c9ed",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/87e973e1d338e869e7fdbc4b8fadc1579d7bb0246a0e0cf6e5700ace6c8bc17e/paper-1.21.3-83.jar",
+          "sha256": "87e973e1d338e869e7fdbc4b8fadc1579d7bb0246a0e0cf6e5700ace6c8bc17e",
+          "size": 50931273
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.21.2",
+      "family": "1.21",
+      "mojang": {
+        "releaseTime": "2024-10-22T09:58:55+00:00",
+        "manifestSha1": "548eaa6f8d09fdbccf32b9dfe88928e19c9f99b8",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/548eaa6f8d09fdbccf32b9dfe88928e19c9f99b8/1.21.2.json"
+      },
+      "paperBaseline": false,
+      "availability": "unavailable",
+      "unavailableReason": "Paper never shipped a build for this exact Mojang release.",
+      "java": {
+        "build": 21,
+        "runtime": 21
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "unavailable",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.21.2"
+      }
+    },
+    {
+      "minecraftVersion": "1.21.1",
+      "family": "1.21",
+      "mojang": {
+        "releaseTime": "2024-08-08T12:24:45+00:00",
+        "manifestSha1": "091b2c2728f8ac413b6e7e683a6c12f21a53057c",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/091b2c2728f8ac413b6e7e683a6c12f21a53057c/1.21.1.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 21,
+        "runtime": 21
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.21.1",
+        "build": 133,
+        "channel": "stable",
+        "buildTime": "2025-03-28T16:16:41.212Z",
+        "commit": "3cb8529bdbeeec9ff51df2c94e93dbe7e41bb811",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/39bd8c00b9e18de91dcabd3cc3dcfa5328685a53b7187a2f63280c22e2d287b9/paper-1.21.1-133.jar",
+          "sha256": "39bd8c00b9e18de91dcabd3cc3dcfa5328685a53b7187a2f63280c22e2d287b9",
+          "size": 49394394
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.21",
+      "family": "1.21",
+      "mojang": {
+        "releaseTime": "2024-06-13T08:24:03+00:00",
+        "manifestSha1": "be128ad45c9b25bcf8682ef8b1fa20c20aa6e771",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/be128ad45c9b25bcf8682ef8b1fa20c20aa6e771/1.21.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 21,
+        "runtime": 21
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.21",
+        "build": 130,
+        "channel": "stable",
+        "buildTime": "2024-08-10T10:04:43.605Z",
+        "commit": "b1b5d4c1e4b7c95afd5c932ca392bee66533a60c",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/ab9bb1afc3cea6978a0c03ce8448aa654fe8a9c4dddf341e7cbda1b0edaa73f5/paper-1.21-130.jar",
+          "sha256": "ab9bb1afc3cea6978a0c03ce8448aa654fe8a9c4dddf341e7cbda1b0edaa73f5",
+          "size": 49049109
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.20.6",
+      "family": "1.20",
+      "mojang": {
+        "releaseTime": "2024-04-29T12:40:45+00:00",
+        "manifestSha1": "c95d50e5f81c50ce17b7f67d7e560382c89cb9f4",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/c95d50e5f81c50ce17b7f67d7e560382c89cb9f4/1.20.6.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 21,
+        "runtime": 21
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.20.6",
+        "build": 151,
+        "channel": "stable",
+        "buildTime": "2024-10-30T19:15:37.756Z",
+        "commit": "a4f0f5ccd05592dc9be040d8c17d6795baa7b1b8",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/4b011f5adb5f6c72007686a223174fce82f31aeb4b34faf4652abc840b47e640/paper-1.20.6-151.jar",
+          "sha256": "4b011f5adb5f6c72007686a223174fce82f31aeb4b34faf4652abc840b47e640",
+          "size": 45826876
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.20.5",
+      "family": "1.20",
+      "mojang": {
+        "releaseTime": "2024-04-23T11:54:12+00:00",
+        "manifestSha1": "35215c2e701c551e8f8ea28cb8708b79cabe2b79",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/35215c2e701c551e8f8ea28cb8708b79cabe2b79/1.20.5.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 21,
+        "runtime": 21
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.20.5",
+        "build": 22,
+        "channel": "alpha",
+        "buildTime": "2024-04-29T03:51:31.118Z",
+        "commit": "8f7ac62905dbeeef1ad000a44c7dd035d4e115b0",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/3cd7da2f8df92e082a501a39c674aab3c0343edd179b86f5baccaebfc9974132/paper-1.20.5-22.jar",
+          "sha256": "3cd7da2f8df92e082a501a39c674aab3c0343edd179b86f5baccaebfc9974132",
+          "size": 45593685
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.20.4",
+      "family": "1.20",
+      "mojang": {
+        "releaseTime": "2023-12-07T12:56:20+00:00",
+        "manifestSha1": "40cc1cd04732a49aaed3c1f324107c40061f4cd8",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/40cc1cd04732a49aaed3c1f324107c40061f4cd8/1.20.4.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 17,
+        "runtime": 17
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.20.4",
+        "build": 499,
+        "channel": "stable",
+        "buildTime": "2024-10-30T19:22:05.407Z",
+        "commit": "9de3f75fa2af7c47dc2ed3bcec850b9e245dda21",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/cabed3ae77cf55deba7c7d8722bc9cfd5e991201c211665f9265616d9fe5c77b/paper-1.20.4-499.jar",
+          "sha256": "cabed3ae77cf55deba7c7d8722bc9cfd5e991201c211665f9265616d9fe5c77b",
+          "size": 42781488
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.20.3",
+      "family": "1.20",
+      "mojang": {
+        "releaseTime": "2023-12-04T12:10:32+00:00",
+        "manifestSha1": "1a86930811fa5ee9e3c4e040c0147c56be86df9e",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/1a86930811fa5ee9e3c4e040c0147c56be86df9e/1.20.3.json"
+      },
+      "paperBaseline": false,
+      "availability": "unavailable",
+      "unavailableReason": "Paper never shipped a build for this exact Mojang release.",
+      "java": {
+        "build": 17,
+        "runtime": 17
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "unavailable",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.20.3"
+      }
+    },
+    {
+      "minecraftVersion": "1.20.2",
+      "family": "1.20",
+      "mojang": {
+        "releaseTime": "2023-09-20T09:02:57+00:00",
+        "manifestSha1": "807bc0cca34ef51300093dcef1f33ac0135170a5",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/807bc0cca34ef51300093dcef1f33ac0135170a5/1.20.2.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 17,
+        "runtime": 17
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.20.2",
+        "build": 318,
+        "channel": "stable",
+        "buildTime": "2023-12-03T03:47:16.760Z",
+        "commit": "9271ee7643614663a6d93323a9e8db2d52123166",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/ba340a835ac40b8563aa7eda1cd6479a11a7623409c89a2c35cd9d7490ed17a7/paper-1.20.2-318.jar",
+          "sha256": "ba340a835ac40b8563aa7eda1cd6479a11a7623409c89a2c35cd9d7490ed17a7",
+          "size": 41741453
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.20.1",
+      "family": "1.20",
+      "mojang": {
+        "releaseTime": "2023-06-12T13:25:51+00:00",
+        "manifestSha1": "c2f76c955503c7143424b51e21eea87bbe5c6547",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/c2f76c955503c7143424b51e21eea87bbe5c6547/1.20.1.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 17,
+        "runtime": 17
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.20.1",
+        "build": 196,
+        "channel": "stable",
+        "buildTime": "2023-09-21T16:59:41.322Z",
+        "commit": "773dd724469bae89d0c2075edc3d1ddc8d5b0b18",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/234a9b32098100c6fc116664d64e36ccdb58b5b649af0f80bcccb08b0255eaea/paper-1.20.1-196.jar",
+          "sha256": "234a9b32098100c6fc116664d64e36ccdb58b5b649af0f80bcccb08b0255eaea",
+          "size": 43230582
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.20",
+      "family": "1.20",
+      "mojang": {
+        "releaseTime": "2023-06-02T08:36:17+00:00",
+        "manifestSha1": "967b05664dd5911227824f421a35b04c6be064bd",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/967b05664dd5911227824f421a35b04c6be064bd/1.20.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 17,
+        "runtime": 17
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.20",
+        "build": 17,
+        "channel": "stable",
+        "buildTime": "2023-06-13T00:00:32.351Z",
+        "commit": "c287e921a96438964f32f3c4e394d6809e0d06fa",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/1e4ccfc0599f491ee6fee4455d3722332ac5d78584fccd55cbb3b51e11504505/paper-1.20-17.jar",
+          "sha256": "1e4ccfc0599f491ee6fee4455d3722332ac5d78584fccd55cbb3b51e11504505",
+          "size": 43328884
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.19.4",
+      "family": "1.19",
+      "mojang": {
+        "releaseTime": "2023-03-14T12:56:18+00:00",
+        "manifestSha1": "53f460c443349528f95fbd89abe114498afe36e6",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/53f460c443349528f95fbd89abe114498afe36e6/1.19.4.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 17,
+        "runtime": 17
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.19.4",
+        "build": 550,
+        "channel": "stable",
+        "buildTime": "2023-06-08T20:10:57.161Z",
+        "commit": "483368e480eb2ec060d8e68b30e14ec96aba6c4e",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/e587d78cba3e99ef8c4bc24cf20cc3bdbbe89e33b0b572070446af4eb6be5ccf/paper-1.19.4-550.jar",
+          "sha256": "e587d78cba3e99ef8c4bc24cf20cc3bdbbe89e33b0b572070446af4eb6be5ccf",
+          "size": 42666406
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.19.3",
+      "family": "1.19",
+      "mojang": {
+        "releaseTime": "2022-12-07T08:17:18+00:00",
+        "manifestSha1": "90cde9dc13a7d99bc7e33c5463f1d853e151d696",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/90cde9dc13a7d99bc7e33c5463f1d853e151d696/1.19.3.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 17,
+        "runtime": 17
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.19.3",
+        "build": 448,
+        "channel": "stable",
+        "buildTime": "2023-03-12T18:06:19.675Z",
+        "commit": "155aa36d89b260ef5841615899299756b5983c0a",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/3007f2c638d5f04ed32b6adaa33053fe3634ccfa74345c83d3ea4982d38db5dc/paper-1.19.3-448.jar",
+          "sha256": "3007f2c638d5f04ed32b6adaa33053fe3634ccfa74345c83d3ea4982d38db5dc",
+          "size": 39127595
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.19.2",
+      "family": "1.19",
+      "mojang": {
+        "releaseTime": "2022-08-05T11:57:05+00:00",
+        "manifestSha1": "ed548106acf3ac7e8205a6ee8fd2710facfa164f",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/ed548106acf3ac7e8205a6ee8fd2710facfa164f/1.19.2.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 17,
+        "runtime": 17
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.19.2",
+        "build": 307,
+        "channel": "stable",
+        "buildTime": "2022-12-06T18:47:03.612Z",
+        "commit": "476ef25d053c523aea416487a38f72011d72a9cf",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/2eb5c7459ec94bcdc597ed711d549a3ab4b0fda13e412a0792a1a069b5903864/paper-1.19.2-307.jar",
+          "sha256": "2eb5c7459ec94bcdc597ed711d549a3ab4b0fda13e412a0792a1a069b5903864",
+          "size": 38319498
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.19.1",
+      "family": "1.19",
+      "mojang": {
+        "releaseTime": "2022-07-27T09:25:33+00:00",
+        "manifestSha1": "39d5e8925d37490c6f2abb2e02b8c6f1b35719df",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/39d5e8925d37490c6f2abb2e02b8c6f1b35719df/1.19.1.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 17,
+        "runtime": 17
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.19.1",
+        "build": 111,
+        "channel": "stable",
+        "buildTime": "2022-08-05T14:17:52.074Z",
+        "commit": "02831e3369cc9ad76a3add2e4140eb1e6d67cd4f",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/5afe23a1fade92c547124fa874bc7d908fa676f49f09879fa876224b62e9d51b/paper-1.19.1-111.jar",
+          "sha256": "5afe23a1fade92c547124fa874bc7d908fa676f49f09879fa876224b62e9d51b",
+          "size": 38038416
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.19",
+      "family": "1.19",
+      "mojang": {
+        "releaseTime": "2022-06-07T09:42:18+00:00",
+        "manifestSha1": "14bbfb25fb1c1c798e3c9b9482b081a78d1f3a9d",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/14bbfb25fb1c1c798e3c9b9482b081a78d1f3a9d/1.19.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 17,
+        "runtime": 17
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.19",
+        "build": 81,
+        "channel": "stable",
+        "buildTime": "2022-07-25T17:26:58.726Z",
+        "commit": "86f87ba40030d719e5fb8840ab18c513588de772",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/0d39cacc51a77b2b071e1ce862fcbf0b4a4bd668cc7e8b313598d84fa09fabac/paper-1.19-81.jar",
+          "sha256": "0d39cacc51a77b2b071e1ce862fcbf0b4a4bd668cc7e8b313598d84fa09fabac",
+          "size": 38158691
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.18.2",
+      "family": "1.18",
+      "mojang": {
+        "releaseTime": "2022-02-28T10:42:45+00:00",
+        "manifestSha1": "334b33fcba3c9be4b7514624c965256535bd7eba",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/334b33fcba3c9be4b7514624c965256535bd7eba/1.18.2.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 17,
+        "runtime": 17
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.18.2",
+        "build": 388,
+        "channel": "stable",
+        "buildTime": "2022-09-20T01:01:55.294Z",
+        "commit": "fc9ee65a32622d03a91db39364b6f106cf88335b",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/0578f18f4d632b494b468ec56b3b414b5b56fea087ee7d39cf6dcdf4c9d01f05/paper-1.18.2-388.jar",
+          "sha256": "0578f18f4d632b494b468ec56b3b414b5b56fea087ee7d39cf6dcdf4c9d01f05",
+          "size": 34829667
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.18.1",
+      "family": "1.18",
+      "mojang": {
+        "releaseTime": "2021-12-10T08:23:00+00:00",
+        "manifestSha1": "7ff864e988a2c29907154d5f9701e87e5d5e554a",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/7ff864e988a2c29907154d5f9701e87e5d5e554a/1.18.1.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 17,
+        "runtime": 17
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.18.1",
+        "build": 216,
+        "channel": "stable",
+        "buildTime": "2022-02-28T15:39:19.258Z",
+        "commit": "30cb7d0407bfb01a3bc0cc2da1dc0af32dfae5a4",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/a94917a4472c2cbc9907a15c666bbb784f95ecd7b53c77bc08fe71103e5487f5/paper-1.18.1-216.jar",
+          "sha256": "a94917a4472c2cbc9907a15c666bbb784f95ecd7b53c77bc08fe71103e5487f5",
+          "size": 34617939
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.18",
+      "family": "1.18",
+      "mojang": {
+        "releaseTime": "2021-11-30T09:16:29+00:00",
+        "manifestSha1": "7367ea8b7cad7c7830192441bb2846be0d2ceeac",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/7367ea8b7cad7c7830192441bb2846be0d2ceeac/1.18.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 17,
+        "runtime": 17
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.18",
+        "build": 66,
+        "channel": "alpha",
+        "buildTime": "2021-12-10T02:07:01.076Z",
+        "commit": "dce79f333c1f3f60335163d8fe1050d424722a92",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/3c995f20dae4e4e21d5554fac957a0a8a5c85bd5bf34915fac4b4f16e0ef101b/paper-1.18-66.jar",
+          "sha256": "3c995f20dae4e4e21d5554fac957a0a8a5c85bd5bf34915fac4b4f16e0ef101b",
+          "size": 34477644
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.17.1",
+      "family": "1.17",
+      "mojang": {
+        "releaseTime": "2021-07-06T12:01:34+00:00",
+        "manifestSha1": "e0e7ab5ed6f55bbd874ef95be3c9356d67e64b57",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/e0e7ab5ed6f55bbd874ef95be3c9356d67e64b57/1.17.1.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 16,
+        "runtime": 16
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.17.1",
+        "build": 411,
+        "channel": "stable",
+        "buildTime": "2022-04-14T03:49:01.571Z",
+        "commit": "6625db387ea9fe5296a6c6f984975b387c3089f0",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/6cc1ee2f94253ce10b5374ed85fffc735a97d8f1b64db293683dfa24dd3cc05f/paper-1.17.1-411.jar",
+          "sha256": "6cc1ee2f94253ce10b5374ed85fffc735a97d8f1b64db293683dfa24dd3cc05f",
+          "size": 61886260
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.17",
+      "family": "1.17",
+      "mojang": {
+        "releaseTime": "2021-06-08T11:00:40+00:00",
+        "manifestSha1": "0d9ace8a2ecfd1f4c782786f4b985a499240ff12",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/0d9ace8a2ecfd1f4c782786f4b985a499240ff12/1.17.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 16,
+        "runtime": 16
+      },
+      "buildSystem": {
+        "generation": "modern-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.17",
+        "build": 79,
+        "channel": "stable",
+        "buildTime": "2021-07-06T04:35:32.342Z",
+        "commit": "a831634d446341efc70f027851effe02a0e7f1d3",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/760a93b94a58d619bd647d71af84688617d0444d22b716500bc6b343858dc871/paper-1.17-79.jar",
+          "sha256": "760a93b94a58d619bd647d71af84688617d0444d22b716500bc6b343858dc871",
+          "size": 60391784
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.16.5",
+      "family": "1.16",
+      "mojang": {
+        "releaseTime": "2021-01-14T16:05:32+00:00",
+        "manifestSha1": "fba9f7833e858a1257d810d21a3a9e3c967f9077",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/fba9f7833e858a1257d810d21a3a9e3c967f9077/1.16.5.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.16.5",
+        "build": 794,
+        "channel": "stable",
+        "buildTime": "2021-12-18T08:25:42.329Z",
+        "commit": "fa1a7c180c6fcba779e583fc4ed550b48954bcc4",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/e67da4851d08cde378ab2b89be58849238c303351ed2482181a99c2c2b489276/paper-1.16.5-794.jar",
+          "sha256": "e67da4851d08cde378ab2b89be58849238c303351ed2482181a99c2c2b489276",
+          "size": 53944842
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.16.4",
+      "family": "1.16",
+      "mojang": {
+        "releaseTime": "2020-10-29T15:49:37+00:00",
+        "manifestSha1": "596ad61fda7612d9edf8881cf81869276bdb7f82",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/596ad61fda7612d9edf8881cf81869276bdb7f82/1.16.4.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.16.4",
+        "build": 416,
+        "channel": "stable",
+        "buildTime": "2021-01-15T17:44:00.387Z",
+        "commit": "7438bbee4608881feb9a509f4b1e7d5f05232f25",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/963268ed564ac7d2ec076463e921ffa09570235f587bbd1a4d91a23ca4264b66/paper-1.16.4-416.jar",
+          "sha256": "963268ed564ac7d2ec076463e921ffa09570235f587bbd1a4d91a23ca4264b66",
+          "size": 46987530
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.16.3",
+      "family": "1.16",
+      "mojang": {
+        "releaseTime": "2020-09-10T13:42:37+00:00",
+        "manifestSha1": "6485dd131ef68c968041a9f6fd73094b027e42e1",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/6485dd131ef68c968041a9f6fd73094b027e42e1/1.16.3.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.16.3",
+        "build": 253,
+        "channel": "stable",
+        "buildTime": "2020-11-01T19:23:12.652Z",
+        "commit": "4bcebab1675d88d144d2896734f4a940345f76c2",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/940303ee5f5bcc08377e388ea1c1daa109c1ac8c4d189dc67de1106853f2fc23/paper-1.16.3-253.jar",
+          "sha256": "940303ee5f5bcc08377e388ea1c1daa109c1ac8c4d189dc67de1106853f2fc23",
+          "size": 46856246
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.16.2",
+      "family": "1.16",
+      "mojang": {
+        "releaseTime": "2020-08-11T10:13:46+00:00",
+        "manifestSha1": "998d9ef5770d05c20d760dc16cf85151f35009f2",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/998d9ef5770d05c20d760dc16cf85151f35009f2/1.16.2.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.16.2",
+        "build": 189,
+        "channel": "stable",
+        "buildTime": "2020-09-10T23:11:15.766Z",
+        "commit": "6fda3fd0edbb6f777fcab3bea8781b816fc30d58",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/e5e10517daaa9bd6d54a8a0d22d866e31da7c1b47cb9e425ffaac236fde75ec9/paper-1.16.2-189.jar",
+          "sha256": "e5e10517daaa9bd6d54a8a0d22d866e31da7c1b47cb9e425ffaac236fde75ec9",
+          "size": 46848237
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.16.1",
+      "family": "1.16",
+      "mojang": {
+        "releaseTime": "2020-06-24T10:31:40+00:00",
+        "manifestSha1": "54fa3af57d041d2771e66d390197b2c0288e697c",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/54fa3af57d041d2771e66d390197b2c0288e697c/1.16.1.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.16.1",
+        "build": 138,
+        "channel": "stable",
+        "buildTime": "2020-08-23T12:23:12.153Z",
+        "commit": "627f4b8561115d40d6a39587d1ad94b0104f7e14",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/929559ba1dfc6de2904e17289fb3d1ac95f0ab48c7540cf5b8c2f055fea9d59c/paper-1.16.1-138.jar",
+          "sha256": "929559ba1dfc6de2904e17289fb3d1ac95f0ab48c7540cf5b8c2f055fea9d59c",
+          "size": 46983807
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.16",
+      "family": "1.16",
+      "mojang": {
+        "releaseTime": "2020-06-23T16:20:52+00:00",
+        "manifestSha1": "e9d21d375f9c961f0e9731d4e463306d76e77c48",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/e9d21d375f9c961f0e9731d4e463306d76e77c48/1.16.json"
+      },
+      "paperBaseline": false,
+      "availability": "unavailable",
+      "unavailableReason": "Paper never shipped a build for this exact Mojang release.",
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "unavailable",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.16"
+      }
+    },
+    {
+      "minecraftVersion": "1.15.2",
+      "family": "1.15",
+      "mojang": {
+        "releaseTime": "2020-01-17T10:03:52+00:00",
+        "manifestSha1": "e9d0adb8f642abe422909ede50f651b2b58a3573",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/e9d0adb8f642abe422909ede50f651b2b58a3573/1.15.2.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.15.2",
+        "build": 393,
+        "channel": "stable",
+        "buildTime": "2021-12-20T00:10:52.430Z",
+        "commit": "f53620f5cebf27d7c3b0c6fa37a91a81eca1f6b8",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/bd2dd6f2cc489cf9e2bb800cb4fb6d63e9d293945d3ac10b09dd9c6098fa9f34/paper-1.15.2-393.jar",
+          "sha256": "bd2dd6f2cc489cf9e2bb800cb4fb6d63e9d293945d3ac10b09dd9c6098fa9f34",
+          "size": 45026753
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.15.1",
+      "family": "1.15",
+      "mojang": {
+        "releaseTime": "2019-12-16T10:29:47+00:00",
+        "manifestSha1": "18c3063de87ae126b4e017121219ba802be0755b",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/18c3063de87ae126b4e017121219ba802be0755b/1.15.1.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.15.1",
+        "build": 62,
+        "channel": "stable",
+        "buildTime": "2020-01-21T15:13:26.470Z",
+        "commit": "d4ae43fc008221c475f9938ade5ded3ea0b2badc",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/22a7a19f378db8edf92cdba57d91ceea7e4fa6470b677e6bbe57e8f7e1d9a4dd/paper-1.15.1-62.jar",
+          "sha256": "22a7a19f378db8edf92cdba57d91ceea7e4fa6470b677e6bbe57e8f7e1d9a4dd",
+          "size": 43943383
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.15",
+      "family": "1.15",
+      "mojang": {
+        "releaseTime": "2019-12-09T13:13:38+00:00",
+        "manifestSha1": "833322370ab320e77717097082effe1d124d48bd",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/833322370ab320e77717097082effe1d124d48bd/1.15.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.15",
+        "build": 21,
+        "channel": "stable",
+        "buildTime": "2019-12-17T04:09:12.295Z",
+        "commit": "4cf63749d58c70ee6fd1665eac66813cc50d6cbd",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/8b726c0deb6c3a265d679a3d3a2c0f8e5243fbc6ddcfcaf42e24209cb1f829b4/paper-1.15-21.jar",
+          "sha256": "8b726c0deb6c3a265d679a3d3a2c0f8e5243fbc6ddcfcaf42e24209cb1f829b4",
+          "size": 43926936
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.14.4",
+      "family": "1.14",
+      "mojang": {
+        "releaseTime": "2019-07-19T09:25:47+00:00",
+        "manifestSha1": "be146d5f66a3627ed0a87c234c4d8dde8ab35098",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/be146d5f66a3627ed0a87c234c4d8dde8ab35098/1.14.4.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.14.4",
+        "build": 245,
+        "channel": "stable",
+        "buildTime": "2021-12-20T00:10:51.822Z",
+        "commit": "208163ff34b6cf723d6a017f6907d6a435dcb7a8",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/bd8ec5cdb22370d37816a6de26798df3d2b0d6f9c7c96c88ca45a1303fea50e8/paper-1.14.4-245.jar",
+          "sha256": "bd8ec5cdb22370d37816a6de26798df3d2b0d6f9c7c96c88ca45a1303fea50e8",
+          "size": 43972138
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.14.3",
+      "family": "1.14",
+      "mojang": {
+        "releaseTime": "2019-06-24T12:52:52+00:00",
+        "manifestSha1": "e21618620e02be5a14543d1d17ffdba941d09aa8",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/e21618620e02be5a14543d1d17ffdba941d09aa8/1.14.3.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.14.3",
+        "build": 134,
+        "channel": "stable",
+        "buildTime": "2019-07-18T07:59:03.823Z",
+        "commit": "a41d51f098820e61c2d3a4337cca5e8d23cfe33c",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/b6d2d8ac67d685141697a8cecd99c47baf604900007eb0e270fd6ea86cbbc540/paper-1.14.3-134.jar",
+          "sha256": "b6d2d8ac67d685141697a8cecd99c47baf604900007eb0e270fd6ea86cbbc540",
+          "size": 44316692
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.14.2",
+      "family": "1.14",
+      "mojang": {
+        "releaseTime": "2019-05-27T11:48:25+00:00",
+        "manifestSha1": "83299b3bf3139ebd9ae5547b3144dcf68d4cb1fd",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/83299b3bf3139ebd9ae5547b3144dcf68d4cb1fd/1.14.2.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.14.2",
+        "build": 107,
+        "channel": "stable",
+        "buildTime": "2019-06-24T02:32:25.515Z",
+        "commit": "bf1d217193bd66ed14eae3e25c7c0e051d0e6f35",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/12034e578e014eb369e2929f3725bd409858bf94128e46d1f286d5be36c3cb0e/paper-1.14.2-107.jar",
+          "sha256": "12034e578e014eb369e2929f3725bd409858bf94128e46d1f286d5be36c3cb0e",
+          "size": 44257364
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.14.1",
+      "family": "1.14",
+      "mojang": {
+        "releaseTime": "2019-05-13T11:10:12+00:00",
+        "manifestSha1": "183e49ba0fabb5ef8a304f8f5907fa887f40c466",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/183e49ba0fabb5ef8a304f8f5907fa887f40c466/1.14.1.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.14.1",
+        "build": 50,
+        "channel": "stable",
+        "buildTime": "2019-05-27T16:16:18.177Z",
+        "commit": "01670a510369f94ee3f1c02dcba6cf53effc6564",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/2bcf8017485cc41b3e72daa7285a46f26a85d055b9d638bc9a07f77632168ad7/paper-1.14.1-50.jar",
+          "sha256": "2bcf8017485cc41b3e72daa7285a46f26a85d055b9d638bc9a07f77632168ad7",
+          "size": 44231593
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.14",
+      "family": "1.14",
+      "mojang": {
+        "releaseTime": "2019-04-23T14:52:44+00:00",
+        "manifestSha1": "0fd01dd81eaa451d3130b1cf025a10f129585b10",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/0fd01dd81eaa451d3130b1cf025a10f129585b10/1.14.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.14",
+        "build": 17,
+        "channel": "stable",
+        "buildTime": "2019-05-13T04:07:57.110Z",
+        "commit": "5e7cfaf718b47be02eefa15589f9b081d3245054",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/338be77f5239c44cff3f80f5c107b5e61ac48fb39348bce7249303209201072a/paper-1.14-17.jar",
+          "sha256": "338be77f5239c44cff3f80f5c107b5e61ac48fb39348bce7249303209201072a",
+          "size": 44195664
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.13.2",
+      "family": "1.13",
+      "mojang": {
+        "releaseTime": "2018-10-22T11:41:07+00:00",
+        "manifestSha1": "fa3ddc22146c46bfeb0e9d322c6f83b937e25005",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/fa3ddc22146c46bfeb0e9d322c6f83b937e25005/1.13.2.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.13.2",
+        "build": 657,
+        "channel": "stable",
+        "buildTime": "2021-12-20T00:10:51.071Z",
+        "commit": "2c524f085730b908d40806c9191ae33664d30d99",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/11e828d0565ab76a0a0e180c056364a95de44958cfd6a6af3f9b1dc70b03e9cd/paper-1.13.2-657.jar",
+          "sha256": "11e828d0565ab76a0a0e180c056364a95de44958cfd6a6af3f9b1dc70b03e9cd",
+          "size": 44991089
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.13.1",
+      "family": "1.13",
+      "mojang": {
+        "releaseTime": "2018-08-22T14:03:42+00:00",
+        "manifestSha1": "f37fe6f0912ddb7ac3e7d5201a73d56ce170a57f",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/f37fe6f0912ddb7ac3e7d5201a73d56ce170a57f/1.13.1.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.13.1",
+        "build": 386,
+        "channel": "stable",
+        "buildTime": "2018-10-22T20:25:57.601Z",
+        "commit": "7c5b5ce946075bafe5f90f2de76609921ae6cca3",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/6637401d87d0f5db5aaee90d7103f52c5e1baaf6b6d4643a5793e7b02b5775cb/paper-1.13.1-386.jar",
+          "sha256": "6637401d87d0f5db5aaee90d7103f52c5e1baaf6b6d4643a5793e7b02b5775cb",
+          "size": 43029770
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.13",
+      "family": "1.13",
+      "mojang": {
+        "releaseTime": "2018-07-18T15:11:46+00:00",
+        "manifestSha1": "c24c2fd37c8ca2e1c18721e2c77caf4d24c87f92",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/c24c2fd37c8ca2e1c18721e2c77caf4d24c87f92/1.13.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paperweight",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.13",
+        "build": 173,
+        "channel": "stable",
+        "buildTime": "2018-08-26T04:04:46.336Z",
+        "commit": "c53484804732d09ffef6fdc46d9585aacfe66e9c",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/00db82d214242c9345266d44ff8d11a8e857a1a02edf7cb5fcc2d1d973283129/paper-1.13-173.jar",
+          "sha256": "00db82d214242c9345266d44ff8d11a8e857a1a02edf7cb5fcc2d1d973283129",
+          "size": 41881625
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.12.2",
+      "family": "1.12",
+      "mojang": {
+        "releaseTime": "2017-09-18T08:39:46+00:00",
+        "manifestSha1": "832d95b9f40699d4961394dcf6cf549e65f15dc5",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/832d95b9f40699d4961394dcf6cf549e65f15dc5/1.12.2.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paper-archive",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.12.2",
+        "build": 1620,
+        "channel": "stable",
+        "buildTime": "2021-12-20T00:10:50.686Z",
+        "commit": "e9c4141dab5ec2df7194b75b8ab34c7242c482a6",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/3a2041807f492dcdc34ebb324a287414946e3e05ec3df6fd03f5b5f7d9afc210/paper-1.12.2-1620.jar",
+          "sha256": "3a2041807f492dcdc34ebb324a287414946e3e05ec3df6fd03f5b5f7d9afc210",
+          "size": 40979699
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.12.1",
+      "family": "1.12",
+      "mojang": {
+        "releaseTime": "2017-08-03T12:40:39+00:00",
+        "manifestSha1": "5b3e7d137ea360e1d418f0cf68de160acf93fbff",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/5b3e7d137ea360e1d418f0cf68de160acf93fbff/1.12.1.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paper-archive",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.12.1",
+        "build": 1204,
+        "channel": "stable",
+        "buildTime": "2017-09-14T14:00:44.560Z",
+        "commit": "9c79dd3214ec847974ccd04e70f2c2c44abcc725",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/dba2219d674ad85e4ef2c41931d34b6fa4be75a887973ecaaf286727a03812da/paper-1.12.1-1204.jar",
+          "sha256": "dba2219d674ad85e4ef2c41931d34b6fa4be75a887973ecaaf286727a03812da",
+          "size": 38617469
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.12",
+      "family": "1.12",
+      "mojang": {
+        "releaseTime": "2017-06-02T13:50:27+00:00",
+        "manifestSha1": "da76e0a25ffccf2765f9e86ce61c063e44b2183b",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/da76e0a25ffccf2765f9e86ce61c063e44b2183b/1.12.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paper-archive",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.12",
+        "build": 1169,
+        "channel": "stable",
+        "buildTime": "2017-08-01T02:40:37.150Z",
+        "commit": "2670d1f8eb57ff7cab7ffe905dc932af1147d7a0",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/1e7e88a2ed6f2b70fa3f6ec6611373458c5d72b2a8707e60921df601c791e60e/paper-1.12-1169.jar",
+          "sha256": "1e7e88a2ed6f2b70fa3f6ec6611373458c5d72b2a8707e60921df601c791e60e",
+          "size": 38347817
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.11.2",
+      "family": "1.11",
+      "mojang": {
+        "releaseTime": "2016-12-21T09:29:12+00:00",
+        "manifestSha1": "fa3f6d94a9fad648ff97d18fd710997261a421e8",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/fa3f6d94a9fad648ff97d18fd710997261a421e8/1.11.2.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paper-archive",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.11.2",
+        "build": 1106,
+        "channel": "stable",
+        "buildTime": "2021-12-20T00:10:50.177Z",
+        "commit": "7373692e7c208612207058cf9d95e92d23704e7a",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/3d0f40ec1f9630dfdbafa626cc20c266d7fb90fc22583dc1b995e7fbfb76830d/paper-1.11.2-1106.jar",
+          "sha256": "3d0f40ec1f9630dfdbafa626cc20c266d7fb90fc22583dc1b995e7fbfb76830d",
+          "size": 24287234
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.11.1",
+      "family": "1.11",
+      "mojang": {
+        "releaseTime": "2016-12-20T14:05:34+00:00",
+        "manifestSha1": "b244f9fc1721a2ac90b6e12220f5e40246d2c84d",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/b244f9fc1721a2ac90b6e12220f5e40246d2c84d/1.11.1.json"
+      },
+      "paperBaseline": false,
+      "availability": "unavailable",
+      "unavailableReason": "Paper never shipped a build for this exact Mojang release.",
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paper-archive",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "unavailable",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.11.1"
+      }
+    },
+    {
+      "minecraftVersion": "1.11",
+      "family": "1.11",
+      "mojang": {
+        "releaseTime": "2016-11-14T14:34:40+00:00",
+        "manifestSha1": "935062464617c9904d20045065515cfd3f1b76d2",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/935062464617c9904d20045065515cfd3f1b76d2/1.11.json"
+      },
+      "paperBaseline": false,
+      "availability": "unavailable",
+      "unavailableReason": "Paper never shipped a build for this exact Mojang release.",
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paper-archive",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "unavailable",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.11"
+      }
+    },
+    {
+      "minecraftVersion": "1.10.2",
+      "family": "1.10",
+      "mojang": {
+        "releaseTime": "2016-06-23T09:17:32+00:00",
+        "manifestSha1": "819460dcabf1a2e41b0cf65d342b18ad8dc12281",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/819460dcabf1a2e41b0cf65d342b18ad8dc12281/1.10.2.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paper-archive",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.10.2",
+        "build": 918,
+        "channel": "stable",
+        "buildTime": "2021-12-20T00:10:49.755Z",
+        "commit": "55cc981a61d080e57bc9ee6f11e975f8893f831c",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/83354d24a22b6265e76c089b3d17a568abb446c0ccd12c2452f5e148412b16c2/paper-1.10.2-918.jar",
+          "sha256": "83354d24a22b6265e76c089b3d17a568abb446c0ccd12c2452f5e148412b16c2",
+          "size": 21051207
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.10.1",
+      "family": "1.10",
+      "mojang": {
+        "releaseTime": "2016-06-22T10:13:22+00:00",
+        "manifestSha1": "9c23be6c5a48ab7dc7698586b5d7177fff4b441a",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/9c23be6c5a48ab7dc7698586b5d7177fff4b441a/1.10.1.json"
+      },
+      "paperBaseline": false,
+      "availability": "unavailable",
+      "unavailableReason": "Paper never shipped a build for this exact Mojang release.",
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paper-archive",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "unavailable",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.10.1"
+      }
+    },
+    {
+      "minecraftVersion": "1.10",
+      "family": "1.10",
+      "mojang": {
+        "releaseTime": "2016-06-08T13:06:18+00:00",
+        "manifestSha1": "a827abf9c022a08ed9c4c7807a8c1b7f2f05deca",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/a827abf9c022a08ed9c4c7807a8c1b7f2f05deca/1.10.json"
+      },
+      "paperBaseline": false,
+      "availability": "unavailable",
+      "unavailableReason": "Paper never shipped a build for this exact Mojang release.",
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paper-archive",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "unavailable",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.10"
+      }
+    },
+    {
+      "minecraftVersion": "1.9.4",
+      "family": "1.9",
+      "mojang": {
+        "releaseTime": "2016-05-10T10:17:16+00:00",
+        "manifestSha1": "b1a314ce2b67b3639bd6407ddcd549ce236de6f6",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/b1a314ce2b67b3639bd6407ddcd549ce236de6f6/1.9.4.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paper-archive",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.9.4",
+        "build": 775,
+        "channel": "stable",
+        "buildTime": "2021-12-20T00:10:49.338Z",
+        "commit": "4572ef9d91d69f240c8a54321b9885e45ddcb140",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/15a5821ddeacc596432c3fbf24262a2d264f556060ecd6f1838fb01ab5629a81/paper-1.9.4-775.jar",
+          "sha256": "15a5821ddeacc596432c3fbf24262a2d264f556060ecd6f1838fb01ab5629a81",
+          "size": 20965788
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.9.3",
+      "family": "1.9",
+      "mojang": {
+        "releaseTime": "2016-05-10T08:33:35+00:00",
+        "manifestSha1": "4d37195227760207d397224c509ded4b0c68ea37",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/4d37195227760207d397224c509ded4b0c68ea37/1.9.3.json"
+      },
+      "paperBaseline": false,
+      "availability": "unavailable",
+      "unavailableReason": "Paper never shipped a build for this exact Mojang release.",
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paper-archive",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "unavailable",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.9.3"
+      }
+    },
+    {
+      "minecraftVersion": "1.9.2",
+      "family": "1.9",
+      "mojang": {
+        "releaseTime": "2016-03-30T15:23:55+00:00",
+        "manifestSha1": "9623ca73a57c6d183a28513c894c2337cfe65995",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/9623ca73a57c6d183a28513c894c2337cfe65995/1.9.2.json"
+      },
+      "paperBaseline": false,
+      "availability": "unavailable",
+      "unavailableReason": "Paper never shipped a build for this exact Mojang release.",
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paper-archive",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "unavailable",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.9.2"
+      }
+    },
+    {
+      "minecraftVersion": "1.9.1",
+      "family": "1.9",
+      "mojang": {
+        "releaseTime": "2016-03-30T13:43:07+00:00",
+        "manifestSha1": "fdca0cf4bdab9959fce30413202a00a1bce35be5",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/fdca0cf4bdab9959fce30413202a00a1bce35be5/1.9.1.json"
+      },
+      "paperBaseline": false,
+      "availability": "unavailable",
+      "unavailableReason": "Paper never shipped a build for this exact Mojang release.",
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paper-archive",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "unavailable",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.9.1"
+      }
+    },
+    {
+      "minecraftVersion": "1.9",
+      "family": "1.9",
+      "mojang": {
+        "releaseTime": "2016-02-29T13:49:54+00:00",
+        "manifestSha1": "9178828493e41a24452841039710f05728c466d6",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/9178828493e41a24452841039710f05728c466d6/1.9.json"
+      },
+      "paperBaseline": false,
+      "availability": "unavailable",
+      "unavailableReason": "Paper never shipped a build for this exact Mojang release.",
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paper-archive",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "unavailable",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.9"
+      }
+    },
+    {
+      "minecraftVersion": "1.8.9",
+      "family": "1.8",
+      "mojang": {
+        "releaseTime": "2015-12-03T09:24:39+00:00",
+        "manifestSha1": "d546f1707a3f2b7d034eece5ea2e311eda875787",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/d546f1707a3f2b7d034eece5ea2e311eda875787/1.8.9.json"
+      },
+      "paperBaseline": false,
+      "availability": "unavailable",
+      "unavailableReason": "Paper never shipped a build for this exact Mojang release.",
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paper-archive",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "unavailable",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.8.9"
+      }
+    },
+    {
+      "minecraftVersion": "1.8.8",
+      "family": "1.8",
+      "mojang": {
+        "releaseTime": "2015-07-27T10:31:28+00:00",
+        "manifestSha1": "690172f1227e1c1d2fa8fceadd0f578f7851a69e",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/690172f1227e1c1d2fa8fceadd0f578f7851a69e/1.8.8.json"
+      },
+      "paperBaseline": true,
+      "availability": "planned",
+      "unavailableReason": null,
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paper-archive",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "legacy-planned",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.8.8",
+        "build": 445,
+        "channel": "stable",
+        "buildTime": "2021-12-20T00:10:48.936Z",
+        "commit": "2ce7ea620a6d9590a9f93b47ac45e240dac7988a",
+        "download": {
+          "url": "https://fill-data.papermc.io/v1/objects/7ff6d2cec671ef0d95b3723b5c92890118fb882d73b7f8fa0a2cd31d97c55f86/paper-1.8.8-445.jar",
+          "sha256": "7ff6d2cec671ef0d95b3723b5c92890118fb882d73b7f8fa0a2cd31d97c55f86",
+          "size": 19520829
+        }
+      }
+    },
+    {
+      "minecraftVersion": "1.8.7",
+      "family": "1.8",
+      "mojang": {
+        "releaseTime": "2015-06-05T10:10:44+00:00",
+        "manifestSha1": "7152f102903cd3ce7514d84c8ac98efecac30839",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/7152f102903cd3ce7514d84c8ac98efecac30839/1.8.7.json"
+      },
+      "paperBaseline": false,
+      "availability": "unavailable",
+      "unavailableReason": "Paper never shipped a build for this exact Mojang release.",
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paper-archive",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "unavailable",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.8.7"
+      }
+    },
+    {
+      "minecraftVersion": "1.8.6",
+      "family": "1.8",
+      "mojang": {
+        "releaseTime": "2015-05-25T10:31:19+00:00",
+        "manifestSha1": "acccbb056a3e8f3086c4614974fb3a894317853a",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/acccbb056a3e8f3086c4614974fb3a894317853a/1.8.6.json"
+      },
+      "paperBaseline": false,
+      "availability": "unavailable",
+      "unavailableReason": "Paper never shipped a build for this exact Mojang release.",
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paper-archive",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "unavailable",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.8.6"
+      }
+    },
+    {
+      "minecraftVersion": "1.8.5",
+      "family": "1.8",
+      "mojang": {
+        "releaseTime": "2015-05-22T11:15:28+00:00",
+        "manifestSha1": "16da5f5be7478f3602c25182a90f2057ba2f60d8",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/16da5f5be7478f3602c25182a90f2057ba2f60d8/1.8.5.json"
+      },
+      "paperBaseline": false,
+      "availability": "unavailable",
+      "unavailableReason": "Paper never shipped a build for this exact Mojang release.",
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paper-archive",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "unavailable",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.8.5"
+      }
+    },
+    {
+      "minecraftVersion": "1.8.4",
+      "family": "1.8",
+      "mojang": {
+        "releaseTime": "2015-04-17T11:37:50+00:00",
+        "manifestSha1": "043b84efde9fc25d849e979329c03101ac9b7795",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/043b84efde9fc25d849e979329c03101ac9b7795/1.8.4.json"
+      },
+      "paperBaseline": false,
+      "availability": "unavailable",
+      "unavailableReason": "Paper never shipped a build for this exact Mojang release.",
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paper-archive",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "unavailable",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.8.4"
+      }
+    },
+    {
+      "minecraftVersion": "1.8.3",
+      "family": "1.8",
+      "mojang": {
+        "releaseTime": "2015-02-20T14:00:09+00:00",
+        "manifestSha1": "413ad8fdcf8f29f4f1c2b4425aa0dade00f75dd4",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/413ad8fdcf8f29f4f1c2b4425aa0dade00f75dd4/1.8.3.json"
+      },
+      "paperBaseline": false,
+      "availability": "unavailable",
+      "unavailableReason": "Paper never shipped a build for this exact Mojang release.",
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paper-archive",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "unavailable",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.8.3"
+      }
+    },
+    {
+      "minecraftVersion": "1.8.2",
+      "family": "1.8",
+      "mojang": {
+        "releaseTime": "2015-02-19T15:47:29+00:00",
+        "manifestSha1": "1e35829856a71261f5a7b2b3a83012c7434b2203",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/1e35829856a71261f5a7b2b3a83012c7434b2203/1.8.2.json"
+      },
+      "paperBaseline": false,
+      "availability": "unavailable",
+      "unavailableReason": "Paper never shipped a build for this exact Mojang release.",
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paper-archive",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "unavailable",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.8.2"
+      }
+    },
+    {
+      "minecraftVersion": "1.8.1",
+      "family": "1.8",
+      "mojang": {
+        "releaseTime": "2014-11-24T14:13:31+00:00",
+        "manifestSha1": "62f9f77f67fd7d6c92cfae57cecd445be14ccd4e",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/62f9f77f67fd7d6c92cfae57cecd445be14ccd4e/1.8.1.json"
+      },
+      "paperBaseline": false,
+      "availability": "unavailable",
+      "unavailableReason": "Paper never shipped a build for this exact Mojang release.",
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paper-archive",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "unavailable",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.8.1"
+      }
+    },
+    {
+      "minecraftVersion": "1.8",
+      "family": "1.8",
+      "mojang": {
+        "releaseTime": "2014-09-02T08:24:35+00:00",
+        "manifestSha1": "9eb165eef46294062d8698c8a78e8ac914949e7a",
+        "manifestUrl": "https://piston-meta.mojang.com/v1/packages/9eb165eef46294062d8698c8a78e8ac914949e7a/1.8.json"
+      },
+      "paperBaseline": false,
+      "availability": "unavailable",
+      "unavailableReason": "Paper never shipped a build for this exact Mojang release.",
+      "java": {
+        "build": 8,
+        "runtime": 8
+      },
+      "buildSystem": {
+        "generation": "legacy-paper-archive",
+        "gradle": null,
+        "paperweight": null,
+        "task": null,
+        "artifactPath": null
+      },
+      "sourceBranch": null,
+      "sourceImplemented": false,
+      "supportTier": "unavailable",
+      "capabilities": {
+        "pluginApi": false,
+        "victusCore": false,
+        "nativeConfig": false,
+        "dab": false,
+        "asyncChunkSend": false,
+        "lagDoctor": false,
+        "metrics": false,
+        "parallelTicking": false,
+        "regionizedThreading": false,
+        "fabricBridge": false,
+        "neoForgeBridge": false
+      },
+      "tests": {
+        "catalog": true,
+        "patchApply": false,
+        "unit": false,
+        "boot": false,
+        "bannerOrdering": false
+      },
+      "publicationEligible": false,
+      "upstream": {
+        "provider": "Paper",
+        "project": "paper",
+        "version": "1.8"
+      }
+    }
+  ]
+}

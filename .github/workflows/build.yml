@@ -1,4 +1,4 @@
-name: build & deploy
+name: build current source line
 
 on:
   push:
@@ -6,77 +6,57 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate frozen version metadata
+        run: |
+          python -m pip install --disable-pip-version-check jsonschema
+          python -c "import json, jsonschema; schema=json.load(open('versions/versions.schema.json')); catalog=json.load(open('versions/versions.json')); jsonschema.Draft202012Validator.check_schema(schema); jsonschema.validate(catalog, schema)"
+          python scripts/validate-version-catalog.py
+          python scripts/generate-version-catalog.py --check
+          python scripts/test-banner-contract.py
+          python scripts/select-version-builds.py --versions implemented
+          if python scripts/select-version-builds.py --versions 1.21.11; then
+            echo 'Unimplemented source line was incorrectly selected' >&2
+            exit 1
+          fi
+
+  build-26-2:
+    needs: validate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # paperweight needs real git history, not a shallow clone
-
+          fetch-depth: 0
       - name: Set up JDK 25
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '25'   # Paper 26.2 requires JDK 25
-
+          java-version: '25'
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-
-      - name: Apply patches
-        run: ./gradlew applyAllPatches --stacktrace
-
-      - name: Build server jar
-        run: ./gradlew build --stacktrace
-
-      - name: Collect jar
-        id: jar
-        run: |
-          set -e
-          JAR=$(find . -path '*/build/libs/*.jar' -name '*victus*' ! -name '*-sources.jar' ! -name '*-javadoc.jar' | head -1)
-          [ -z "$JAR" ] && JAR=$(find . -path '*/build/libs/*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' | head -1)
-          echo "path=$JAR" >> "$GITHUB_OUTPUT"
-          echo "Built: $JAR"
-
-      - name: Upload artifact
+      - name: Apply patches and build
+        run: ./gradlew applyAllPatches build --stacktrace
+      - name: Upload CI-only build output
         uses: actions/upload-artifact@v4
         with:
-          name: victus-engine
-          path: ${{ steps.jar.outputs.path }}
+          name: victus-engine-26.2-${{ github.sha }}
+          path: victus-server/build/libs/*.jar
           if-no-files-found: error
+          retention-days: 7
 
-  # Auto-deploy the built jar to a Minecraft server on the Victus (Pterodactyl) panel and restart it.
-  # Enable by setting repo Variable DEPLOY_ENABLED=true and the secrets listed in docs/DEPLOY.md.
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: victus-engine
-          path: dist
-
-      - name: Deploy to test server via Pterodactyl client API
-        env:
-          PANEL: ${{ secrets.PANEL_URL }}            # e.g. https://control.victuscloud.com
-          KEY:   ${{ secrets.PANEL_CLIENT_API_KEY }} # Pterodactyl client API key (ptlc_...)
-          SID:   ${{ secrets.PANEL_SERVER_ID }}      # short server id (e.g. 1a2b3c4d)
-          JAR_NAME: ${{ vars.SERVER_JAR_NAME || 'server.jar' }}
-        run: |
-          set -euo pipefail
-          JAR=$(find dist -name '*.jar' | head -1)
-          cp "$JAR" "$JAR_NAME"
-          echo "Requesting signed upload URL..."
-          URL=$(curl -fsS -H "Authorization: Bearer $KEY" -H "Accept: application/json" \
-                "$PANEL/api/client/servers/$SID/files/upload" | jq -r '.attributes.url')
-          echo "Uploading $JAR_NAME ..."
-          curl -fsS -X POST "$URL&directory=%2F" -F "files=@$JAR_NAME;filename=$JAR_NAME" >/dev/null
-          echo "Restarting server ..."
-          curl -fsS -X POST -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
-                "$PANEL/api/client/servers/$SID/power" -d '{"signal":"restart"}'
-          echo "Deployed $JAR_NAME to server $SID and restarted."
+# 26.2 is the only implemented source line. This workflow creates a short-lived
+# CI artifact only; it intentionally has no deploy or release side effects.

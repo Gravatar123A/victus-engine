@@ -1,16 +1,13 @@
 # Phase 4 — Hybrid mod bridge (Fabric/NeoForge + Bukkit) — plan & foundation status
 
-**Status:** **H1 SHIPPED + VERIFIED** — Victus Engine executes real Fabric mod server entrypoints
-(`ModInitializer.onInitialize` + `DedicatedServerModInitializer.onInitializeServer`) in-process on the
-Server thread, alongside Bukkit/Spigot/Paper plugins, gated behind `hybrid.enabled` (off by default) and
-proven on test server e5aa1c05 (positive: a probe mod's `onInitializeServer` fires once at the ready phase
-+ a spawned thread stays alive; negative: `enabled=false` → probe jar in `mods/` is fully inert). The
-**full loader runtime** (arbitrary Intermediary-mapped Modrinth/CurseForge mods, `fabric-api`, Mixin) is
-the remaining work below (H2+). It is the single hardest, highest-maintenance module in the project
-(ARCHITECTURE §6, ROADMAP Phase 4) — Arclight/Mohist/Cardboard-class — so it lands in gated, soak-verified
-steps, never faked.
+**Status:** **FOUNDATION / EXPERIMENTAL — NOT SUPPORTED.** The 26.2 source contains an opt-in,
+off-by-default proof-of-concept that can discover mod metadata and invoke a narrow class of direct,
+Mojang-mapped, loader-API-light Fabric entrypoints. It is not a Fabric Loader or NeoForge runtime, does
+not provide Mixin, remapping, registries, `fabric-api`, or a Bukkit↔mod compatibility bridge, and must
+not be described as general hybrid/mod support. The remaining work is the hardest, highest-maintenance
+part of this project (ARCHITECTURE §6, ROADMAP Phase 4) and requires curated compatibility and soak gates.
 
-## H1 as-built (what actually runs today)
+## Proof-of-concept currently present in source
 `VictusHybrid.executeFabricServerEntrypoints` reads each `mods/*.jar`'s `fabric.mod.json` (gson), builds a
 child `URLClassLoader` (parent = the server/app loader, so mod classes bind our Mojang-mapped Minecraft
 directly), and reflectively instantiates + invokes each declared `main`/`server` entrypoint — honoring the
@@ -38,10 +35,9 @@ never meant to coexist**:
 ## What shipped now (the foundation — in the jar, off by default)
 - **Config** (`victus-core`): `hybrid.enabled` (default false), `hybrid.loader` (auto|fabric|neoforge),
   `hybrid.safe-mode` (default true); resolver validates + warns loudly that it's experimental; self-tested.
-- **`cloud.victus.engine.VictusHybrid`**: isolated module wired into `VictusEngine.init()`. When enabled it
-  **discovers** the mod jars in `mods/`, classifies each by loader (reads `fabric.mod.json` /
-  `META-INF/(neoforge.)mods.toml`), logs the inventory, and holds the **safe-mode blocklist seam**. It
-  **logs plainly that mods are detected but not yet executed** — no pretending.
+- **`cloud.victus.engine.VictusHybrid`**: isolated proof-of-concept wired into `VictusEngine.init()`.
+  When enabled it discovers mod jars and may directly invoke the narrow Fabric entrypoint subset above.
+  Discovery or entrypoint invocation is not equivalent to loader/runtime or gameplay compatibility.
 - **Default `mods/`-aware, pure-plugin-safe:** a server with `hybrid.enabled=false` loads none of it.
 
 ## Build order to functional (each a gated milestone with its own soak)

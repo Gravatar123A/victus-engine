@@ -1,0 +1,48 @@
+name: version catalog
+
+on:
+  push:
+    paths:
+      - 'versions/**'
+      - 'scripts/generate-version-catalog.py'
+      - 'scripts/validate-version-catalog.py'
+      - 'scripts/select-version-builds.py'
+      - 'scripts/test-banner-contract.py'
+      - 'victus-core/src/main/java/cloud/victus/core/branding/**'
+      - 'victus-server/**'
+      - '.github/workflows/catalog.yml'
+  pull_request:
+    paths:
+      - 'versions/**'
+      - 'scripts/**'
+      - 'victus-core/src/main/java/cloud/victus/core/branding/**'
+      - 'victus-server/**'
+      - '.github/workflows/catalog.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate frozen catalog
+        run: |
+          python -m pip install --disable-pip-version-check jsonschema
+          python -c "import json, jsonschema; schema=json.load(open('versions/versions.schema.json')); catalog=json.load(open('versions/versions.json')); jsonschema.Draft202012Validator.check_schema(schema); jsonschema.validate(catalog, schema)"
+          python scripts/validate-version-catalog.py
+          python scripts/generate-version-catalog.py --check
+      - name: Assert native banner contract
+        run: python scripts/test-banner-contract.py
+      - name: Assert build selection rejects unimplemented lines
+        run: |
+          python scripts/select-version-builds.py --versions implemented
+          if python scripts/select-version-builds.py --versions 1.21.11; then
+            echo 'Unimplemented source line was incorrectly selected' >&2
+            exit 1
+          fi

@@ -24,7 +24,7 @@ if (!file(".git").exists()) {
 }
 
 rootProject.name = "victus-engine"
-for (name in listOf("victus-api", "victus-server")) {
+for (name in listOf("victus-api", "victus-server", "victus-core")) {
     include(name)
     findProject(":$name")!!.projectDir = file(name)
 }

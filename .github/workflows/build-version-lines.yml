@@ -1,0 +1,66 @@
+name: build selected version lines
+
+on:
+  workflow_dispatch:
+    inputs:
+      versions:
+        description: "Comma-separated implemented source lines, or 'implemented'"
+        required: true
+        default: 'implemented'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      versions: ${{ steps.select.outputs.versions }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - id: select
+        env:
+          REQUESTED_VERSIONS: ${{ inputs.versions }}
+        run: echo "versions=$(python scripts/select-version-builds.py --versions "$REQUESTED_VERSIONS")" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: matrix
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.matrix.outputs.versions) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ matrix.sourceBranch }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Validate catalog and selected line
+        run: |
+          python scripts/validate-version-catalog.py
+          test '${{ matrix.publicationEligible }}' = 'false'
+      - name: Apply patches and build
+        run: ${{ matrix.buildTask }}
+      - name: Assert expected artifacts exist
+        env:
+          ARTIFACT_PATH: ${{ matrix.artifactPath }}
+        run: compgen -G "$ARTIFACT_PATH" >/dev/null
+      - name: Upload CI-only build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: victus-engine-${{ matrix.minecraft }}-${{ github.sha }}
+          path: ${{ matrix.artifactPath }}
+          if-no-files-found: error
+          retention-days: 7
+
+# This workflow deliberately has no release/publication job. A catalog entry cannot
+# be selected without a real sourceBranch, and every current publicationEligible
+# value is false. CI artifacts are short-lived build evidence, not published builds.

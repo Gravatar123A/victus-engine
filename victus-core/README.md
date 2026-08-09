@@ -7,13 +7,10 @@ can develop and verify without a full online build.
 
 ## What's here
 
-- `cloud.victus.core.config` — the `victus.yml` resolution core:
-  - typed enums (`Profile`, `ThreadingMode`, `RedstoneImpl`, `CompressionBackend`)
-  - `ConfigResolver` — precedence (explicit Paper per-world &gt; victus.yml &gt; profile overlay &gt; hard
-    default) + profile overlays + validation + the "boolean-or-map" coercion
-  - `CompressionBackend` encodes the correctness rule that **`zstd` is invalid for packet
-    compression** (would break stock clients) — fails fast with a helpful message
-  - `ConfigSelfTest` — a dependency-free self-test (no JUnit needed offline)
+- `cloud.victus.core.config` — typed `victus.yml` resolution, overlays, and validation.
+- `cloud.victus.core.branding` — plain-text-safe startup banner contract and snapshot self-test.
+- `cloud.victus.core.metrics`, `doctor`, `limits`, `logging`, and `runtime` — dependency-free
+  observability and hosting logic.
 
 ## Run the self-test offline (no internet, no Gradle needed)
 
@@ -21,14 +18,14 @@ can develop and verify without a full online build.
 cd victus-core
 javac -d out $(find src -name '*.java')
 java -cp out cloud.victus.core.config.ConfigSelfTest
-# -> 13 passed, 0 failed
+java -cp out cloud.victus.core.branding.StartupBannerSelfTest
 ```
 
 ## Building online
 
-Once the repo hydrates (internet), this becomes a normal Gradle subproject: add `include("victus-core")`
-to `settings.gradle.kts` and depend on it from the server module. Replace `ConfigSelfTest` with JUnit
-(`org.junit.jupiter:junit-jupiter`).
+The root Gradle build includes this as a normal subproject. The 26.2 server source set bundles its
+non-test classes into the server artifact; the dependency-free self-test mains remain available for
+offline checks.
 
 ## Roadmap for this module
 

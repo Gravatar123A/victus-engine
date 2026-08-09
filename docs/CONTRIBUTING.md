@@ -2,11 +2,9 @@
 
 ## Toolchain
 
-- JDK **21+** (Paper 26.1 may require newer — bump `build.gradle.kts` toolchain if `applyPatches`
-  complains). `java -version` locally reports 21.0.3.
-- Git 2.4+, internet access (paperweight fetches Paper source).
-- Dev machine note: **C: drive is full** — always `source scripts/dev-env.sh` first to redirect
-  temp/Gradle caches onto E:.
+- JDK **25** for the implemented Paper 26.2 source line (the Gradle toolchain resolver can provision it).
+- Git 2.4+ and internet access for paperweight source/dependency hydration.
+- `scripts/dev-env.sh` is an optional Windows/TLS environment helper; use it only when the local machine needs those overrides.
 
 ## Working with patches
 
@@ -14,13 +12,13 @@ This is a paperweight-patcher fork; you don't edit Paper source directly. Typica
 
 ```bash
 source scripts/dev-env.sh
-./gradlew applyPatches        # materialize Paper source + our patches into paper-server/ paper-api/
-# ... edit code in paper-server/ ...
-./gradlew rebuildPatches      # regenerate patches/ from your edits
+./gradlew applyAllPatches     # materialize Paper source + all Victus patches
+# ... edit generated source through the paperweight workflow ...
+./gradlew rebuildAllPatches   # regenerate the tracked patch sets
 ./gradlew build               # produce the server jar
 ```
 
-- Server changes → `patches/paper-server` (GPL-3.0). API changes → `patches/paper-api` (MIT).
+- Server file patches live under `victus-server/paper-patches`; Minecraft source patches live under `victus-server/minecraft-patches`; API patches live under `victus-api/paper-patches`.
 - New engine features live behind a `victus.yml` toggle (see `docs/VICTUS-CONFIG.md`) and default
   **off** unless they're compat-preserving always-on optimizations.
 - Add `// SPDX-License-Identifier: GPL-3.0-only` headers to new files.

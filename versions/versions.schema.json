@@ -1,0 +1,233 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://victuscloud.com/schemas/victus-engine-versions-v1.json",
+  "title": "Victus Engine version catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "formatVersion",
+    "catalogScope",
+    "frozenUpstream",
+    "capabilityKeys",
+    "versions"
+  ],
+  "properties": {
+    "$schema": { "const": "./versions.schema.json" },
+    "formatVersion": { "const": 1 },
+    "catalogScope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "firstRelease",
+        "lastRelease",
+        "officialReleaseCount",
+        "paperBaselineCount",
+        "paperGapCount",
+        "implementedSourceLineCount"
+      ],
+      "properties": {
+        "firstRelease": { "const": "1.8" },
+        "lastRelease": { "const": "26.2" },
+        "officialReleaseCount": { "const": 74 },
+        "paperBaselineCount": { "const": 53 },
+        "paperGapCount": { "const": 21 },
+        "implementedSourceLineCount": { "const": 1 }
+      }
+    },
+    "frozenUpstream": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["refreshedAt", "sources", "note"],
+      "properties": {
+        "refreshedAt": { "type": "string", "format": "date-time" },
+        "sources": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mojang", "paper"],
+          "properties": {
+            "mojang": { "type": "string", "format": "uri", "pattern": "^https://" },
+            "paper": { "type": "string", "format": "uri", "pattern": "^https://" }
+          }
+        },
+        "note": { "type": "string", "minLength": 1 }
+      }
+    },
+    "capabilityKeys": {
+      "type": "array",
+      "uniqueItems": true,
+      "minItems": 11,
+      "maxItems": 11,
+      "items": { "$ref": "#/$defs/capabilityName" }
+    },
+    "versions": {
+      "type": "array",
+      "minItems": 74,
+      "maxItems": 74,
+      "items": { "$ref": "#/$defs/version" }
+    }
+  },
+  "$defs": {
+    "versionString": {
+      "type": "string",
+      "pattern": "^(?:1\\.[0-9]+(?:\\.[0-9]+)?|26\\.[0-9]+(?:\\.[0-9]+)?)$"
+    },
+    "sha1": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "nullableString": { "type": ["string", "null"] },
+    "capabilityName": {
+      "enum": [
+        "pluginApi",
+        "victusCore",
+        "nativeConfig",
+        "dab",
+        "asyncChunkSend",
+        "lagDoctor",
+        "metrics",
+        "parallelTicking",
+        "regionizedThreading",
+        "fabricBridge",
+        "neoForgeBridge"
+      ]
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pluginApi",
+        "victusCore",
+        "nativeConfig",
+        "dab",
+        "asyncChunkSend",
+        "lagDoctor",
+        "metrics",
+        "parallelTicking",
+        "regionizedThreading",
+        "fabricBridge",
+        "neoForgeBridge"
+      ],
+      "properties": {
+        "pluginApi": { "type": "boolean" },
+        "victusCore": { "type": "boolean" },
+        "nativeConfig": { "type": "boolean" },
+        "dab": { "type": "boolean" },
+        "asyncChunkSend": { "type": "boolean" },
+        "lagDoctor": { "type": "boolean" },
+        "metrics": { "type": "boolean" },
+        "parallelTicking": { "type": "boolean" },
+        "regionizedThreading": { "type": "boolean" },
+        "fabricBridge": { "type": "boolean" },
+        "neoForgeBridge": { "type": "boolean" }
+      }
+    },
+    "mojang": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["releaseTime", "manifestSha1", "manifestUrl"],
+      "properties": {
+        "releaseTime": { "type": "string", "format": "date-time" },
+        "manifestSha1": { "$ref": "#/$defs/sha1" },
+        "manifestUrl": { "type": "string", "format": "uri", "pattern": "^https://" }
+      }
+    },
+    "paperDownload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["url", "sha256", "size"],
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://fill-data\\.papermc\\.io/v1/objects/[0-9a-f]{64}/"
+        },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "size": { "type": "integer", "minimum": 1000001 }
+      }
+    },
+    "upstream": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "project", "version"],
+      "properties": {
+        "provider": { "const": "Paper" },
+        "project": { "const": "paper" },
+        "version": { "$ref": "#/$defs/versionString" },
+        "build": { "type": "integer", "minimum": 1 },
+        "channel": { "enum": ["alpha", "beta", "stable"] },
+        "buildTime": { "type": "string", "format": "date-time" },
+        "commit": { "anyOf": [{ "$ref": "#/$defs/sha1" }, { "type": "null" }] },
+        "download": { "$ref": "#/$defs/paperDownload" },
+        "sourceRef": { "$ref": "#/$defs/sha1" },
+        "sourceBuild": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "version": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minecraftVersion",
+        "family",
+        "mojang",
+        "paperBaseline",
+        "availability",
+        "unavailableReason",
+        "java",
+        "buildSystem",
+        "sourceBranch",
+        "sourceImplemented",
+        "supportTier",
+        "capabilities",
+        "tests",
+        "publicationEligible",
+        "upstream"
+      ],
+      "properties": {
+        "minecraftVersion": { "$ref": "#/$defs/versionString" },
+        "family": { "type": "string", "pattern": "^(?:1|26)\\.[0-9]+$" },
+        "mojang": { "$ref": "#/$defs/mojang" },
+        "paperBaseline": { "type": "boolean" },
+        "availability": { "enum": ["implemented", "planned", "unavailable"] },
+        "unavailableReason": { "$ref": "#/$defs/nullableString" },
+        "java": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["build", "runtime"],
+          "properties": {
+            "build": { "enum": [8, 16, 17, 21, 25] },
+            "runtime": { "enum": [8, 16, 17, 21, 25] }
+          }
+        },
+        "buildSystem": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["generation", "gradle", "paperweight", "task", "artifactPath"],
+          "properties": {
+            "generation": { "enum": ["modern-paperweight", "legacy-paperweight", "legacy-paper-archive"] },
+            "gradle": { "$ref": "#/$defs/nullableString" },
+            "paperweight": { "$ref": "#/$defs/nullableString" },
+            "task": { "$ref": "#/$defs/nullableString" },
+            "artifactPath": { "$ref": "#/$defs/nullableString" }
+          }
+        },
+        "sourceBranch": { "$ref": "#/$defs/nullableString" },
+        "sourceImplemented": { "type": "boolean" },
+        "supportTier": { "enum": ["beta", "planned", "legacy-planned", "unavailable"] },
+        "capabilities": { "$ref": "#/$defs/capabilities" },
+        "tests": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["catalog", "patchApply", "unit", "boot", "bannerOrdering"],
+          "properties": {
+            "catalog": { "type": "boolean" },
+            "patchApply": { "type": "boolean" },
+            "unit": { "type": "boolean" },
+            "boot": { "type": "boolean" },
+            "bannerOrdering": { "type": "boolean" }
+          }
+        },
+        "publicationEligible": { "const": false },
+        "upstream": { "$ref": "#/$defs/upstream" }
+      }
+    }
+  }
+}

@@ -1,84 +1,78 @@
 # Victus Engine
 
-A high-performance Minecraft: Java Edition server, forked from [PaperMC](https://papermc.io).
-**Every Spigot / Bukkit / Paper plugin works unchanged** — that is the non-negotiable promise.
-On top of full compatibility we stack aggressive, honest performance work and a
-**hosting-first control plane** that no other fork ships, because no other fork is built by a
-hosting company.
+Victus Engine is a Paper-based Minecraft: Java Edition server fork. The repository currently contains one real source line: **Minecraft 26.2**, based on the exact Paper commit pinned in [`gradle.properties`](gradle.properties). Multi-version support is a catalogued porting program, not a set of finished builds.
 
-> Standalone repository. Not part of the main Victus Cloud web / panel / billing repos.
+> Standalone repository. It is not part of the Victus Cloud web, panel, or billing repositories.
 
----
+## Version status
 
-## What this actually is (no hype)
+The machine-readable source of truth is [`versions/versions.json`](versions/versions.json).
 
-Minecraft's tick loop is fundamentally serial, so **"100× per core" is not real** — see
-[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the grounded numbers. What Victus Engine
-*does* deliver:
+| Matrix state | Count | Meaning |
+| --- | ---: | --- |
+| Implemented Victus source line | **1** | 26.2 on `main`; builds from this repository |
+| Exact Paper baselines planned for ports | **52** | Paper shipped the exact Mojang version, but no Victus source branch/build exists yet |
+| Exact versions unavailable | **21** | Paper never shipped that exact Mojang baseline |
+| Official Mojang releases covered | **74** | Every Java release from 1.8 through 26.2 |
 
-| Goal | Realistic target vs Paper |
-| --- | --- |
-| Per-core MSPT headroom (survival) | **3–10×** (stacked optimizations) |
-| Players / box, spread-out survival | **5–8×** (opt-in regionized threading) |
-| Players / box, minigames / lobby | **thousands** (companion Minestom engine) |
-| Network total | **effectively unlimited** (Velocity sharding) |
-| Find & fix lag | **one command** (`/victus doctor`) |
+The 21 exact Paper gaps are `1.8`, `1.8.1`–`1.8.7`, `1.8.9`, `1.9`–`1.9.3`, `1.10`, `1.10.1`, `1.11`, `1.11.1`, `1.16`, `1.20.3`, `1.21.2`, and `26.1`. They are deliberately non-downloadable; Victus does not relabel a different server version or claim protocol translation is a native build.
 
-## Design pillars
+All 74 catalog entries currently have `publicationEligible: false`. Only 26.2 has a `sourceBranch`; no catalog entry pretends that the other 52 planned ports or their artifacts already exist.
 
-1. **Compatibility first** — full Bukkit/Spigot/Paper API. Regionized threading and the mod
-   bridge are *opt-in per instance*; a plain SMP pays zero cost for features it doesn't use.
-2. **Honest, layered performance** — every optimization preserves vanilla behavior (or is a
-   toggle back to it). No idle-MSPT or startup-time vanity metrics.
-3. **Hosting-first moat** — per-instance CPU/RAM/tick limits, Prometheus metrics, JSON logs,
-   the lag-doctor, safe-restart/rollback hooks, config auto-migration.
-4. **Hybrid from day one (isolated)** — a Fabric/NeoForge mod loader bridge lives behind a
-   per-instance toggle and can never drag down the pure-plugin core.
+## 26.2 capability status
 
-See [`docs/ROADMAP.md`](docs/ROADMAP.md) for phases and [`docs/VICTUS-CONFIG.md`](docs/VICTUS-CONFIG.md)
-for the full `victus.yml` schema (the concrete feature seams).
+Implemented and wired on the current source line include the native `victus.yml` configuration foundation, profile-driven settings, DAB, async chunk-send controls/watchdog, metrics, and `/victus doctor`. The compact native Victus Cloud banner is attached to the genuine server-ready lifecycle: Paper's `Done` message is logged first, then the banner and `https://victuscloud.com` are logged once.
 
----
+The following are **not supported claims**:
 
-## Status
+- parallel/regionized ticking is experimental foundation, not production support;
+- Fabric/NeoForge hybrid operation is foundation/planned and is not advertised as working;
+- a capability on 26.2 does not imply that it has been ported to any other catalog entry.
 
-**Phase 0 — scaffold.** This repo is the fork skeleton. The actual Paper source is *not* vendored;
-paperweight downloads and patches it at build time (see below). Nothing here builds until you run
-the hydrate step **with internet access**.
+See [`docs/STATUS.md`](docs/STATUS.md) for the current evidence boundaries, [`docs/DEPLOY.md`](docs/DEPLOY.md) for the non-publishing CI/manual-test policy, and [`docs/ROADMAP.md`](docs/ROADMAP.md) for future work.
 
-## Build (requires internet + a git clone)
+## Catalog tooling
 
-Base: **Paper `26.2`** (unobfuscated). Toolchain: paperweight-patcher `2.0.0-beta.21`,
-Gradle `9.4.1`, **JDK 25** (auto-provisioned by Gradle's foojay resolver on first build).
+Catalog validation and generation are offline by default and use the checked-in verified snapshot:
 
 ```bash
-# 1. dev env — keeps temp/caches off a full C: and trusts the Windows cert store (Avast TLS)
-source scripts/dev-env.sh
-
-# 2. pull + decompile + patch Paper, then build the server jar
-./scripts/build.sh          # wraps ./gradlew applyAllPatches build
-
-# 3. run it (Java 25, Generational ZGC)
-java -XX:+UseZGC -XX:+ZGenerational -jar victus-server/build/libs/victus-*.jar --nogui
+python scripts/validate-version-catalog.py
+python scripts/generate-version-catalog.py --check
+python scripts/test-banner-contract.py
 ```
 
-> The build config is verified working (paperweight configures + checks out Paper). On Windows the
-> two gotchas are handled by `scripts/dev-env.sh`: Windows-style temp paths and the `Windows-ROOT`
-> Java truststore (so Gradle's TLS survives Avast interception). On Linux/CI neither is needed.
+An explicit optional refresh contacts Mojang and Paper, updates [`versions/upstream-snapshot.json`](versions/upstream-snapshot.json), and regenerates the catalog:
+
+```bash
+python scripts/generate-version-catalog.py --refresh
+```
+
+The semantic validator rejects duplicate/missing/out-of-order versions, invalid Java tiers, fabricated source/build settings, Paper gaps marked downloadable, mutable Paper URLs, missing checksums/provenance, unsupported capabilities, and publication eligibility. The JSON contract is defined in [`versions/versions.schema.json`](versions/versions.schema.json).
+
+## Build 26.2
+
+Building requires a Git clone, network access for paperweight dependencies/upstream hydration, Gradle 9.4.1, and JDK 25 (the toolchain resolver can provision it).
+
+```bash
+source scripts/dev-env.sh       # optional local Windows/TLS environment helper
+./scripts/build.sh              # ./gradlew applyAllPatches build
+java -jar victus-server/build/libs/victus-*.jar --nogui
+```
+
+The catalog-driven manual workflow refuses entries without implemented source. The regular CI builds only 26.2 and uploads a short-lived CI artifact; neither workflow publishes a release or deploys a server.
 
 ## Layout
 
-```
-patches/paper-server/   feature + fix patches applied to Paper's server (GPL-3.0)
-patches/paper-api/      patches to the Paper API (MIT, mirroring Paper)
-build-data/             paperweight fork metadata (dev-imports, mappings notes)
-docs/                   ARCHITECTURE, ROADMAP, VICTUS-CONFIG, CONTRIBUTING
-design/modules/         per-module design notes (the Victus-specific seams)
-scripts/                dev-env + build helpers (C:-full ENOSPC workaround)
-.github/workflows/      CI
+```text
+versions/                  frozen 74-version catalog, schema, verified upstream snapshot
+scripts/                   catalog validation/generation, build selection, banner assertions
+victus-server/             current 26.2 Paper file/source patches
+victus-core/               Paper-independent configuration/metrics/runtime logic
+victus-plugin/             plugin-side command and metrics integration
+docs/                      architecture, status, roadmap, configuration, design records
+.github/workflows/          catalog validation and honest selected-line build foundations
 ```
 
 ## License
 
-GPL-3.0-only (server), MIT (API patches) — mirroring PaperMC. See [`LICENSE`](LICENSE) and
-[`docs/LICENSING.md`](docs/LICENSING.md). You **must** vendor the full GPL-3.0 text before publishing.
+GPL-3.0-only for server changes and MIT-compatible API patch treatment, mirroring PaperMC. See [`LICENSE`](LICENSE) and [`docs/LICENSING.md`](docs/LICENSING.md).

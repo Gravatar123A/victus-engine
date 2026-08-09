@@ -24,6 +24,8 @@ Minecraft-Server*.jar
 # --- Java / IDE ---
 *.class
 *.log
+__pycache__/
+*.py[cod]
 .idea/
 *.iml
 .vscode/

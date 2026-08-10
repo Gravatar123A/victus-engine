@@ -8,12 +8,12 @@
  
          Bukkit.setServer(this);
          // Paper start
-@@ -599,6 +_,9 @@
-             CraftDefaultPermissions.registerCorePermissions();
-             if (!io.papermc.paper.configuration.GlobalConfiguration.get().misc.loadPermissionsYmlBeforePlugins) this.loadCustomPermissions(); // Paper
+@@ -601,6 +_,9 @@
              this.syncCommands();
 +            // Victus - all startup plugins/worlds are active; emit branding once. Reloads are harmless
 +            // because VictusEngine owns a process-wide compare-and-set guard.
 +            cloud.victus.engine.VictusEngine.logStartupBanner();
          }
      }
+
+     public void disablePlugins() {

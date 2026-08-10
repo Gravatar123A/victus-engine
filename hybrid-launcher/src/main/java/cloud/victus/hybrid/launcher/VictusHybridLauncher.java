@@ -71,6 +71,7 @@ public final class VictusHybridLauncher {
             report.blocker(failure.blockerCode());
             report.diagnostic(failure.getMessage());
             System.err.println("Victus hybrid startup refused [" + failure.blockerCode() + "]: " + failure.getMessage());
+            failure.printStackTrace(System.err);
             return 2;
         } catch (RuntimeException | Error failure) {
             lifecycle.fail();

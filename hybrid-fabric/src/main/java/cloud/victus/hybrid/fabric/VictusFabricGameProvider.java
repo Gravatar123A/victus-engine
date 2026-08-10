@@ -32,6 +32,7 @@ import net.fabricmc.loader.impl.metadata.BuiltinModMetadata;
 import net.fabricmc.loader.impl.metadata.ModDependencyImpl;
 import net.fabricmc.loader.impl.util.Arguments;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
@@ -41,9 +42,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.jar.JarFile;
 
 /**
  * Fabric game provider for the already patched, Mojang-mapped Victus server jar.
@@ -59,6 +62,8 @@ public final class VictusFabricGameProvider implements GameProvider {
     public static final String TARGET_LIBRARIES_PROPERTY = "victus.fabric.targetLibraries";
     public static final String EXPECTED_TARGET_MAIN = "org.bukkit.craftbukkit.Main";
     public static final String OWNED_MARKER_CLASS = "cloud.victus.hybrid.fixtures.fabric.FixtureMixinMarker";
+    public static final String EXTERNAL_LIBRARY_PROBE_PROPERTY = "victus.fabric.externalLibraryProbe";
+    public static final String EXTERNAL_LIBRARY_MARKER = "VICTUS_EXTERNAL_LIBRARY_VISIBLE";
 
     private static final Set<String> SENSITIVE_ARGS = new HashSet<>(Arrays.asList(
             "accesstoken", "clientid", "profileproperties", "proxypass", "proxyuser",
@@ -74,6 +79,7 @@ public final class VictusFabricGameProvider implements GameProvider {
     private List<Path> targetLibraries = List.of();
     private String targetMain;
     private Path launchDirectory;
+    private final Set<Path> unlockedTargetClassPath = new LinkedHashSet<>();
 
     @Override
     public String getGameId() {
@@ -145,6 +151,7 @@ public final class VictusFabricGameProvider implements GameProvider {
         targetLibraries = parseLibraries(System.getProperty(TARGET_LIBRARIES_PROPERTY, ""));
         launchDirectory = Path.of(System.getProperty("victus.fabric.gameDir", "."))
                 .toAbsolutePath().normalize();
+        unlockedTargetClassPath.clear();
 
         if (launcher.getClassPath().stream().anyMatch(path -> path.equals(targetJar))) {
             throw new IllegalStateException("Victus target jar was exposed to the platform classpath before Knot ownership: " + targetJar);
@@ -176,10 +183,25 @@ public final class VictusFabricGameProvider implements GameProvider {
     public void unlockClassPath(FabricLauncher launcher) {
         // These are added only after Fabric discovery, resolution, Mixin bootstrap and transformer init.
         // Consequently Knot owns target class definitions and transformations before Paper/Minecraft loads.
-        launcher.addToClassPath(targetJar);
+        addTargetPath(launcher, targetJar);
         for (Path library : targetLibraries) {
-            launcher.addToClassPath(library);
+            addTargetPath(launcher, library);
         }
+        if (unlockedTargetClassPath.size() != targetLibraries.size() + 1
+                || !unlockedTargetClassPath.contains(targetJar)
+                || !unlockedTargetClassPath.containsAll(targetLibraries)) {
+            throw new IllegalStateException("FABRIC_TARGET_CLASSPATH_UNLOCK_FAILED: expected target plus "
+                    + targetLibraries.size() + " libraries, added " + unlockedTargetClassPath);
+        }
+        System.out.println("VICTUS_FABRIC_TARGET_CLASSPATH target=" + targetJar
+                + " libraries=" + targetLibraries.size() + " knotEntries=" + unlockedTargetClassPath.size());
+    }
+
+    private void addTargetPath(FabricLauncher launcher, Path path) {
+        if (!unlockedTargetClassPath.add(path)) {
+            throw new IllegalStateException("FABRIC_TARGET_CLASSPATH_DUPLICATE: " + path);
+        }
+        launcher.addToClassPath(path);
     }
 
     @Override
@@ -189,6 +211,8 @@ public final class VictusFabricGameProvider implements GameProvider {
             // different startup shape, so this provider owns the equivalent loader lifecycle call.
             FabricLoaderImpl fabric = FabricLoaderImpl.INSTANCE;
             fabric.prepareModInit(getLaunchDirectory(), null);
+            validateTargetLibraries(loader);
+            FabricApiCompatibilityValidator.validate(fabric, targetJar, targetLibraries);
             fabric.invokeEntrypoints("main", ModInitializer.class, ModInitializer::onInitialize);
 
             verifyFixtureProof(loader, fabric);
@@ -212,6 +236,49 @@ public final class VictusFabricGameProvider implements GameProvider {
             if (failure instanceof Error error) throw error;
             throw new IllegalStateException("Victus target launch failed", failure);
         }
+    }
+
+    private void validateTargetLibraries(ClassLoader loader) throws Exception {
+        String probeName = System.getProperty(EXTERNAL_LIBRARY_PROBE_PROPERTY, "").trim();
+        if (probeName.isEmpty()) {
+            return;
+        }
+        Path owner = classOwner(targetLibraries, probeName);
+        if (owner == null) {
+            throw new IllegalStateException("FABRIC_TARGET_LIBRARY_PROBE_MISSING: " + probeName
+                    + " is not present in the configured target libraries");
+        }
+        Class<?> probe;
+        try {
+            probe = loader.loadClass(probeName);
+        } catch (ClassNotFoundException failure) {
+            throw new IllegalStateException("FABRIC_TARGET_LIBRARY_NOT_VISIBLE: Knot cannot load "
+                    + probeName + " from " + owner, failure);
+        }
+        if (probe.getClassLoader() != loader) {
+            throw new IllegalStateException("FABRIC_TARGET_LIBRARY_CLASSLOADER_MISMATCH: " + probeName
+                    + " owner=" + probe.getClassLoader() + ", Knot=" + loader);
+        }
+        Object marker = probe.getMethod("marker").invoke(null);
+        if (!EXTERNAL_LIBRARY_MARKER.equals(marker)) {
+            throw new IllegalStateException("FABRIC_TARGET_LIBRARY_PROBE_INVALID: " + probeName
+                    + ".marker() returned " + marker);
+        }
+        System.setProperty("victus.fixture.fabric.externalLibrary", String.valueOf(marker));
+        System.out.println("VICTUS_FABRIC_TARGET_LIBRARY_VISIBLE class=" + probeName + " source=" + owner
+                + " classloader=" + probe.getClassLoader());
+    }
+
+    private static Path classOwner(List<Path> libraries, String className) {
+        String entry = className.replace('.', '/') + ".class";
+        for (Path library : libraries) {
+            try (JarFile file = new JarFile(library.toFile())) {
+                if (file.getJarEntry(entry) != null) return library;
+            } catch (IOException failure) {
+                throw new IllegalStateException("cannot inspect Victus target library " + library, failure);
+            }
+        }
+        return null;
     }
 
     private static void verifyFixtureProof(ClassLoader loader, FabricLoaderImpl fabric) throws Exception {
@@ -256,16 +323,30 @@ public final class VictusFabricGameProvider implements GameProvider {
 
     private static List<Path> parseLibraries(String value) {
         if (value == null || value.isBlank()) return List.of();
-        return Arrays.stream(value.split(java.util.regex.Pattern.quote(java.io.File.pathSeparator)))
-                .filter(entry -> !entry.isBlank())
-                .map(Path::of)
-                .map(path -> path.toAbsolutePath().normalize())
-                .peek(path -> {
-                    if (!Files.isRegularFile(path)) {
-                        throw new IllegalStateException("Victus target library is not a regular file: " + path);
-                    }
-                })
-                .toList();
+        List<Path> libraries = new java.util.ArrayList<>();
+        for (String entry : value.split(java.util.regex.Pattern.quote(java.io.File.pathSeparator))) {
+            if (entry.isBlank()) continue;
+            Path path = Path.of(entry).toAbsolutePath().normalize();
+            if (!Files.isRegularFile(path)) {
+                throw new IllegalStateException("Victus target library is not a regular file: " + path);
+            }
+            if (containsPackage(path, "org/objectweb/asm/")) {
+                // Loader/Mixin owns a single locked ASM version. Paper's ASM would be child-loaded by Knot and
+                // violate MixinExtras' loader constraints when transforming Fabric API implementation classes.
+                System.out.println("VICTUS_FABRIC_PLATFORM_LIBRARY_OWNED path=" + path + " package=org.objectweb.asm");
+                continue;
+            }
+            libraries.add(path);
+        }
+        return List.copyOf(libraries);
+    }
+
+    private static boolean containsPackage(Path jar, String prefix) {
+        try (JarFile file = new JarFile(jar.toFile())) {
+            return file.stream().anyMatch(entry -> !entry.isDirectory() && entry.getName().startsWith(prefix));
+        } catch (IOException failure) {
+            throw new IllegalStateException("cannot inspect Victus target library " + jar, failure);
+        }
     }
 
     private static boolean containsClass(Path jar, String className) {

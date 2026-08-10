@@ -102,3 +102,22 @@ tasks.register<Exec>("resolveFabricRuntime") {
 tasks.register("printVictusVersion") {
     doLast { println(project.version) }
 }
+
+// Export the resolved server runtime files for isolated Fabric/NeoForge launch plans without
+// putting them on the outer launcher classpath. The selected provider unlocks them inside Knot.
+project(":victus-server") {
+    val serverRuntime = configurations.named("runtimeClasspath")
+    tasks.register("writeRuntimeClasspath") {
+        group = "distribution"
+        val output = layout.buildDirectory.file("runtime-classpath.txt")
+        val runtimeFiles = serverRuntime.map { it.files.filter(File::isFile).map(File::getAbsolutePath).sorted() }
+        inputs.files(serverRuntime)
+        outputs.file(output)
+        doLast {
+            output.get().asFile.writeText(
+                runtimeFiles.get().joinToString(System.lineSeparator(), postfix = System.lineSeparator())
+            )
+            println(output.get().asFile.absolutePath)
+        }
+    }
+}

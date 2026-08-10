@@ -1,5 +1,25 @@
 --- a/net/minecraft/server/MinecraftServer.java
 +++ b/net/minecraft/server/MinecraftServer.java
+@@ -1007,3 +_,4 @@
+     protected void stopServer() {
++        cloud.victus.core.runtime.FabricLifecycleBridge.stopping(this); // Victus - Fabric lifecycle fallback for Paper startup shape
+         if (Thread.currentThread() == this.serverThread) this.executeAllRecentInternalTasks(); // Paper - execute tasks on stop
+         // CraftBukkit start - prevent double stopping on multiple threads
+@@ -1097,3 +_,4 @@
+         // Paper start - Improved watchdog support - move final shutdown items here
+         Util.shutdownExecutors();
+         this.onServerExit();
++        cloud.victus.core.runtime.FabricLifecycleBridge.stopped(this); // Victus - Fabric lifecycle fallback for Paper startup shape
+@@ -1265,3 +_,4 @@
+     protected void runServer() {
+         try {
++            cloud.victus.core.runtime.FabricLifecycleBridge.starting(this); // Victus - Fabric lifecycle fallback for Paper startup shape
+             if (!this.initServer()) {
+@@ -1272,3 +_,4 @@
+             this.initTickSchedule(); // Paper - improve tick loop
+             this.statusIcon = this.loadStatusIcon().orElse(null);
+             this.status = this.buildServerStatus();
++            cloud.victus.core.runtime.FabricLifecycleBridge.started(this); // Victus - Fabric lifecycle fallback for Paper startup shape
 @@ -1580,6 +_,8 @@
      protected void tickServer(final BooleanSupplier haveTime) {
          org.spigotmc.WatchdogThread.tick(); // Spigot

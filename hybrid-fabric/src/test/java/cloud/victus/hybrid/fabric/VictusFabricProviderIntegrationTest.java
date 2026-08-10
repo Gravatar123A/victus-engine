@@ -24,21 +24,31 @@ public final class VictusFabricProviderIntegrationTest {
         Path temp = Files.createTempDirectory("victus-fabric-provider-integration");
         Path target = temp.resolve("owned-target.jar");
         createTargetJar(target);
+        Path externalLibrary = temp.resolve("external-runtime-library.jar");
+        createExternalLibraryJar(externalLibrary);
         Path mods = Files.createDirectories(temp.resolve("mods"));
         Files.copy(fixtureJar, mods.resolve(fixtureJar.getFileName()));
-        for (Path runtime : loaderRuntime) {
-            String name = runtime.getFileName().toString();
-            if (name.startsWith("fabric-api-base-")) {
-                Files.copy(runtime, mods.resolve(runtime.getFileName()));
+        boolean fullFabricApi = args.length > 3;
+        if (fullFabricApi) {
+            Path aggregate = Path.of(args[3]).toAbsolutePath().normalize();
+            Files.copy(aggregate, mods.resolve(aggregate.getFileName()));
+        } else {
+            for (Path runtime : loaderRuntime) {
+                String name = runtime.getFileName().toString();
+                if (name.startsWith("fabric-api-base-")) {
+                    Files.copy(runtime, mods.resolve(runtime.getFileName()));
+                }
             }
+            createLifecycleApiFixture(mods.resolve("fabric-lifecycle-events-v1-test-fixture.jar"));
         }
-        createLifecycleApiFixture(mods.resolve("fabric-lifecycle-events-v1-test-fixture.jar"));
         Path reportPath = temp.resolve("startup-report.txt");
 
         System.setProperty("victus.fabric.requireFixtureProof", "true");
+        System.setProperty(VictusFabricGameProvider.EXTERNAL_LIBRARY_PROBE_PROPERTY,
+                "cloud.victus.hybrid.fabric.fixture.ExternalRuntimeLibrary");
         clearProof();
         LaunchRequest request = new LaunchRequest(LoaderProfile.FABRIC,
-                VictusFabricGameProvider.EXPECTED_TARGET_MAIN, target, List.of(), List.of(adapterJar),
+                VictusFabricGameProvider.EXPECTED_TARGET_MAIN, target, List.of(externalLibrary), List.of(adapterJar),
                 loaderRuntime, temp, mods, List.of("--nogui"), reportPath);
         FabricLoaderAdapter adapter = new FabricLoaderAdapter();
         if (!adapter.preflight(request).ready()) {
@@ -48,6 +58,19 @@ public final class VictusFabricProviderIntegrationTest {
         lifecycle.transition(LifecycleState.PREFLIGHTING);
         lifecycle.transition(LifecycleState.PREFLIGHT_PASSED);
         StartupReport report = new StartupReport(LoaderProfile.FABRIC);
+        if (fullFabricApi) {
+            try {
+                adapter.launch(request, lifecycle, report);
+                throw new AssertionError("full Fabric API unexpectedly passed against the minimal owned target");
+            } catch (cloud.victus.hybrid.common.HybridLaunchException expected) {
+                check("FABRIC_API_MODULE_INCOMPATIBLE".equals(expected.blockerCode()),
+                        "full Fabric API missing-target refusal code");
+                check(expected.getMessage().contains("mixins target classes absent"),
+                        "full Fabric API refusal lists absent targets");
+                System.out.println("VictusFabricProviderIntegrationTest: full Fabric API incompatibilities refused explicitly");
+                return;
+            }
+        }
         adapter.launch(request, lifecycle, report);
 
         check(FabricLoaderAdapter.FIXTURE_ENTRYPOINT_MARKER.equals(
@@ -56,15 +79,21 @@ public final class VictusFabricProviderIntegrationTest {
                 System.getProperty("victus.fixture.fabric.proof")), "Knot/Mixin proof");
         check("VICTUS_FIXTURE_FABRIC_LIFECYCLE_API".equals(
                 System.getProperty("victus.fixture.fabric.lifecycleApi")), "Fabric API lifecycle linkage");
+        check(VictusFabricGameProvider.EXTERNAL_LIBRARY_MARKER.equals(
+                System.getProperty("victus.fixture.fabric.externalLibrary")), "provider external library visibility");
+        check(VictusFabricGameProvider.EXTERNAL_LIBRARY_MARKER.equals(
+                System.getProperty("victus.fixture.target.externalLibrary")), "target external library visibility");
         check("true".equals(System.getProperty("victus.fixture.target.called")), "owned target delegated");
         check(lifecycle.state() == LifecycleState.TARGET_DELEGATED, "target lifecycle state");
-        System.out.println("VictusFabricProviderIntegrationTest: discovery, entrypoint, Mixin and target ownership passed");
+        System.out.println("VictusFabricProviderIntegrationTest: discovery, entrypoint, Mixin, target ownership and external library visibility passed");
     }
 
     private static void clearProof() {
         System.clearProperty("victus.fixture.fabric.entrypoint");
         System.clearProperty("victus.fixture.fabric.proof");
         System.clearProperty("victus.fixture.fabric.lifecycleApi");
+        System.clearProperty("victus.fixture.fabric.externalLibrary");
+        System.clearProperty("victus.fixture.target.externalLibrary");
         System.clearProperty("victus.fixture.target.called");
     }
 
@@ -95,6 +124,12 @@ public final class VictusFabricProviderIntegrationTest {
             copyClass(output, "org/bukkit/craftbukkit/Main.class");
             copyClass(output, "net/minecraft/server/MinecraftServer.class");
             copyClass(output, "net/minecraft/resources/Identifier.class");
+        }
+    }
+
+    private static void createExternalLibraryJar(Path jar) throws IOException {
+        try (var output = new JarOutputStream(Files.newOutputStream(jar))) {
+            copyClass(output, "cloud/victus/hybrid/fabric/fixture/ExternalRuntimeLibrary.class");
         }
     }
 

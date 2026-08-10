@@ -16,7 +16,7 @@ public final class FabricAdapterSelfTest {
     public static void main(String[] args) throws Exception {
         Path temp = Files.createTempDirectory("victus-fabric-adapter-test");
         LaunchRequest missing = new LaunchRequest(LoaderProfile.FABRIC, "org.bukkit.craftbukkit.Main",
-                temp.resolve("server.jar"), List.of(), List.of(), List.of(temp.resolve("fabric-loader.jar")),
+                temp.resolve("server.jar"), List.of(temp.resolve("external-library.jar")), List.of(), List.of(temp.resolve("fabric-loader.jar")),
                 temp, temp.resolve("mods"), List.of("--nogui"), temp.resolve("report.txt"));
         PreflightResult result = new FabricLoaderAdapter().preflight(missing);
         check(!result.ready(), "missing runtime is refused");
@@ -26,6 +26,8 @@ public final class FabricAdapterSelfTest {
                 "Knot requirement is explicit");
         check(result.diagnostics().stream().anyMatch(line -> line.startsWith("FABRIC_ASM_MISSING")),
                 "ASM requirement is explicit");
+        check(result.diagnostics().stream().anyMatch(line -> line.startsWith("FABRIC_TARGET_CLASSPATH_MISSING")),
+                "external target-library requirement is explicit");
         check(result.fingerprint().loaderVersion().equals("0.19.3"), "loader pin in fingerprint");
         check(result.fingerprint().apiVersion().equals("0.156.0+26.2"), "API pin in fingerprint");
         System.clearProperty(VictusFabricGameProvider.ENABLE_PROPERTY);
@@ -36,7 +38,7 @@ public final class FabricAdapterSelfTest {
                 "Victus provider service is registered without eager initialization");
         check(System.getProperty(VictusFabricGameProvider.ENABLE_PROPERTY) == null,
                 "Victus provider is opt-in and disabled mode remains isolated");
-        System.out.println("FabricAdapterSelfTest: 8 checks passed");
+        System.out.println("FabricAdapterSelfTest: 9 checks passed");
     }
 
     private static void check(boolean value, String name) {

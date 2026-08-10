@@ -13,6 +13,8 @@ import cloud.victus.hybrid.common.LoaderProfile;
 import cloud.victus.hybrid.common.PreflightResult;
 import cloud.victus.hybrid.common.StartupReport;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -30,6 +32,8 @@ public final class FabricLoaderAdapter implements LoaderAdapter {
     public static final String API_VERSION = "0.156.0+26.2";
     public static final String MINECRAFT_VERSION = "26.2";
     public static final String KNOT_SERVER = "net.fabricmc.loader.impl.launch.knot.KnotServer";
+    private static final String KNOT = "net.fabricmc.loader.impl.launch.knot.Knot";
+    private static final String ENV_TYPE = "net.fabricmc.api.EnvType";
     public static final String FIXTURE_ENTRYPOINT_MARKER = "VICTUS_FIXTURE_FABRIC_ENTRYPOINT";
     public static final String FIXTURE_MIXIN_MARKER = "VICTUS_FIXTURE_FABRIC_MIXIN";
     public static final String FIXTURE_PROOF_MARKER = "VICTUS_FIXTURE_FABRIC_PROOF";
@@ -76,6 +80,10 @@ public final class FabricLoaderAdapter implements LoaderAdapter {
         } else if (!ClasspathInspector.containsClass(List.of(request.targetArtifact()), SUPPORTED_TARGET)) {
             diagnostics.add("FABRIC_TARGET_MAIN_MISSING: patched server artifact lacks " + SUPPORTED_TARGET);
         }
+        List<String> missingTargetLibraries = ClasspathInspector.missing(request.targetClasspath());
+        if (!missingTargetLibraries.isEmpty()) {
+            diagnostics.add("FABRIC_TARGET_CLASSPATH_MISSING: " + String.join(",", missingTargetLibraries));
+        }
         if (!Files.isDirectory(request.gameDirectory())) {
             diagnostics.add("FABRIC_GAME_DIRECTORY_MISSING: " + request.gameDirectory());
         }
@@ -121,6 +129,7 @@ public final class FabricLoaderAdapter implements LoaderAdapter {
         properties.put("fabric.noGui", "true");
         properties.put("fabric.log.file", request.gameDirectory().resolve("logs/victus-fabric-loader.log").toString());
         properties.put("fabric.debug.throwDirectly", "true");
+        properties.put("fabric.debug.logTransformErrors", "true");
         Map<String, String> previous = install(properties);
         lifecycle.transition(LifecycleState.TRANSFORMERS_READY);
         report.diagnostic(HybridMarkers.TRANSFORMER + "=fabric-knot-mixin");
@@ -129,26 +138,37 @@ public final class FabricLoaderAdapter implements LoaderAdapter {
                 ClassLoader.getPlatformClassLoader())) {
             Thread thread = Thread.currentThread();
             ClassLoader previousContext = thread.getContextClassLoader();
+            Thread.UncaughtExceptionHandler previousHandler = Thread.getDefaultUncaughtExceptionHandler();
             thread.setContextClassLoader(knot);
             lifecycle.transition(LifecycleState.LOADER_ENTERED);
             report.diagnostic(HybridMarkers.LOADER_ENTERED + "=fabric");
             try {
-                Class<?> mainClass = Class.forName(KNOT_SERVER, true, knot);
-                Method main = mainClass.getMethod("main", String[].class);
-                if (mainClass.getClassLoader() != knot) {
+                Class<?> knotClass = Class.forName(KNOT, true, knot);
+                Class<?> envTypeClass = Class.forName(ENV_TYPE, true, knot);
+                if (knotClass.getClassLoader() != knot || envTypeClass.getClassLoader() != knot) {
                     throw new HybridLaunchException("FABRIC_KNOT_CLASSLOADER_INVALID",
-                            "Knot was not loaded by the isolated Fabric runtime classloader: " + mainClass.getClassLoader());
+                            "Knot was not loaded by the isolated Fabric runtime classloader: " + knotClass.getClassLoader());
                 }
-                main.invoke(null, (Object) request.targetArguments().toArray(String[]::new));
+                @SuppressWarnings({"rawtypes", "unchecked"})
+                Object server = Enum.valueOf((Class<? extends Enum>) envTypeClass.asSubclass(Enum.class), "SERVER");
+                Method launch = knotClass.getMethod("launch", String[].class, envTypeClass);
+                // Call Knot.launch directly. KnotServer.main delegates here, but its FormattedException path can
+                // invoke FabricGuiEntry and terminate/suppress the nested entrypoint cause before the host reports it.
+                launch.invoke(null, request.targetArguments().toArray(String[]::new), server);
                 lifecycle.transition(LifecycleState.TARGET_DELEGATED);
                 report.diagnostic(HybridMarkers.TARGET_DELEGATED + "=" + request.targetMain());
             } finally {
+                // Knot installs a process-global handler that may call FabricGuiEntry from a classloader which
+                // cannot see Loader internals. Restore the host handler while this isolated runtime is still live.
+                Thread.setDefaultUncaughtExceptionHandler(previousHandler);
                 thread.setContextClassLoader(previousContext);
             }
         } catch (InvocationTargetException failure) {
-            Throwable cause = failure.getCause() == null ? failure : failure.getCause();
+            Throwable cause = unwrapInvocation(failure);
+            report.diagnostic("FABRIC_FAILURE_CAUSE_CHAIN=" + causeChain(cause));
+            report.diagnostic("FABRIC_FAILURE_STACK=" + stackTrace(cause));
             throw new HybridLaunchException(classify(cause),
-                    "Knot entered but could not launch the patched Victus server: " + cause, cause);
+                    "Knot entered but could not launch the patched Victus server: " + causeChain(cause), cause);
         } catch (ReflectiveOperationException | java.io.IOException failure) {
             throw new HybridLaunchException("FABRIC_KNOT_ENTRY_FAILED",
                     "Cannot enter Fabric Knot " + KNOT_SERVER + ": " + failure, failure);
@@ -158,13 +178,49 @@ public final class FabricLoaderAdapter implements LoaderAdapter {
     }
 
     private static String classify(Throwable failure) {
-        String text = failure.toString();
+        String text = causeChain(failure);
+        if (text.contains("MixinApplyError") || text.contains("InvalidInjectionException")
+                || text.contains("InjectionError")) {
+            return "FABRIC_API_MIXIN_INCOMPATIBLE";
+        }
         for (String code : List.of("FABRIC_FIXTURE_NOT_DISCOVERED", "FABRIC_FIXTURE_ENTRYPOINT_MISSING",
                 "FABRIC_FIXTURE_API_MISSING", "FABRIC_FIXTURE_CLASSLOADER_MISMATCH",
-                "FABRIC_FIXTURE_MIXIN_MISSING")) {
+                "FABRIC_FIXTURE_MIXIN_MISSING", "FABRIC_TARGET_LIBRARY_NOT_VISIBLE",
+                "FABRIC_TARGET_LIBRARY_CLASSLOADER_MISMATCH", "FABRIC_TARGET_CLASSPATH_UNLOCK_FAILED",
+                "FABRIC_API_MODULE_INCOMPATIBLE",
+                "FABRIC_LIFECYCLE_BRIDGE_FAILED")) {
             if (text.contains(code)) return code;
         }
         return "FABRIC_KNOT_FAILED";
+    }
+
+    private static Throwable unwrapInvocation(Throwable failure) {
+        Throwable current = failure;
+        while (current instanceof InvocationTargetException invocation && invocation.getCause() != null) {
+            current = invocation.getCause();
+        }
+        return current;
+    }
+
+    private static String causeChain(Throwable failure) {
+        StringBuilder out = new StringBuilder();
+        Throwable current = failure;
+        java.util.Set<Throwable> visited = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        while (current != null && visited.add(current)) {
+            if (!out.isEmpty()) out.append(" -> ");
+            out.append(current.getClass().getName());
+            if (current.getMessage() != null && !current.getMessage().isBlank()) {
+                out.append(": ").append(current.getMessage());
+            }
+            current = current.getCause();
+        }
+        return out.toString();
+    }
+
+    private static String stackTrace(Throwable failure) {
+        StringWriter buffer = new StringWriter();
+        failure.printStackTrace(new PrintWriter(buffer));
+        return buffer.toString();
     }
 
     private static String join(List<Path> paths) {

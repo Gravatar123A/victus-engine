@@ -25,6 +25,14 @@ dependencies {
     // testImplementation("org.junit.jupiter:junit-jupiter:5.11.0")
 }
 
+val fabricLifecycleBridgeSelfTest by tasks.registering(JavaExec::class) {
+    group = "verification"
+    dependsOn(tasks.named("classes"))
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("cloud.victus.core.runtime.FabricLifecycleBridgeSelfTest")
+}
+
 tasks.test {
     useJUnitPlatform()
+    dependsOn(fabricLifecycleBridgeSelfTest)
 }

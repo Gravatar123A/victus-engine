@@ -11,6 +11,7 @@ dependencies {
     // Compile against Loader's maintained GameProvider SPI. It remains compileOnly so disabled mode and
     // the launcher production classpath cannot acquire Fabric transitively; the locked runtime supplies it.
     compileOnly("net.fabricmc:fabric-loader:0.19.3")
+    compileOnly("org.ow2.asm:asm:9.10.1")
     testImplementation("net.fabricmc:fabric-loader:0.19.3")
 }
 
@@ -40,6 +41,9 @@ dependencies {
 val fabricFixturePath = rootProject.layout.projectDirectory.file(
     "hybrid-fixtures/build/libs/victus-fixture-fabric-${project.version}.jar"
 )
+val fullFabricApi = configurations.detachedConfiguration(
+    dependencies.create("net.fabricmc.fabric-api:fabric-api:0.156.0+26.2")
+).apply { isTransitive = false }
 
 val fabricProviderIntegrationTest by tasks.registering(JavaExec::class) {
     group = "verification"
@@ -52,6 +56,21 @@ val fabricProviderIntegrationTest by tasks.registering(JavaExec::class) {
         layout.buildDirectory.file("libs/hybrid-fabric-${project.version}.jar").get().asFile.absolutePath,
         fabricFixturePath.asFile.absolutePath,
         fabricRuntime.asPath
+    )
+}
+
+val fabricApiCompatibilityIntegrationTest by tasks.registering(JavaExec::class) {
+    group = "verification"
+    description = "Audits the full Fabric API aggregate and refuses absent Minecraft/Paper mixin targets."
+    dependsOn(tasks.named("testClasses"), tasks.named("jar"), ":hybrid-fixtures:fabricFixtureJar")
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("cloud.victus.hybrid.fabric.VictusFabricProviderIntegrationTest")
+    javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(25)) })
+    args(
+        layout.buildDirectory.file("libs/hybrid-fabric-${project.version}.jar").get().asFile.absolutePath,
+        fabricFixturePath.asFile.absolutePath,
+        fabricRuntime.asPath,
+        fullFabricApi.singleFile.absolutePath
     )
 }
 
@@ -76,5 +95,5 @@ val fabricDistribution by tasks.registering(Exec::class) {
 }
 
 tasks.named("test") {
-    dependsOn(fabricAdapterSelfTest, fabricProviderIntegrationTest)
+    dependsOn(fabricAdapterSelfTest, fabricProviderIntegrationTest, fabricApiCompatibilityIntegrationTest)
 }

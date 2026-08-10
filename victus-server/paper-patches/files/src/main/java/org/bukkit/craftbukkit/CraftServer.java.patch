@@ -8,7 +8,7 @@
  
          Bukkit.setServer(this);
          // Paper start
-@@ -601,6 +_,9 @@
+@@ -601,7 +_,10 @@
              this.syncCommands();
 +            // Victus - all startup plugins/worlds are active; emit branding once. Reloads are harmless
 +            // because VictusEngine owns a process-wide compare-and-set guard.
@@ -17,3 +17,4 @@
      }
 
      public void disablePlugins() {
+         this.pluginManager.disablePlugins();

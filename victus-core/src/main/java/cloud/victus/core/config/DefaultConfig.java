@@ -35,7 +35,7 @@ public final class DefaultConfig {
             + "    compression: libdeflate     # zlib | libdeflate (NOT zstd — breaks clients)\n"
             + "    compression-threshold: 256\n"
             + "hybrid:\n"
-            + "  #enabled: false          # run Fabric/NeoForge mods alongside plugins (EXPERIMENTAL — Phase 4, see docs)\n"
+            + "  #enabled: false          # late discovery diagnostics only; loader profiles use the pre-main launcher\n"
             + "  #loader: auto            # auto | fabric | neoforge\n"
             + "  #safe-mode: true         # auto-disable known-bad mod<->plugin combinations\n"
             + "hosting:\n"

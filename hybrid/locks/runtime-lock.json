@@ -1,0 +1,67 @@
+{
+  "format": 1,
+  "minecraftVersion": "26.2",
+  "generatedFrom": {
+    "fabricLoaderMetadata": "https://maven.fabricmc.net/net/fabricmc/fabric-loader/0.19.3/fabric-loader-0.19.3.json",
+    "fabricApiPom": "https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/0.156.0+26.2/fabric-api-0.156.0+26.2.pom",
+    "fmlPom": "https://maven.neoforged.net/releases/net/neoforged/fancymodloader/loader/11.0.17/loader-11.0.17.pom",
+    "neoForgeInstallerProfile": "https://maven.neoforged.net/releases/net/neoforged/neoforge/26.2.0.57/neoforge-26.2.0.57-installer.jar!/install_profile.json"
+  },
+  "profiles": {
+    "fabric": {
+      "entrypoint": "net.fabricmc.loader.impl.launch.knot.KnotServer",
+      "loader": "0.19.3",
+      "fixtureApi": "0.156.0+26.2",
+      "mixin": "0.17.3+mixin.0.8.7",
+      "artifacts": [
+        {"coordinate":"net.fabricmc:fabric-loader:0.19.3","repository":"https://maven.fabricmc.net/","path":"net/fabricmc/fabric-loader/0.19.3/fabric-loader-0.19.3.jar","license":"Apache-2.0","size":1976502,"sha256":"73eed8c34bbad0320a2a3cba5346351e822f74f82b3f3c060574068474132958","role":"loader"},
+        {"coordinate":"net.fabricmc.fabric-api:fabric-api:0.156.0+26.2","repository":"https://maven.fabricmc.net/","path":"net/fabricmc/fabric-api/fabric-api/0.156.0+26.2/fabric-api-0.156.0+26.2.jar","license":"Apache-2.0","size":2531175,"sha256":"8de18d9f6a8a2a5b2120ef9e8bffb79cc9b75989c0c022c39c9dfc1bc3a29a99","role":"fixture-api"},
+        {"coordinate":"org.ow2.asm:asm:9.10.1","repository":"https://maven.fabricmc.net/","path":"org/ow2/asm/asm/9.10.1/asm-9.10.1.jar","license":"BSD-3-Clause","size":126151,"sha256":"ed825d10ab1399c8c0cb669e688cf0c8c82629b4c8399b58352b68e92ca10fcb","role":"direct-runtime"},
+        {"coordinate":"org.ow2.asm:asm-analysis:9.10.1","repository":"https://maven.fabricmc.net/","path":"org/ow2/asm/asm-analysis/9.10.1/asm-analysis-9.10.1.jar","license":"BSD-3-Clause","size":35140,"sha256":"dede75a21306b65974ecd8f87114ff6970f09fb794157a4ca09ab25c888c2bfc","role":"direct-runtime"},
+        {"coordinate":"org.ow2.asm:asm-commons:9.10.1","repository":"https://maven.fabricmc.net/","path":"org/ow2/asm/asm-commons/9.10.1/asm-commons-9.10.1.jar","license":"BSD-3-Clause","size":74840,"sha256":"6d0abefb7cbf972ea16edb37ec14835372505063a45f976ab7ea889ed9497895","role":"direct-runtime"},
+        {"coordinate":"org.ow2.asm:asm-tree:9.10.1","repository":"https://maven.fabricmc.net/","path":"org/ow2/asm/asm-tree/9.10.1/asm-tree-9.10.1.jar","license":"BSD-3-Clause","size":51958,"sha256":"3dfb0d5b6a106cd40b5b250e39935fbf2f927f4477546a5369a3ac609cf0506b","role":"direct-runtime"},
+        {"coordinate":"org.ow2.asm:asm-util:9.10.1","repository":"https://maven.fabricmc.net/","path":"org/ow2/asm/asm-util/9.10.1/asm-util-9.10.1.jar","license":"BSD-3-Clause","size":95628,"sha256":"1bb99d091fba2597dc6d51193e9bbcf0d8447e7ed96bd8f0198b18152f09655c","role":"direct-runtime"},
+        {"coordinate":"net.fabricmc:sponge-mixin:0.17.3+mixin.0.8.7","repository":"https://maven.fabricmc.net/","path":"net/fabricmc/sponge-mixin/0.17.3+mixin.0.8.7/sponge-mixin-0.17.3+mixin.0.8.7.jar","license":"MIT","size":1540060,"sha256":"9e90efec71d2bad5b96c9089f019d14a8603227d3c5f408d12f53fae89d99d41","role":"loader-selected-mixin"}
+      ]
+    },
+    "neoforge": {
+      "entrypoint": "net.neoforged.fml.startup.Server",
+      "neoForge": "26.2.0.57",
+      "fml": "11.0.17",
+      "mixin": "0.17.1+mixin.0.8.7",
+      "artifacts": [
+        {"coordinate":"net.neoforged:neoforge:26.2.0.57:universal","repository":"https://maven.neoforged.net/releases/","path":"net/neoforged/neoforge/26.2.0.57/neoforge-26.2.0.57-universal.jar","license":"LGPL-2.1-only","size":7050060,"sha256":"f9baa9303675aa80286115ea6cdbbd12ccd2547947e69e15726bd7285ec00ec8","role":"platform"},
+        {"coordinate":"net.neoforged.fancymodloader:loader:11.0.17","repository":"https://maven.neoforged.net/releases/","path":"net/neoforged/fancymodloader/loader/11.0.17/loader-11.0.17.jar","license":"LGPL-2.1-only","size":669160,"sha256":"ecbb45a555d1105e0aa375d86e48ea3391b3e0198e0a41e30564217161b46271","role":"loader"},
+        {"coordinate":"org.ow2.asm:asm:9.9.1","repository":"https://repo.maven.apache.org/maven2/","path":"org/ow2/asm/asm/9.9.1/asm-9.9.1.jar","license":"BSD-3-Clause","size":126252,"sha256":"6f3828a215c920059a5efa2fb55c233d6c54ec5cadca99ce1b1bdd10077c7ddd","role":"direct-compile"},
+        {"coordinate":"org.ow2.asm:asm-tree:9.9.1","repository":"https://repo.maven.apache.org/maven2/","path":"org/ow2/asm/asm-tree/9.9.1/asm-tree-9.9.1.jar","license":"BSD-3-Clause","size":51963,"sha256":"0f3555096b720b820bbacab0b515589bee0200bee099bda14c561738ae837ba1","role":"direct-compile"},
+        {"coordinate":"org.ow2.asm:asm-commons:9.9.1","repository":"https://repo.maven.apache.org/maven2/","path":"org/ow2/asm/asm-commons/9.9.1/asm-commons-9.9.1.jar","license":"BSD-3-Clause","size":75010,"sha256":"c2319e014ce7199f2b7f7d56d6bb991863168c3f4b6cd6c9f542a4937ef7ef88","role":"direct-compile"},
+        {"coordinate":"net.neoforged:mergetool:2.0.0:api","repository":"https://maven.neoforged.net/releases/","path":"net/neoforged/mergetool/2.0.0/mergetool-2.0.0-api.jar","license":"LGPL-2.1-only","size":2550,"sha256":"0260881294d8b218afe3d673f084d3745a55c28b35205d07d5e62d7f22202a00","role":"direct-compile"},
+        {"coordinate":"org.apache.logging.log4j:log4j-api:2.22.1","repository":"https://repo.maven.apache.org/maven2/","path":"org/apache/logging/log4j/log4j-api/2.22.1/log4j-api-2.22.1.jar","license":"Apache-2.0","size":335001,"sha256":"5d7beae7ff15d8516d6517121d7f12a79a6ac180df64b5fcec55d5be21056e53","role":"direct-compile"},
+        {"coordinate":"org.slf4j:slf4j-api:2.0.16","repository":"https://repo.maven.apache.org/maven2/","path":"org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16.jar","license":"MIT","size":69435,"sha256":"a12578dde1ba00bd9b816d388a0b879928d00bab3c83c240f7013bf4196c579a","role":"direct-compile"},
+        {"coordinate":"com.google.guava:guava:31.1-jre","repository":"https://repo.maven.apache.org/maven2/","path":"com/google/guava/guava/31.1-jre/guava-31.1-jre.jar","license":"Apache-2.0","size":2959479,"sha256":"a42edc9cab792e39fe39bb94f3fca655ed157ff87a8af78e1d6ba5b07c4a00ab","role":"direct-compile"},
+        {"coordinate":"com.google.code.gson:gson:2.10","repository":"https://repo.maven.apache.org/maven2/","path":"com/google/code/gson/gson/2.10/gson-2.10.jar","license":"Apache-2.0","size":286235,"sha256":"0cdd163ce3598a20fc04eee71b140b24f6f2a3b35f0a499dbbdd9852e83fbfaf","role":"direct-compile"},
+        {"coordinate":"org.apache.maven:maven-artifact:3.8.5","repository":"https://repo.maven.apache.org/maven2/","path":"org/apache/maven/maven-artifact/3.8.5/maven-artifact-3.8.5.jar","license":"Apache-2.0","size":58077,"sha256":"91172bc294d6eab02fc9f45f4ea01fd0e418962d128cf489abea7b6957d988ee","role":"direct-compile"},
+        {"coordinate":"org.apache.commons:commons-lang3:3.12.0","repository":"https://repo.maven.apache.org/maven2/","path":"org/apache/commons/commons-lang3/3.12.0/commons-lang3-3.12.0.jar","license":"Apache-2.0","size":587402,"sha256":"d919d904486c037f8d193412da0c92e22a9fa24230b9d67a57855c5c31c7e94e","role":"direct-compile"},
+        {"coordinate":"com.electronwill.night-config:core:3.8.0","repository":"https://repo.maven.apache.org/maven2/","path":"com/electronwill/night-config/core/3.8.0/core-3.8.0.jar","license":"LGPL-3.0-only","size":365488,"sha256":"82de286396fbc640205a7eebe1e4a05a7e56f7915e6ee207680cbf3bd12cbc5c","role":"direct-compile"},
+        {"coordinate":"com.electronwill.night-config:toml:3.8.0","repository":"https://repo.maven.apache.org/maven2/","path":"com/electronwill/night-config/toml/3.8.0/toml-3.8.0.jar","license":"LGPL-3.0-only","size":39515,"sha256":"271a0f04f7b5b3155312ad2d3588fc6fcc6312d41e728f02318a33794b77aac6","role":"direct-compile"},
+        {"coordinate":"com.mojang:logging:1.1.1","repository":"https://libraries.minecraft.net/","path":"com/mojang/logging/1.1.1/logging-1.1.1.jar","license":"Mojang-EULA","size":15343,"sha256":"c1756eaf0685da94142bacc84309bb7ccddf65e004638c3299ab645710b5938c","role":"direct-compile"},
+        {"coordinate":"net.neoforged:JarJarSelector:0.5.0","repository":"https://maven.neoforged.net/releases/","path":"net/neoforged/JarJarSelector/0.5.0/JarJarSelector-0.5.0.jar","license":"LGPL-2.1-only","size":17083,"sha256":"15ca1bf4d49d9baae4b2d78ca47619125759f3a3c1bbfa223330139bde4bf2cb","role":"direct-compile"},
+        {"coordinate":"net.neoforged:JarJarMetadata:0.5.0","repository":"https://maven.neoforged.net/releases/","path":"net/neoforged/JarJarMetadata/0.5.0/JarJarMetadata-0.5.0.jar","license":"LGPL-2.1-only","size":15648,"sha256":"f618f4cc199dda2f05cdc102c899b27d8151f130d1c56bc3338829c41eece3de","role":"direct-compile"},
+        {"coordinate":"net.neoforged:bus:8.0.5","repository":"https://maven.neoforged.net/releases/","path":"net/neoforged/bus/8.0.5/bus-8.0.5.jar","license":"LGPL-2.1-only","size":30340,"sha256":"705e24f37752809499a5cd0c7dd31eaabf3d933c5d3b2060168e94e9ef62593a","role":"direct-compile"},
+        {"coordinate":"net.sf.jopt-simple:jopt-simple:5.0.4","repository":"https://repo.maven.apache.org/maven2/","path":"net/sf/jopt-simple/jopt-simple/5.0.4/jopt-simple-5.0.4.jar","license":"MIT","size":78146,"sha256":"df26cc58f235f477db07f753ba5a3ab243ebe5789d9f89ecf68dd62ea9a66c28","role":"direct-runtime"},
+        {"coordinate":"net.neoforged:accesstransformers:11.0.2","repository":"https://maven.neoforged.net/releases/","path":"net/neoforged/accesstransformers/11.0.2/accesstransformers-11.0.2.jar","license":"MIT","size":20292,"sha256":"e5f175eca04f3ab68dab45742323f5c38d1b61cf9a098b5ad85bd1d19621cdba","role":"direct-runtime"},
+        {"coordinate":"net.fabricmc:sponge-mixin:0.17.1+mixin.0.8.7","repository":"https://maven.neoforged.net/releases/","path":"net/fabricmc/sponge-mixin/0.17.1+mixin.0.8.7/sponge-mixin-0.17.1+mixin.0.8.7.jar","license":"MIT","size":1540025,"sha256":"855815cdfd685daf1a6c6ac391669754b805ce4e6ae1bc900ed29eedba48b806","role":"fml-selected-mixin"},
+        {"coordinate":"net.minecrell:terminalconsoleappender:1.3.0","repository":"https://repo.maven.apache.org/maven2/","path":"net/minecrell/terminalconsoleappender/1.3.0/terminalconsoleappender-1.3.0.jar","license":"MIT","size":16949,"sha256":"1afea1bca095068f7f4483f061feed94753be34233ddb0df9ec380fc14d5a985","role":"direct-runtime"},
+        {"coordinate":"commons-io:commons-io:2.11.0","repository":"https://repo.maven.apache.org/maven2/","path":"commons-io/commons-io/2.11.0/commons-io-2.11.0.jar","license":"Apache-2.0","size":327135,"sha256":"961b2f6d87dbacc5d54abf45ab7a6e2495f89b75598962d8c723cea9bc210908","role":"direct-runtime"},
+        {"coordinate":"org.lwjgl:lwjgl-tinyfd:3.4.1","repository":"https://repo.maven.apache.org/maven2/","path":"org/lwjgl/lwjgl-tinyfd/3.4.1/lwjgl-tinyfd-3.4.1.jar","license":"BSD-3-Clause","size":15931,"sha256":"3ffad01103b6cbc8c12c7156691fd87a96f063600a5ff5c9087d321c6736963a","role":"direct-runtime"},
+        {"coordinate":"org.apache.logging.log4j:log4j-core:2.22.1","repository":"https://repo.maven.apache.org/maven2/","path":"org/apache/logging/log4j/log4j-core/2.22.1/log4j-core-2.22.1.jar","license":"Apache-2.0","size":1900022,"sha256":"46dccecac556623d8e2ce8648496824a82951d139062a4e61148aff1a25ed18d","role":"direct-runtime"}
+      ],
+      "requiredJvmArguments": [
+        "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+        "--add-exports=jdk.naming.dns/com.sun.jndi.dns=java.naming",
+        "-Djava.net.preferIPv6Addresses=system",
+        "-DlibraryDirectory=libraries"
+      ]
+    }
+  }
+}

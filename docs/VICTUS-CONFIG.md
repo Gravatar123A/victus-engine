@@ -78,10 +78,10 @@ hosting:
     rollback-hook: true
 
 hybrid:
-  enabled: false                # Fabric/NeoForge mod loader bridge (isolated module)
-  loader: neoforge              # fabric | neoforge
-  safe-mode: true               # auto-disable known-bad mod↔plugin interactions
-  tested-only: true             # refuse to load unverified plugin+mod combinations
+  enabled: false                # late discovery diagnostics only; never starts a loader
+  loader: neoforge              # diagnostic preference only in victus.yml
+  safe-mode: true               # reserved compatibility-policy input
+  tested-only: true             # planned; public bridges remain unsupported
 
 compatibility:
   migrate-config-on-boot: true  # import paper.yml / spigot.yml / purpur.yml settings once
@@ -98,6 +98,9 @@ eula:
 - **`gc.profile` is informational.** The JVM's collector is set by launch flags, not by the
   server at runtime; the engine reads the active GC and warns on mismatch. See
   `scripts/dev-env.sh` for the Generational-ZGC flag set.
+- **Hybrid runtime selection is pre-main.** The `hybrid.*` block above cannot safely initialize a loader
+  after Paper has started. Use `VictusHybridLauncher` and `hybrid/config/hybrid-launcher.properties.example`;
+  enabled profiles are fail-closed foundation work, not supported bridges. See `docs/phase-4/04-hybrid-mod-bridge-plan.md`.
 - **Profiles are overlays, not locks.** `engine.profile: technical` sets `redstone: vanilla`,
   disables approximate AI throttling, etc., but any explicit key you set wins.
 - **`threading.mode: regionized`** rejects plugins lacking a Folia-aware marker unless

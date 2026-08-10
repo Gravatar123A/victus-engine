@@ -102,8 +102,9 @@ public final class ConfigResolver {
         c.hybridLoader = (hybLoader.equals("fabric") || hybLoader.equals("neoforge")) ? hybLoader : "auto";
         c.hybridSafeMode = boolAt("hybrid.safe-mode", true);
         if (c.hybridEnabled) {
-            c.warnings.add("hybrid.enabled=true — the mod bridge is EXPERIMENTAL; its loader runtime is still "
-                    + "in development (Phase 4), so mods are discovered but may not fully run yet. See docs/phase-4/04.");
+            c.warnings.add("hybrid.enabled=true is diagnostics-only inside an already-running server; no mod code "
+                    + "will be invoked late. A real loader profile must be selected by VictusHybridLauncher before "
+                    + "the server main, and remains unsupported foundation work. See docs/phase-4/04.");
         }
         c.monsterSpawnCap = toInt(resolveWithProfile("optimizations.entities.monster-spawn-cap", -1), -1);
         c.projectileSaveLimit = toInt(resolveWithProfile("optimizations.entities.projectile-save-limit", -1), -1);

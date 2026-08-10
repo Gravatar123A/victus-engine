@@ -1,60 +1,89 @@
-# Phase 4 — Hybrid mod bridge (Fabric/NeoForge + Bukkit) — plan & foundation status
+# Phase 4 — pre-main hybrid runtime foundation
 
-**Status:** **FOUNDATION / EXPERIMENTAL — NOT SUPPORTED.** The 26.2 source contains an opt-in,
-off-by-default proof-of-concept that can discover mod metadata and invoke a narrow class of direct,
-Mojang-mapped, loader-API-light Fabric entrypoints. It is not a Fabric Loader or NeoForge runtime, does
-not provide Mixin, remapping, registries, `fabric-api`, or a Bukkit↔mod compatibility bridge, and must
-not be described as general hybrid/mod support. The remaining work is the hardest, highest-maintenance
-part of this project (ARCHITECTURE §6, ROADMAP Phase 4) and requires curated compatibility and soak gates.
+**Status (2026-08-10): FOUNDATION, FAIL-CLOSED, NOT SUPPORTED.** Task #19 establishes an
+Arclight-class architecture boundary; it does not claim that Paper and either loader merge successfully.
+The public `fabricBridge` and `neoForgeBridge` capability flags remain false.
 
-## Proof-of-concept currently present in source
-`VictusHybrid.executeFabricServerEntrypoints` reads each `mods/*.jar`'s `fabric.mod.json` (gson), builds a
-child `URLClassLoader` (parent = the server/app loader, so mod classes bind our Mojang-mapped Minecraft
-directly), and reflectively instantiates + invokes each declared `main`/`server` entrypoint — honoring the
-Fabric entrypoint contract without standing up the full loader. Firing is **deferred until the Bukkit
-server is live** (console/services ready) and happens **exactly once** per JVM (`MODS_STARTED` CAS), since
-`VictusEngine.init()` runs multiple times during boot. Never throws into boot; each entrypoint is
-individually try/caught with the real cause unwrapped. **Scope:** Mojang-mapped, loader-API-light,
-mixin-free mods. Intermediary linkage / `fabric-api` / Mixin → H2 (below).
+## What now exists
 
-## What "fully works" actually requires (why it's not one session)
-Running a Fabric/NeoForge mod on a Bukkit/Spigot/Paper server means reconciling **two runtimes that were
-never meant to coexist**:
-1. **Mod loader bootstrap** — embed the loader (FabricLoader's Knot, or NeoForge's ModLauncher) *inside*
-   the Paperclip launch, before the server main, with the right classloader hierarchy.
-2. **Mixin/ASM transformation** — mods patch Minecraft classes via Mixin at load time; the transformer
-   must run over the *already-Paper-patched* classes without fighting Paper's own transformations.
-3. **Mappings** — historically the killer. **Eased hugely here:** MC 26.1+ is unobfuscated/Mojang-mapped,
-   so a Mojang-mapped mod can bind directly to our Mojang-mapped server — no Yarn/Intermediary remap layer.
-   This is exactly why the roadmap put hybrid *after* the unobfuscation base.
-4. **Entrypoints + mod lifecycle** — invoke each mod's server entrypoints at the correct server phases.
-5. **Bukkit ↔ mod bridge** — the part plugins care about: events, worlds, entities, items and commands
-   registered by mods must surface through the Bukkit API (and vice-versa) so plugins see a coherent world.
-6. **Isolation + safe-mode** — a bad mod↔plugin interaction must degrade, not crash the server.
+The tracked Gradle build includes five independent modules:
 
-## What shipped now (the foundation — in the jar, off by default)
-- **Config** (`victus-core`): `hybrid.enabled` (default false), `hybrid.loader` (auto|fabric|neoforge),
-  `hybrid.safe-mode` (default true); resolver validates + warns loudly that it's experimental; self-tested.
-- **`cloud.victus.engine.VictusHybrid`**: isolated proof-of-concept wired into `VictusEngine.init()`.
-  When enabled it discovers mod jars and may directly invoke the narrow Fabric entrypoint subset above.
-  Discovery or entrypoint invocation is not equivalent to loader/runtime or gameplay compatibility.
-- **Default `mods/`-aware, pure-plugin-safe:** a server with `hybrid.enabled=false` loads none of it.
+- `hybrid-common`: loader contracts, strict lifecycle state machine, fail-closed policy, startup report,
+  compatibility fingerprint, and marker contracts;
+- `hybrid-launcher`: dependency-light `cloud.victus.hybrid.launcher.VictusHybridLauncher`;
+- `hybrid-fabric`: isolated Fabric adapter and ServiceLoader registration;
+- `hybrid-neoforge`: isolated NeoForge/FML adapter and ServiceLoader registration;
+- `hybrid-fixtures`: owned Fabric mod, NeoForge mod, and Bukkit plugin marker jars.
 
-## Build order to functional (each a gated milestone with its own soak)
-1. **H1 — Loader embed (Fabric first).** Embed fabric-loader; bring up Knot + the mod classloader inside
-   the paperclip bootstrap; get the loader to *enumerate + accept* the discovered mods (no gameplay yet).
-   Gate: server still boots 100% for pure-plugin (`hybrid.enabled=false`) and with `enabled=true`+0 mods.
-2. **H2 — Mixin/transform pipeline.** Run Mixin over the Paper-patched classes; resolve conflicts; verify a
-   trivial no-op mixin mod applies. Gate: byte-level sanity + no plugin regressions.
-3. **H3 — Entrypoints + registries.** Fire server-side mod entrypoints; register mod blocks/items/entities;
-   confirm one simple content mod's registry objects exist server-side. Gate: a curated single mod runs.
-4. **H4 — Bukkit bridge + safe-mode.** Surface mod content through the Bukkit API; populate the safe-mode
-   blocklist from a tested-compat matrix; refuse/downgrade unknown combos. Gate: a curated modpack + a
-   plugin suite run together on a soak box; unknown combos are refused, never crash.
-5. **NeoForge** as a parallel track once the Fabric path is proven.
+`VictusHybridLauncher` chooses exactly `disabled`, `fabric`, or `neoforge` from strict arguments or a Java
+properties config before it references Minecraft/Paper. There is deliberately no `auto` profile. Arguments
+after `--` are delegated byte-for-byte as Java strings.
 
-## Honesty contract
-`hybrid.enabled` stays **experimental + off by default**, and the `/engine` marketing copy for "run mods
-and plugins together" must track reality: it may describe hosting-level hybrid that's live today, but the
-**native engine bridge is not advertised as done until H4 passes its soak**. No milestone flips "on" in a
-public build until it genuinely runs.
+- **disabled:** never opens the adapter ServiceLoader and contains no Fabric/NeoForge classes on its
+  production runtime classpath. It invokes the configured target main/artifact unchanged.
+- **fabric:** isolates the adapter, requires the locked runtime classpath, sets Fabric's explicit server game
+  jar/version/mapping/mod-folder properties, and enters the real
+  `net.fabricmc.loader.impl.launch.knot.KnotServer`. Preflight requires a patched server jar containing
+  `net.minecraft.server.Main`; Paperclip is not a valid transforming target.
+- **neoforge:** isolates the adapter, resolves a real JPMS plan rooted at `fml_loader`, supplies the explicit
+  game/FML arguments, and enters `net.neoforged.fml.startup.Server`. Preflight requires the complete locked
+  module path and a patched server jar containing `net.minecraft.server.Main`.
+
+Enabled profiles never fall back to starting Paper without transformations. A failed preflight or loader
+entry writes `logs/victus-hybrid-startup.txt`, reports a stable blocker code, and exits nonzero.
+
+## Locked upstream inputs
+
+`hybrid/locks/runtime-lock.json` pins artifact URLs, repositories, SPDX-style license identifiers, byte sizes,
+and SHA-256 checksums for direct launch requirements. Principal pins are:
+
+| Input | Pin |
+| --- | --- |
+| Minecraft fixture target | `26.2` |
+| Fabric Loader | `0.19.3` |
+| Fabric API fixture | `0.156.0+26.2` |
+| Fabric-selected Sponge Mixin | `0.17.3+mixin.0.8.7` |
+| NeoForge | `26.2.0.57` |
+| FML | `11.0.17` |
+| FML-selected Sponge Mixin | `0.17.1+mixin.0.8.7` |
+
+Structural validation is offline. `--resolve` downloads every listed artifact and verifies length and digest:
+
+```bash
+python scripts/hybrid/validate-runtime-lock.py
+python scripts/hybrid/validate-runtime-lock.py --resolve
+```
+
+No upstream source or binary is checked into the repository.
+
+## Fixtures and test boundary
+
+`hybrid-fixtures:fixtureArtifacts` creates three owned jars with loader/plugin metadata and stable markers.
+The Fabric fixture compiles against Loader 0.19.3's real `ModInitializer` and has a no-op Mixin configuration
+marker. The NeoForge fixture compiles against FML 11.0.17's real `@Mod` plus a class-processor marker. The
+Bukkit fixture compiles against Paper 26.2's real `JavaPlugin` lifecycle. These are marker fixtures, not proof
+that the combined runtime has reached their callbacks.
+
+`hybridCheck` compiles all modules, builds fixtures, tests parsing/delegation/isolation, policy, reports,
+fingerprints, locks/profile preflight, and runs bounded integration. At this milestone bounded integration
+asserts known missing-runtime blockers; when a hydrated loader/target test environment is supplied, tasks
+#20/#21 must replace those expected blockers with real loader lifecycle markers.
+
+## Late invoker removal
+
+The old `cloud.victus.engine.VictusHybrid` direct Fabric entrypoint invoker was architecturally misleading:
+it ran after Paper classes were loaded, without dependency resolution, Mixin, remapping, or loader lifecycle.
+It is now deprecated, discovery-only, and cannot invoke mod code. `hybrid.enabled` in `victus.yml` only emits
+that migration diagnostic. Runtime profile selection belongs to the pre-main launcher config.
+
+## Exact next milestones
+
+1. **Task #20 — Fabric:** hydrate the locked Fabric runtime, adapt the Minecraft game provider to the patched
+   Paper artifact where stock classification/entrypoint patching rejects it, reach Knot/Mixin and fixture
+   lifecycle markers, and preserve disabled isolation.
+2. **Task #21 — NeoForge:** generate the complete locked module/class path, reconcile FML game-content
+   location/class processors with patched Paper, bind the real NeoForge fixture, and reach FML lifecycle markers.
+3. **Task #22 — shared bridge:** reconcile registries/events/world/entity/item/command surfaces and compile the
+   Bukkit fixture against the real API.
+4. Add curated compatibility fingerprints, conflict policy, gameplay/soak tests, and only then consider
+   changing support flags. Unknown combinations must continue to fail closed.

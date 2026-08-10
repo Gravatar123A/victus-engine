@@ -35,25 +35,49 @@ paperweight {
 subprojects {
     apply(plugin = "java-library")
 
+    val java21Foundation = name.startsWith("hybrid-") || name == "victus-core"
     extensions.configure<JavaPluginExtension> {
         toolchain {
-            // Paper 26.2 requires JDK 25.
-            languageVersion = JavaLanguageVersion.of(25)
+            // Paper 26.2 requires JDK 25; dependency-free core/pre-main modules stay Java 21-compatible.
+            languageVersion = JavaLanguageVersion.of(if (java21Foundation) 21 else 25)
         }
     }
 
     tasks.withType<JavaCompile>().configureEach {
         options.encoding = "UTF-8"
-        options.release = 25
+        options.release = if (java21Foundation) 21 else 25
     }
     tasks.withType<Javadoc>().configureEach {
         options.encoding = "UTF-8"
+    }
+    if (name.startsWith("hybrid-")) {
+        tasks.withType<Test>().configureEach {
+            // Hybrid modules use dependency-free executable self-tests to keep pre-main code lean.
+            failOnNoDiscoveredTests = false
+        }
     }
 
     repositories {
         mavenCentral()
         maven(paperMavenPublicUrl)
+        maven("https://maven.fabricmc.net/") { name = "Fabric" }
+        maven("https://maven.neoforged.net/releases/") { name = "NeoForged" }
     }
+}
+
+// The hybrid launcher/modules are intentionally independent from Paper's patched source graph. This
+// aggregate is the bounded foundation gate used by CI and local development for task #19.
+tasks.register("hybridCheck") {
+    group = "verification"
+    description = "Builds and tests the isolated hybrid runtime foundation and owned fixtures."
+    dependsOn(
+        ":hybrid-common:test",
+        ":hybrid-launcher:test",
+        ":hybrid-fabric:test",
+        ":hybrid-neoforge:test",
+        ":hybrid-fixtures:fixtureArtifacts",
+        ":hybrid-launcher:boundedIntegrationTest"
+    )
 }
 
 tasks.register("printVictusVersion") {

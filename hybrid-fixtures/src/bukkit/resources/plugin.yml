@@ -1,0 +1,5 @@
+name: VictusHybridFixture
+version: 1.0.0
+main: cloud.victus.hybrid.fixtures.bukkit.FixtureBukkitPlugin
+api-version: '26.2'
+description: Owned lifecycle marker fixture for the Victus hybrid foundation.

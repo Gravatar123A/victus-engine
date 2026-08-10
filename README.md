@@ -39,7 +39,13 @@ Catalog validation and generation are offline by default and use the checked-in 
 python scripts/validate-version-catalog.py
 python scripts/generate-version-catalog.py --check
 python scripts/test-banner-contract.py
+python scripts/hybrid/validate-runtime-lock.py
+./gradlew hybridCheck
 ```
+
+The hybrid gate proves launcher parsing, disabled delegation/isolation, adapter preflight, lock/fingerprint/report
+contracts, and owned fixtures. It intentionally does not claim Paper+Fabric or Paper+NeoForge compatibility;
+enabled profiles fail closed until their complete locked runtime and patched target are supplied.
 
 An explicit optional refresh contacts Mojang and Paper, updates [`versions/upstream-snapshot.json`](versions/upstream-snapshot.json), and regenerates the catalog:
 
@@ -69,6 +75,12 @@ scripts/                   catalog validation/generation, build selection, banne
 victus-server/             current 26.2 Paper file/source patches
 victus-core/               Paper-independent configuration/metrics/runtime logic
 victus-plugin/             plugin-side command and metrics integration
+hybrid-common/             loader-neutral contracts, lifecycle, reports, policy
+hybrid-launcher/           dependency-light pre-main disabled|fabric|neoforge dispatcher
+hybrid-fabric/             isolated Fabric/Knot adapter foundation
+hybrid-neoforge/           isolated NeoForge/FML adapter foundation
+hybrid-fixtures/           owned Fabric, NeoForge, and Bukkit marker fixtures
+hybrid/                     runtime lock and launcher configuration example
 docs/                      architecture, status, roadmap, configuration, design records
 .github/workflows/          catalog validation and honest selected-line build foundations
 ```

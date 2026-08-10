@@ -1,0 +1,10 @@
+# Victus hybrid pre-main launcher profile. Foundation only; enabled profiles are unsupported.
+profile=disabled
+targetMain=io.papermc.paperclip.Main
+targetArtifact=paperclip.jar
+targetClasspath=
+adapterClasspath=
+loaderClasspath=
+gameDirectory=.
+modsDirectory=mods
+startupReport=logs/victus-hybrid-startup.txt

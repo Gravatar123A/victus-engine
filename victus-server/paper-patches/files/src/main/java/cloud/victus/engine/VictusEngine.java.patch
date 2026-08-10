@@ -1,6 +1,6 @@
 --- /dev/null
 +++ b/src/main/java/cloud/victus/engine/VictusEngine.java
-@@ -1,0 +_,310 @@
+@@ -1,0 +_,311 @@
 +// SPDX-License-Identifier: GPL-3.0-only
 +package cloud.victus.engine;
 +
@@ -83,8 +83,9 @@
 +            // Push DAB (distance-throttled mob AI) settings into the hot-path statics read by
 +            // the patched Mob.serverAiStep(). Safe no-op when optimizations.entities.dab=false.
 +            cloud.victus.engine.dab.VictusDab.configure(config);
-+            // Hybrid mod bridge (Phase 4 foundation) — isolated + off by default; discovers mods when enabled.
-+            VictusHybrid.init(config);
++            // Late hybrid code is diagnostics-only. A real loader must be selected by VictusHybridLauncher
++            // before this server main loads; this call never loads or invokes mod classes.
++            VictusHybrid.diagnose(config);
 +            // Async chunk send (v1): configure the serializer pool from resolved config (default off).
 +            net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData.configureAsync(
 +                    config.asyncChunkSend, config.asyncChunkSendThreads, config.asyncChunkSendQueueCapacity);

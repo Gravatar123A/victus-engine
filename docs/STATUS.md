@@ -9,6 +9,9 @@ Victus Engine has **one implemented source line: Minecraft 26.2 on `main`**. It 
 Implemented evidence in this repository includes:
 
 - the patch/apply build configuration for 26.2;
+- a tracked five-module pre-main hybrid foundation (`hybrid-common`, `hybrid-launcher`, isolated Fabric and
+  NeoForge adapters, and owned fixtures), with locked upstream inputs and fail-closed preflight; this is
+  architecture/test evidence only, not a supported Fabric/NeoForge bridge;
 - `victus-core` configuration, runtime, metrics, lag-doctor, and limits logic;
 - native `victus.yml` bootstrap and profile application;
 - DAB and async chunk-send configuration/watchdog paths;
@@ -41,8 +44,11 @@ The following remain false in the support matrix:
 
 - parallel ticking: experimental scaffold with known thread-safety caveats;
 - regionized threading: planned;
-- Fabric bridge: foundation/planned, not supported;
-- NeoForge bridge: foundation/planned, not supported.
+- Fabric bridge: isolated pre-main Knot adapter/preflight foundation; real Paper+Knot lifecycle not yet passing;
+- NeoForge bridge: isolated FML module-plan adapter/preflight foundation; real Paper+FML lifecycle not yet passing.
+
+The old late `VictusHybrid` direct-entrypoint invoker is disabled and deprecated; it performs discovery-only
+migration diagnostics. Loader profiles must enter through `VictusHybridLauncher` before server classes load.
 
 Capabilities for the 52 future source ports are all false until each port exists and passes its own compile, unit, boot, and behavior gates. ViaVersion or another protocol bridge will never be represented as a native old-version server.
 
@@ -55,6 +61,8 @@ python scripts/validate-version-catalog.py
 python scripts/generate-version-catalog.py --check
 python scripts/test-banner-contract.py
 python scripts/select-version-builds.py --versions implemented
+python scripts/hybrid/validate-runtime-lock.py
+./gradlew hybridCheck
 ```
 
 Optional network refresh:

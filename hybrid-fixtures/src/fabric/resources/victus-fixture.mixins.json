@@ -1,0 +1,9 @@
+{
+  "required": false,
+  "minVersion": "0.8.7",
+  "package": "cloud.victus.hybrid.fixtures.fabric",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [],
+  "injectors": {"defaultRequire": 0},
+  "victusMarker": "VICTUS_FIXTURE_FABRIC_MIXIN"
+}

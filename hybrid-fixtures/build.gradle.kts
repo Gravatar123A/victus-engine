@@ -20,7 +20,10 @@ for (sourceSet in listOf(neoforge, bukkit)) {
 dependencies {
     "fabricCompileOnly"("net.fabricmc:fabric-loader:0.19.3")
     "neoforgeCompileOnly"("net.neoforged.fancymodloader:loader:11.0.17")
-    "bukkitCompileOnly"(project(":victus-api"))
+    // Compile the fixture against Paper's published API instead of the generated :victus-api
+    // project output. A fresh clone has no hydrated paper-api sources until patch application,
+    // while the fixture only needs the stable JavaPlugin contract.
+    "bukkitCompileOnly"("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
 }
 
 // Fixtures compile against the real loader/plugin entrypoint APIs but contain only owned source and metadata.

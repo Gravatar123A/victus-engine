@@ -94,7 +94,7 @@ tasks.register<Exec>("resolveFabricRuntime") {
     group = "distribution"
     description = "Downloads the locked Fabric runtime into build/hybrid-resolved with size/SHA-256 verification."
     commandLine(
-        "python", file("scripts/hybrid/validate-runtime-lock.py"), "--resolve", "--profile", "fabric",
+        providers.environmentVariable("PYTHON").orElse("python").get(), file("scripts/hybrid/validate-runtime-lock.py"), "--resolve", "--profile", "fabric",
         "--output", layout.buildDirectory.dir("hybrid-resolved").get().asFile.absolutePath
     )
 }

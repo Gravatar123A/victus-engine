@@ -65,7 +65,7 @@ val fabricDistribution by tasks.registering(Exec::class) {
     val target = providers.gradleProperty("fabricTarget").orElse("")
     val targetClasspathFile = providers.gradleProperty("fabricTargetClasspathFile").orElse("")
     commandLine(
-        "python", rootProject.file("scripts/hybrid/prepare-fabric-runtime.py"),
+        providers.environmentVariable("PYTHON").orElse("python").get(), rootProject.file("scripts/hybrid/prepare-fabric-runtime.py"),
         "--target", target.get(),
         "--resolved", rootProject.layout.buildDirectory.dir("hybrid-resolved").get().asFile.absolutePath,
         "--output", rootProject.layout.buildDirectory.dir("hybrid-fabric-dist").get().asFile.absolutePath

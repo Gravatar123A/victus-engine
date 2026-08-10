@@ -117,8 +117,20 @@
      mainClass.set(null as String?)
  }
  
--fill {
-+/* fill { // Victus - we don't use fill
++// Victus - export the exact runtime files for isolated hybrid launchers.
+++tasks.register("writeRuntimeClasspath") {
+++    group = "distribution"
+++    val output = layout.buildDirectory.file("runtime-classpath.txt")
+++    outputs.file(output)
+++    doLast {
+++        val entries = configurations.runtimeClasspath.get().resolve().map { it.absolutePath }.sorted()
+++        output.get().asFile.writeText(entries.joinToString(System.lineSeparator(), postfix = System.lineSeparator()))
+++        println(output.get().asFile.absolutePath)
+++    }
+++}
+++
++-fill {
+++/* fill { // Victus - we don't use fill
      project("paper")
      versionFamily(paperweight.minecraftVersion.map { it.split(".", "-").takeWhile { part -> part.toIntOrNull() != null }.take(2).joinToString(".") })
      version(paperweight.minecraftVersion)

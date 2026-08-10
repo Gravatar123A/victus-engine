@@ -141,6 +141,7 @@ def main() -> int:
         "fabric-tag-api-v1": "depends on refused fabric-resource-loader-v1",
         "fabric-entity-events-v1": "Paper rewrites ServerPlayer respawn safety checks; the required monster-nearby redirect has no target",
         "fabric-data-attachment-api-v1": "depends on refused fabric-entity-events-v1",
+        "fabric-menu-api-v1": "Paper rewrites ServerPlayer container opening; the required closeContainer redirect has no target",
     })
     with zipfile.ZipFile(aggregate) as archive:
         metadata = json.loads(archive.read("fabric.mod.json"))

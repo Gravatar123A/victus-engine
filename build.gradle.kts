@@ -80,6 +80,25 @@ tasks.register("hybridCheck") {
     )
 }
 
+tasks.register("neoforgeHybridCheck") {
+    group = "verification"
+    description = "Validates locked NeoForge merge machinery and the bounded expected-fail fixture runner."
+    dependsOn(
+        ":hybrid-neoforge:test",
+        ":hybrid-neoforge:neoforgeValidateLock",
+        ":hybrid-neoforge:neoforgeExpectedFailIntegration"
+    )
+}
+
+tasks.register<Exec>("resolveFabricRuntime") {
+    group = "distribution"
+    description = "Downloads the locked Fabric runtime into build/hybrid-resolved with size/SHA-256 verification."
+    commandLine(
+        "python", file("scripts/hybrid/validate-runtime-lock.py"), "--resolve", "--profile", "fabric",
+        "--output", layout.buildDirectory.dir("hybrid-resolved").get().asFile.absolutePath
+    )
+}
+
 tasks.register("printVictusVersion") {
     doLast { println(project.version) }
 }

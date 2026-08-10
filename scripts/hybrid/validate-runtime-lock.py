@@ -67,44 +67,59 @@ def structural_errors(lock: dict) -> list[str]:
     return errors
 
 
-def resolve(lock: dict) -> list[str]:
+def resolve(lock: dict, destination: pathlib.Path | None = None, profile_filter: str | None = None) -> list[str]:
     errors: list[str] = []
     for profile_name, profile in lock["profiles"].items():
+        if profile_filter is not None and profile_name != profile_filter:
+            continue
         for artifact in profile["artifacts"]:
             url = artifact["repository"].rstrip("/") + "/" + artifact["path"]
             hasher = hashlib.sha256()
-            size = 0
+            data = bytearray()
             try:
                 with urllib.request.urlopen(url, timeout=30) as response:
                     while chunk := response.read(1024 * 1024):
                         hasher.update(chunk)
-                        size += len(chunk)
+                        data.extend(chunk)
             except Exception as failure:  # network validation must report all failures
                 errors.append(f"{profile_name}: cannot resolve {url}: {failure}")
                 continue
-            if size != artifact["size"]:
-                errors.append(f"{artifact['coordinate']}: size {size} != {artifact['size']}")
+            if len(data) != artifact["size"]:
+                errors.append(f"{artifact['coordinate']}: size {len(data)} != {artifact['size']}")
             actual = hasher.hexdigest()
             if actual != artifact["sha256"]:
                 errors.append(f"{artifact['coordinate']}: sha256 {actual} != {artifact['sha256']}")
+            elif destination is not None:
+                output = destination / profile_name / artifact["path"]
+                output.parent.mkdir(parents=True, exist_ok=True)
+                output.write_bytes(data)
     return errors
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--resolve", action="store_true", help="download every artifact and verify size/SHA-256")
+    parser.add_argument("--output", type=pathlib.Path,
+                        help="write verified artifacts below this directory (requires --resolve)")
+    parser.add_argument("--profile", choices=sorted(REQUIRED_PROFILES),
+                        help="resolve only this profile (requires --resolve)")
     args = parser.parse_args()
+    if (args.output is not None or args.profile is not None) and not args.resolve:
+        parser.error("--output/--profile require --resolve")
     lock = load_lock()
     errors = structural_errors(lock)
     if args.resolve and not errors:
-        errors.extend(resolve(lock))
+        destination = args.output.resolve() if args.output is not None else None
+        errors.extend(resolve(lock, destination, args.profile))
     if errors:
         for error in errors:
             print(f"runtime-lock: {error}", file=sys.stderr)
         return 1
     count = sum(len(profile["artifacts"]) for profile in lock["profiles"].values())
     mode = "resolved" if args.resolve else "structural"
-    print(f"runtime-lock: OK ({mode}, {count} artifacts)")
+    scope = f", profile={args.profile}" if args.profile else ""
+    output = f", output={args.output.resolve()}" if args.output else ""
+    print(f"runtime-lock: OK ({mode}{scope}{output}, {count} artifacts locked)")
     return 0
 
 

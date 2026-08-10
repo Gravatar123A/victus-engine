@@ -44,8 +44,12 @@ The following remain false in the support matrix:
 
 - parallel ticking: experimental scaffold with known thread-safety caveats;
 - regionized threading: planned;
-- Fabric bridge: isolated pre-main Knot adapter/preflight foundation; real Paper+Knot lifecycle not yet passing;
-- NeoForge bridge: isolated FML module-plan adapter/preflight foundation; real Paper+FML lifecycle not yet passing.
+- Fabric bridge: Victus GameProvider plus real Loader/Knot/Mixin owned-target proof passes; rebuilt Victus target
+  integration, bridge reconciliation, profile tests, and soak are still required;
+- NeoForge bridge: installer/NeoForm reconstruction and source-merge/conflict machinery is tracked, with a real
+  event-bus/deferred-register/class-processor/Mixin fixture; the source comparison currently reports 753
+  unresolved classes and the bounded runner remains expected-fail at `NEOFORGE_MERGE_CONFLICTS`, so real
+  Paper+FML lifecycle is not yet passing.
 
 The old late `VictusHybrid` direct-entrypoint invoker is disabled and deprecated; it performs discovery-only
 migration diagnostics. Loader profiles must enter through `VictusHybridLauncher` before server classes load.

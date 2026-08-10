@@ -23,6 +23,10 @@ Victus Engine is a fork of **PaperMC**, so it inherits Paper's licensing split:
   (enforced by `.gitignore`).
 - As of the 26.1 base, Java Edition ships **unobfuscated** with a `LICENSE` inside the jar — this
   does not change the EULA. Bedrock is unaffected.
+- NeoForge hybrid tooling tracks only locks, scripts, owned fixtures, and bridge patches. The NeoForge
+  installer, NeoForm data/tools, FML/NeoForge libraries, Minecraft jars, reconstructed source, and merged
+  game layers are downloaded/generated below `hybrid-neoforge/build/` and must not be committed. NeoForge/FML
+  components retain their upstream LGPL/MIT/BSD/Apache licenses; Minecraft content remains governed by Mojang.
 - EULA clearly bans **pay-to-win** (any "competitive gameplay advantage"). The rule for paid access
   is "one charge, the same for everyone, for access to the server as a whole," and access can't be
   gated by out-of-game purchases. **Priority/queue monetization is a genuine gray area** — a

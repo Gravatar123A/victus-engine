@@ -28,8 +28,13 @@ import java.util.Map;
 public final class FabricLoaderAdapter implements LoaderAdapter {
     public static final String LOADER_VERSION = "0.19.3";
     public static final String API_VERSION = "0.156.0+26.2";
+    public static final String MINECRAFT_VERSION = "26.2";
     public static final String KNOT_SERVER = "net.fabricmc.loader.impl.launch.knot.KnotServer";
-    private static final String SUPPORTED_TARGET = "net.minecraft.server.Main";
+    public static final String FIXTURE_ENTRYPOINT_MARKER = "VICTUS_FIXTURE_FABRIC_ENTRYPOINT";
+    public static final String FIXTURE_MIXIN_MARKER = "VICTUS_FIXTURE_FABRIC_MIXIN";
+    public static final String FIXTURE_PROOF_MARKER = "VICTUS_FIXTURE_FABRIC_PROOF";
+    private static final String SUPPORTED_TARGET = "org.bukkit.craftbukkit.Main";
+    private static final String VICTUS_PROVIDER = "cloud.victus.hybrid.fabric.VictusFabricGameProvider";
 
     @Override
     public LoaderProfile profile() {
@@ -38,7 +43,7 @@ public final class FabricLoaderAdapter implements LoaderAdapter {
 
     @Override
     public String implementationVersion() {
-        return "foundation-1";
+        return "victus-game-provider-1";
     }
 
     @Override
@@ -51,9 +56,20 @@ public final class FabricLoaderAdapter implements LoaderAdapter {
         if (!ClasspathInspector.containsClass(request.loaderClasspath(), KNOT_SERVER)) {
             diagnostics.add("FABRIC_KNOT_MISSING: loader classpath must contain " + KNOT_SERVER + " from Fabric Loader " + LOADER_VERSION);
         }
+        if (!ClasspathInspector.containsClass(request.loaderClasspath(), "org.spongepowered.asm.mixin.Mixin")) {
+            diagnostics.add("FABRIC_MIXIN_MISSING: loader classpath must contain locked Sponge Mixin 0.17.3+mixin.0.8.7");
+        }
+        if (!ClasspathInspector.containsClass(request.loaderClasspath(), "org.objectweb.asm.ClassReader")) {
+            diagnostics.add("FABRIC_ASM_MISSING: loader classpath must contain the locked ASM 9.10.1 runtime");
+        }
+        if (!ClasspathInspector.containsClass(request.adapterClasspath(), VICTUS_PROVIDER)) {
+            diagnostics.add("FABRIC_VICTUS_PROVIDER_MISSING: adapter classpath must contain "
+                    + VICTUS_PROVIDER + " and its GameProvider service metadata");
+        }
         if (!SUPPORTED_TARGET.equals(request.targetMain())) {
-            diagnostics.add("FABRIC_TARGET_UNSUPPORTED: Fabric's MinecraftGameProvider selects " + SUPPORTED_TARGET
-                    + "; received " + request.targetMain() + ". Use the patched server artifact, not Paperclip.");
+            diagnostics.add("FABRIC_TARGET_UNSUPPORTED: VictusFabricGameProvider requires patched server entrypoint "
+                    + SUPPORTED_TARGET + "; received " + request.targetMain()
+                    + ". Use the class-bearing patched server jar, not Paperclip/bundler.");
         }
         if (request.targetArtifact() == null || !Files.isRegularFile(request.targetArtifact())) {
             diagnostics.add("FABRIC_TARGET_ARTIFACT_MISSING: --hybrid-target-artifact must name the patched server jar");
@@ -81,20 +97,30 @@ public final class FabricLoaderAdapter implements LoaderAdapter {
         for (Path path : request.loaderClasspath()) {
             add(runtime, path);
         }
-        add(runtime, request.targetArtifact());
-        for (Path path : request.targetClasspath()) {
+        // GameProvider is a Loader-owned SPI, so the adapter/provider jar must be visible to Knot's
+        // platform loader as well as to the outer ServiceLoader used by VictusHybridLauncher.
+        for (Path path : request.adapterClasspath()) {
             add(runtime, path);
         }
+        // Do not put target classes or libraries on the platform loader. The provider exposes them only
+        // from unlockClassPath(), after Fabric discovery and Mixin transformer initialization.
 
         Map<String, String> properties = new LinkedHashMap<>();
-        properties.put("fabric.gameJarPath.server", request.targetArtifact().toString());
-        properties.put("fabric.gameVersion", "26.2");
+        properties.put("victus.fabric.provider", "true");
+        properties.put("victus.fabric.targetJar", request.targetArtifact().toString());
+        properties.put("victus.fabric.targetMain", request.targetMain());
+        properties.put("victus.fabric.targetLibraries", join(request.targetClasspath()));
+        properties.put("victus.fabric.gameDir", request.gameDirectory().toString());
+        properties.put("fabric.skipMcProvider", "true");
+        properties.put("fabric.gameVersion", MINECRAFT_VERSION);
         properties.put("fabric.gameMappingNamespace", "official");
         properties.put("fabric.runtimeMappingNamespace", "official");
         properties.put("fabric.defaultModDistributionNamespace", "official");
         properties.put("fabric.modsFolder", request.modsDirectory().toString());
         properties.put("fabric.side", "server");
         properties.put("fabric.noGui", "true");
+        properties.put("fabric.log.file", request.gameDirectory().resolve("logs/victus-fabric-loader.log").toString());
+        properties.put("fabric.debug.throwDirectly", "true");
         Map<String, String> previous = install(properties);
         lifecycle.transition(LifecycleState.TRANSFORMERS_READY);
         report.diagnostic(HybridMarkers.TRANSFORMER + "=fabric-knot-mixin");
@@ -109,6 +135,10 @@ public final class FabricLoaderAdapter implements LoaderAdapter {
             try {
                 Class<?> mainClass = Class.forName(KNOT_SERVER, true, knot);
                 Method main = mainClass.getMethod("main", String[].class);
+                if (mainClass.getClassLoader() != knot) {
+                    throw new HybridLaunchException("FABRIC_KNOT_CLASSLOADER_INVALID",
+                            "Knot was not loaded by the isolated Fabric runtime classloader: " + mainClass.getClassLoader());
+                }
                 main.invoke(null, (Object) request.targetArguments().toArray(String[]::new));
                 lifecycle.transition(LifecycleState.TARGET_DELEGATED);
                 report.diagnostic(HybridMarkers.TARGET_DELEGATED + "=" + request.targetMain());
@@ -117,15 +147,28 @@ public final class FabricLoaderAdapter implements LoaderAdapter {
             }
         } catch (InvocationTargetException failure) {
             Throwable cause = failure.getCause() == null ? failure : failure.getCause();
-            throw new HybridLaunchException("FABRIC_KNOT_FAILED",
-                    "Knot entered but could not launch the patched Paper server: " + cause
-                            + ". This is a concrete Paper game-provider/transform compatibility blocker.", cause);
+            throw new HybridLaunchException(classify(cause),
+                    "Knot entered but could not launch the patched Victus server: " + cause, cause);
         } catch (ReflectiveOperationException | java.io.IOException failure) {
             throw new HybridLaunchException("FABRIC_KNOT_ENTRY_FAILED",
                     "Cannot enter Fabric Knot " + KNOT_SERVER + ": " + failure, failure);
         } finally {
             restore(previous);
         }
+    }
+
+    private static String classify(Throwable failure) {
+        String text = failure.toString();
+        for (String code : List.of("FABRIC_FIXTURE_NOT_DISCOVERED", "FABRIC_FIXTURE_ENTRYPOINT_MISSING",
+                "FABRIC_FIXTURE_API_MISSING", "FABRIC_FIXTURE_CLASSLOADER_MISMATCH",
+                "FABRIC_FIXTURE_MIXIN_MISSING")) {
+            if (text.contains(code)) return code;
+        }
+        return "FABRIC_KNOT_FAILED";
+    }
+
+    private static String join(List<Path> paths) {
+        return paths.stream().map(Path::toString).collect(java.util.stream.Collectors.joining(java.io.File.pathSeparator));
     }
 
     private static Map<String, String> install(Map<String, String> values) {

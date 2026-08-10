@@ -6,7 +6,10 @@ license="GPL-3.0-only"
 modId="victus_hybrid_fixture_neoforge"
 version="1.0.0"
 displayName="Victus Hybrid NeoForge Fixture"
-description='''Owned lifecycle and class-processor marker fixture for the hybrid foundation.'''
+description='''Owned event-bus, deferred-register, lifecycle, class-processor, and Mixin marker fixture.'''
+
+[[mixins]]
+config="victus-fixture-neoforge.mixins.json"
 
 [[dependencies.victus_hybrid_fixture_neoforge]]
 modId="neoforge"

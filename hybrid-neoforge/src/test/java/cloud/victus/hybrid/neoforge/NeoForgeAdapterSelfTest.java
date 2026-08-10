@@ -22,10 +22,15 @@ public final class NeoForgeAdapterSelfTest {
         check(result.diagnostics().stream().anyMatch(line -> line.startsWith("NEOFORGE_FML_MODULE_MISSING")),
                 "FML module-path requirement explicit");
         check(result.fingerprint().loaderVersion().contains("26.2.0.57"), "NeoForge pin in fingerprint");
-        check(result.fingerprint().loaderVersion().contains("11.0.17"), "FML pin in fingerprint");
+        check(result.fingerprint().loaderVersion().contains("11.0.17"), "validated fixture FML pin in fingerprint");
+        check(NeoForgeLoaderAdapter.INSTALLER_FML_VERSION.equals("11.0.16"), "installer-selected FML pin explicit");
+        check(result.diagnostics().stream().anyMatch(line -> line.startsWith("NEOFORGE_PLATFORM_MODULE_MISSING")),
+                "NeoForge universal module required");
+        check(result.diagnostics().stream().anyMatch(line -> line.startsWith("NEOFORGE_MIXIN_SERVICE_MISSING")),
+                "FML Mixin service required");
         check(!NeoForgeLoaderAdapter.hasModule(List.of(temp.resolve("missing.jar")), "fml_loader"),
                 "invalid module path fails deterministically");
-        System.out.println("NeoForgeAdapterSelfTest: 6 checks passed");
+        System.out.println("NeoForgeAdapterSelfTest: 9 checks passed");
     }
 
     private static void check(boolean value, String name) {

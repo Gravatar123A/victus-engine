@@ -1,0 +1,14 @@
+--- a/net/minecraft/server/Main.java
++++ b/net/minecraft/server/Main.java
+@@
+ public class Main {
+     private static final Logger LOGGER = LogUtils.getLogger();
++
++    // Victus NeoForge bridge: FML resolves exactly main(String[]) on the transformed game class.
++    // Keep Paper's OptionSet entrypoint and delegate argument parsing through its canonical bootstrap.
++    public static void main(String[] args) {
++        org.bukkit.craftbukkit.Main.main(args);
++    }
+
+     @SuppressForbidden(reason = "System.out needed before bootstrap")
+     public static void main(final OptionSet options) { // CraftBukkit - replaces main(String[] args)

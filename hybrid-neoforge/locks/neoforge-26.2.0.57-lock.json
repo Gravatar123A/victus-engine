@@ -1,0 +1,456 @@
+{
+    "format":  1,
+    "minecraft":  "26.2",
+    "neoForge":  "26.2.0.57",
+    "installer":  {
+                      "url":  "https://maven.neoforged.net/releases/net/neoforged/neoforge/26.2.0.57/neoforge-26.2.0.57-installer.jar",
+                      "size":  3607038,
+                      "sha256":  "4114a13299b6455a454f7004f188c5a1d554125efa582f04d67a10fc599f7d46",
+                      "profileEntry":  "install_profile.json",
+                      "versionEntry":  "version.json"
+                  },
+    "fml":  {
+                "installer":  "11.0.16",
+                "validatedFixtureApi":  "11.0.17",
+                "overrideArtifacts":  [
+                                          {
+                                              "coordinate":  "net.neoforged.fancymodloader:earlydisplay:11.0.17",
+                                              "url":  "https://maven.neoforged.net/releases/net/neoforged/fancymodloader/earlydisplay/11.0.17/earlydisplay-11.0.17.jar",
+                                              "path":  "net/neoforged/fancymodloader/earlydisplay/11.0.17/earlydisplay-11.0.17.jar",
+                                              "size":  362554,
+                                              "sha256":  "fa9b36efa192ca6cf67a87a16b07410d67e202cdef17e19496d845ba7fe20642"
+                                          },
+                                          {
+                                              "coordinate":  "net.neoforged.fancymodloader:loader:11.0.17",
+                                              "url":  "https://maven.neoforged.net/releases/net/neoforged/fancymodloader/loader/11.0.17/loader-11.0.17.jar",
+                                              "path":  "net/neoforged/fancymodloader/loader/11.0.17/loader-11.0.17.jar",
+                                              "size":  669160,
+                                              "sha256":  "ecbb45a555d1105e0aa375d86e48ea3391b3e0198e0a41e30564217161b46271"
+                                          }
+                                      ]
+            },
+    "neoForm":  {
+                    "coordinate":  "net.neoforged:neoform:26.2-2@zip",
+                    "url":  "https://maven.neoforged.net/releases/net/neoforged/neoform/26.2-2/neoform-26.2-2.zip",
+                    "size":  94156,
+                    "sha256":  "09fd01e2371a94c78bc4d0d28645ab88206fcef395795182cee841765ebd5a63",
+                    "mappings":  "official/unobfuscated Minecraft 26.2 names"
+                },
+    "sourceMachine":  {
+                          "coordinate":  "net.neoforged:neoforge:26.2.0.57:userdev",
+                          "url":  "https://maven.neoforged.net/releases/net/neoforged/neoforge/26.2.0.57/neoforge-26.2.0.57-userdev.jar",
+                          "size":  3925534,
+                          "sha256":  "ca43982d52abf87050aed1530264c7f74e1ca3b4332e82faf0737e39f5e33593",
+                          "neoFormRuntime":  {
+                                                 "coordinate":  "net.neoforged:neoform-runtime:2.0.25:all",
+                                                 "url":  "https://maven.neoforged.net/releases/net/neoforged/neoform-runtime/2.0.25/neoform-runtime-2.0.25-all.jar",
+                                                 "size":  4483155,
+                                                 "sha256":  "8b233d0d4a7614bee4a7ac2f6d228ef63abe61d09e873ef809d64362673a859b"
+                                             },
+                          "requiredTools":  [
+                                                {
+                                                    "coordinate":  "net.neoforged:neoforge:26.2.0.57:sources",
+                                                    "url":  "https://maven.neoforged.net/releases/net/neoforged/neoforge/26.2.0.57/neoforge-26.2.0.57-sources.jar",
+                                                    "size":  2107880,
+                                                    "sha256":  "b9a4994fac24080719b1e2a5add5e26ba7500f6f63bb3b5d61950de2e3b3b285"
+                                                },
+                                                {
+                                                    "coordinate":  "net.neoforged.installertools:installertools:4.0.16:fatjar",
+                                                    "url":  "https://maven.neoforged.net/releases/net/neoforged/installertools/installertools/4.0.16/installertools-4.0.16-fatjar.jar",
+                                                    "size":  814037,
+                                                    "sha256":  "f8e5d76e3a388a106cf8a77cb34c604cb03517806b9f5f20e8e2201b9ec671e4"
+                                                },
+                                                {
+                                                    "coordinate":  "org.vineflower:vineflower:1.12.0",
+                                                    "url":  "https://maven.neoforged.net/releases/org/vineflower/vineflower/1.12.0/vineflower-1.12.0.jar",
+                                                    "size":  1633863,
+                                                    "sha256":  "1dfcfe974395734fa467ce620661c7623d05ba83670de0529b1fbd63ff548b9d"
+                                                },
+                                                {
+                                                    "coordinate":  "net.neoforged:vineflower-plugins:0.1.6",
+                                                    "url":  "https://maven.neoforged.net/releases/net/neoforged/vineflower-plugins/0.1.6/vineflower-plugins-0.1.6.jar",
+                                                    "size":  8820,
+                                                    "sha256":  "4702b1403a19d2fc082eb67deb564a18c68920315fbf2cb67d8821eef653abef"
+                                                },
+                                                {
+                                                    "coordinate":  "io.codechicken:DiffPatch:2.0.0.36:all",
+                                                    "url":  "https://maven.neoforged.net/releases/io/codechicken/DiffPatch/2.0.0.36/DiffPatch-2.0.0.36-all.jar",
+                                                    "size":  22580704,
+                                                    "sha256":  "30d1ff26c112bf3a488e1e5a32a345f75ff0ef985c3315b2d987d607e7038580"
+                                                },
+                                                {
+                                                    "coordinate":  "net.neoforged.jst:jst-cli-bundle:2.0.10",
+                                                    "url":  "https://maven.neoforged.net/releases/net/neoforged/jst/jst-cli-bundle/2.0.10/jst-cli-bundle-2.0.10.jar",
+                                                    "size":  57946594,
+                                                    "sha256":  "2949a83a50158e725b6afba65f6693a0daf198f19db085fc0bcfffe29c95d7e4"
+                                                }
+                                            ]
+                      },
+    "patch":  {
+                  "entry":  "data/client.lzma",
+                  "size":  3099720,
+                  "sha256":  "97491bac93e164b109532d27a8091bf1969562551d65943ba32f27c078c97206"
+              },
+    "upstreamServer":  {
+                           "url":  "https://piston-data.mojang.com/v1/objects/823e2250d24b3ddac457a60c92a6a941943fcd6a/server.jar",
+                           "size":  60894273,
+                           "sha1":  "823e2250d24b3ddac457a60c92a6a941943fcd6a",
+                           "sha256":  "cdacdfb25898de5e4b4b0e5ddcc2722f77067e46605709c2d886c000ebb63ec5"
+                       },
+    "expectedPatchedServer":  {
+                                  "path":  "net/neoforged/minecraft-server-patched/26.2.0.57/minecraft-server-patched-26.2.0.57.jar",
+                                  "size":  23902061,
+                                  "sha256":  "09539c353d5e087582a3c80c6629fc1d784f827053dfe93c849885b20609abba"
+                              },
+    "processors":  [
+                       {
+                           "sides":  [
+                                         "server"
+                                     ],
+                           "jar":  "net.neoforged.installertools:installertools:4.0.17:fatjar",
+                           "classpath":  [
+                                             "net.neoforged.installertools:installertools:4.0.17:fatjar"
+                                         ],
+                           "args":  [
+                                        "--task",
+                                        "EXTRACT_FILES",
+                                        "--archive",
+                                        "{INSTALLER}",
+                                        "--from",
+                                        "data/run.sh",
+                                        "--to",
+                                        "{ROOT}/run.sh",
+                                        "--exec",
+                                        "{ROOT}/run.sh",
+                                        "--from",
+                                        "data/run.bat",
+                                        "--to",
+                                        "{ROOT}/run.bat",
+                                        "--from",
+                                        "data/user_jvm_args.txt",
+                                        "--to",
+                                        "{ROOT}/user_jvm_args.txt",
+                                        "--optional",
+                                        "{ROOT}/user_jvm_args.txt",
+                                        "--from",
+                                        "data/win_args.txt",
+                                        "--to",
+                                        "{ROOT}/libraries/net/neoforged/neoforge/26.2.0.57/win_args.txt",
+                                        "--from",
+                                        "data/unix_args.txt",
+                                        "--to",
+                                        "{ROOT}/libraries/net/neoforged/neoforge/26.2.0.57/unix_args.txt"
+                                    ]
+                       },
+                       {
+                           "jar":  "net.neoforged.installertools:installertools:4.0.17:fatjar",
+                           "classpath":  [
+                                             "net.neoforged.installertools:installertools:4.0.17:fatjar"
+                                         ],
+                           "args":  [
+                                        "--task",
+                                        "PROCESS_MINECRAFT_JAR",
+                                        "--no-mod-manifest",
+                                        "--input",
+                                        "{MINECRAFT_JAR}",
+                                        "--output",
+                                        "{PATCHED}",
+                                        "--extract-libraries-to",
+                                        "{ROOT}/libraries/",
+                                        "--apply-patches",
+                                        "{BINPATCH}"
+                                    ]
+                       }
+                   ],
+    "runtimeArtifacts":  [
+                             {
+                                 "coordinate":  "net.neoforged.fancymodloader:earlydisplay:11.0.16",
+                                 "url":  "https://maven.neoforged.net/releases/net/neoforged/fancymodloader/earlydisplay/11.0.16/earlydisplay-11.0.16.jar",
+                                 "path":  "net/neoforged/fancymodloader/earlydisplay/11.0.16/earlydisplay-11.0.16.jar",
+                                 "size":  360749,
+                                 "sha1":  "2d357375a7ea94a1ca86042d48fa4f719a552894",
+                                 "sha256":  "d58742116712f8817c871cc58217e15a99054dc4ffcf437028e745dcdc41b1dc",
+                                 "role":  "runtime"
+                             },
+                             {
+                                 "coordinate":  "net.neoforged.fancymodloader:loader:11.0.16",
+                                 "url":  "https://maven.neoforged.net/releases/net/neoforged/fancymodloader/loader/11.0.16/loader-11.0.16.jar",
+                                 "path":  "net/neoforged/fancymodloader/loader/11.0.16/loader-11.0.16.jar",
+                                 "size":  669160,
+                                 "sha1":  "42d3bfead0ba3aa89c7d45ac29115defc9967219",
+                                 "sha256":  "73a5cc860b452e80cf0a9789f32ae08a43be180221819b7d339b84391e1e5a97",
+                                 "role":  "runtime"
+                             },
+                             {
+                                 "coordinate":  "net.neoforged:accesstransformers:11.0.2",
+                                 "url":  "https://maven.neoforged.net/releases/net/neoforged/accesstransformers/11.0.2/accesstransformers-11.0.2.jar",
+                                 "path":  "net/neoforged/accesstransformers/11.0.2/accesstransformers-11.0.2.jar",
+                                 "size":  20292,
+                                 "sha1":  "25dcb69c78b16669935f0ab91dff830ce192379d",
+                                 "sha256":  "e5f175eca04f3ab68dab45742323f5c38d1b61cf9a098b5ad85bd1d19621cdba",
+                                 "role":  "runtime"
+                             },
+                             {
+                                 "coordinate":  "org.ow2.asm:asm-commons:9.10.1",
+                                 "url":  "https://maven.neoforged.net/releases/org/ow2/asm/asm-commons/9.10.1/asm-commons-9.10.1.jar",
+                                 "path":  "org/ow2/asm/asm-commons/9.10.1/asm-commons-9.10.1.jar",
+                                 "size":  74840,
+                                 "sha1":  "4229e4c55fd8e01c23f9fe9884075cc628aacc50",
+                                 "sha256":  "6d0abefb7cbf972ea16edb37ec14835372505063a45f976ab7ea889ed9497895",
+                                 "role":  "runtime"
+                             },
+                             {
+                                 "coordinate":  "net.neoforged:mergetool:2.0.7:api",
+                                 "url":  "https://maven.neoforged.net/releases/net/neoforged/mergetool/2.0.7/mergetool-2.0.7-api.jar",
+                                 "path":  "net/neoforged/mergetool/2.0.7/mergetool-2.0.7-api.jar",
+                                 "size":  2550,
+                                 "sha1":  "793b18456e92c4a7f66d9b5d8bf7a9c1c7a20b20",
+                                 "sha256":  "e78f586e085206e3b5699bf0a8de3ee94c59dd34d8cd5b4033e8c58e5ac9c2ec",
+                                 "role":  "runtime"
+                             },
+                             {
+                                 "coordinate":  "org.ow2.asm:asm-util:9.10.1",
+                                 "url":  "https://maven.neoforged.net/releases/org/ow2/asm/asm-util/9.10.1/asm-util-9.10.1.jar",
+                                 "path":  "org/ow2/asm/asm-util/9.10.1/asm-util-9.10.1.jar",
+                                 "size":  95628,
+                                 "sha1":  "7bb9d450e8d4cbf9f9e04096c44bbfe7fba80b15",
+                                 "sha256":  "1bb99d091fba2597dc6d51193e9bbcf0d8447e7ed96bd8f0198b18152f09655c",
+                                 "role":  "runtime"
+                             },
+                             {
+                                 "coordinate":  "org.ow2.asm:asm-analysis:9.10.1",
+                                 "url":  "https://maven.neoforged.net/releases/org/ow2/asm/asm-analysis/9.10.1/asm-analysis-9.10.1.jar",
+                                 "path":  "org/ow2/asm/asm-analysis/9.10.1/asm-analysis-9.10.1.jar",
+                                 "size":  35140,
+                                 "sha1":  "8d49f14d51f632cb1d87c88d1ceaf50db0d8af1b",
+                                 "sha256":  "dede75a21306b65974ecd8f87114ff6970f09fb794157a4ca09ab25c888c2bfc",
+                                 "role":  "runtime"
+                             },
+                             {
+                                 "coordinate":  "org.ow2.asm:asm-tree:9.10.1",
+                                 "url":  "https://maven.neoforged.net/releases/org/ow2/asm/asm-tree/9.10.1/asm-tree-9.10.1.jar",
+                                 "path":  "org/ow2/asm/asm-tree/9.10.1/asm-tree-9.10.1.jar",
+                                 "size":  51958,
+                                 "sha1":  "e244332a17564c1d1572449399a842de35881be2",
+                                 "sha256":  "3dfb0d5b6a106cd40b5b250e39935fbf2f927f4477546a5369a3ac609cf0506b",
+                                 "role":  "runtime"
+                             },
+                             {
+                                 "coordinate":  "net.neoforged:bus:8.0.5",
+                                 "url":  "https://maven.neoforged.net/releases/net/neoforged/bus/8.0.5/bus-8.0.5.jar",
+                                 "path":  "net/neoforged/bus/8.0.5/bus-8.0.5.jar",
+                                 "size":  30340,
+                                 "sha1":  "5b2d33285ab5d1554e9798ad98c40d6ea3868bd5",
+                                 "sha256":  "705e24f37752809499a5cd0c7dd31eaabf3d933c5d3b2060168e94e9ef62593a",
+                                 "role":  "runtime"
+                             },
+                             {
+                                 "coordinate":  "org.ow2.asm:asm:9.10.1",
+                                 "url":  "https://maven.neoforged.net/releases/org/ow2/asm/asm/9.10.1/asm-9.10.1.jar",
+                                 "path":  "org/ow2/asm/asm/9.10.1/asm-9.10.1.jar",
+                                 "size":  126151,
+                                 "sha1":  "ada2141c0cc52ee8f5c48cd5fa4ce0e794f22236",
+                                 "sha256":  "ed825d10ab1399c8c0cb669e688cf0c8c82629b4c8399b58352b68e92ca10fcb",
+                                 "role":  "runtime"
+                             },
+                             {
+                                 "coordinate":  "com.electronwill.night-config:toml:3.9.0",
+                                 "url":  "https://maven.neoforged.net/releases/com/electronwill/night-config/toml/3.9.0/toml-3.9.0.jar",
+                                 "path":  "com/electronwill/night-config/toml/3.9.0/toml-3.9.0.jar",
+                                 "size":  43254,
+                                 "sha1":  "8548891033db17e8f219b453cac38fb865ee4224",
+                                 "sha256":  "475e6fa3315619294d5ab74f2eb80f0705129d43e652d3ccd5337c77d0a29a6b",
+                                 "role":  "runtime"
+                             },
+                             {
+                                 "coordinate":  "com.electronwill.night-config:core:3.9.0",
+                                 "url":  "https://maven.neoforged.net/releases/com/electronwill/night-config/core/3.9.0/core-3.9.0.jar",
+                                 "path":  "com/electronwill/night-config/core/3.9.0/core-3.9.0.jar",
+                                 "size":  381299,
+                                 "sha1":  "29bba7ced5c9768adda06384c61fff2c33dc5e05",
+                                 "sha256":  "cd890520bd3c680cf82e79f16071de9c8f367206a2f841c777d944289f343ebc",
+                                 "role":  "runtime"
+                             },
+                             {
+                                 "coordinate":  "net.neoforged:JarJarSelector:0.5.1",
+                                 "url":  "https://maven.neoforged.net/releases/net/neoforged/JarJarSelector/0.5.1/JarJarSelector-0.5.1.jar",
+                                 "path":  "net/neoforged/JarJarSelector/0.5.1/JarJarSelector-0.5.1.jar",
+                                 "size":  17083,
+                                 "sha1":  "fb620ee1e164b0d4e527759df69317237c51133d",
+                                 "sha256":  "76114eb591593a03d422fb9f8d84c7bea0dba2ad1d8c30488cf1ff04c50ce425",
+                                 "role":  "runtime"
+                             },
+                             {
+                                 "coordinate":  "net.neoforged:JarJarMetadata:0.5.1",
+                                 "url":  "https://maven.neoforged.net/releases/net/neoforged/JarJarMetadata/0.5.1/JarJarMetadata-0.5.1.jar",
+                                 "path":  "net/neoforged/JarJarMetadata/0.5.1/JarJarMetadata-0.5.1.jar",
+                                 "size":  15648,
+                                 "sha1":  "09344da1c9bab76064f484a0d5921a1ca290a716",
+                                 "sha256":  "0573f74ec304669fb3c5403f42403f359e565baf8532e61ec5c1d1c911f6661b",
+                                 "role":  "runtime"
+                             },
+                             {
+                                 "coordinate":  "org.apache.maven:maven-artifact:3.9.16",
+                                 "url":  "https://maven.neoforged.net/releases/org/apache/maven/maven-artifact/3.9.16/maven-artifact-3.9.16.jar",
+                                 "path":  "org/apache/maven/maven-artifact/3.9.16/maven-artifact-3.9.16.jar",
+                                 "size":  58857,
+                                 "sha1":  "1176c6579a8a68508c3479ef72d514e71c98ddca",
+                                 "sha256":  "54cc1c1ef932e3d4a903352111b42b4d3c3ed8e7a1d0de73b625309d9c3ad3e8",
+                                 "role":  "runtime"
+                             },
+                             {
+                                 "coordinate":  "net.jodah:typetools:0.6.3",
+                                 "url":  "https://maven.neoforged.net/releases/net/jodah/typetools/0.6.3/typetools-0.6.3.jar",
+                                 "path":  "net/jodah/typetools/0.6.3/typetools-0.6.3.jar",
+                                 "size":  18281,
+                                 "sha1":  "a01aaa6ddaea9ec07ec4f209487b7a46a526283a",
+                                 "sha256":  "408300867804be05d1083cc0287dd3a21295a9e76090e288013ba5a4182dc96d",
+                                 "role":  "runtime"
+                             },
+                             {
+                                 "coordinate":  "net.minecrell:terminalconsoleappender:1.3.0",
+                                 "url":  "https://maven.neoforged.net/releases/net/minecrell/terminalconsoleappender/1.3.0/terminalconsoleappender-1.3.0.jar",
+                                 "path":  "net/minecrell/terminalconsoleappender/1.3.0/terminalconsoleappender-1.3.0.jar",
+                                 "size":  16949,
+                                 "sha1":  "b562e9bb61235c9520e26282cdee71f8f802d1fc",
+                                 "sha256":  "1afea1bca095068f7f4483f061feed94753be34233ddb0df9ec380fc14d5a985",
+                                 "role":  "runtime"
+                             },
+                             {
+                                 "coordinate":  "net.fabricmc:sponge-mixin:0.17.3+mixin.0.8.7",
+                                 "url":  "https://maven.neoforged.net/releases/net/fabricmc/sponge-mixin/0.17.3+mixin.0.8.7/sponge-mixin-0.17.3+mixin.0.8.7.jar",
+                                 "path":  "net/fabricmc/sponge-mixin/0.17.3+mixin.0.8.7/sponge-mixin-0.17.3+mixin.0.8.7.jar",
+                                 "size":  1540060,
+                                 "sha1":  "41c4a3984a80f4679e759fb9f495587acc5cdac7",
+                                 "sha256":  "9e90efec71d2bad5b96c9089f019d14a8603227d3c5f408d12f53fae89d99d41",
+                                 "role":  "runtime"
+                             },
+                             {
+                                 "coordinate":  "org.lwjgl:lwjgl-tinyfd:3.4.1",
+                                 "url":  "https://libraries.minecraft.net/org/lwjgl/lwjgl-tinyfd/3.4.1/lwjgl-tinyfd-3.4.1.jar",
+                                 "path":  "org/lwjgl/lwjgl-tinyfd/3.4.1/lwjgl-tinyfd-3.4.1.jar",
+                                 "size":  15931,
+                                 "sha1":  "562697d40dbd2ed0424bf24dcf65d51170f81adf",
+                                 "sha256":  "3ffad01103b6cbc8c12c7156691fd87a96f063600a5ff5c9087d321c6736963a",
+                                 "role":  "runtime"
+                             },
+                             {
+                                 "coordinate":  "net.neoforged.accesstransformers:at-parser:11.0.2",
+                                 "url":  "https://maven.neoforged.net/releases/net/neoforged/accesstransformers/at-parser/11.0.2/at-parser-11.0.2.jar",
+                                 "path":  "net/neoforged/accesstransformers/at-parser/11.0.2/at-parser-11.0.2.jar",
+                                 "size":  19331,
+                                 "sha1":  "64aae57d6d26d69543c5275181fe6971707a4e16",
+                                 "sha256":  "546bf36537c606b4d14cb1a313873f41fba13837d067987a32170c4a3199f08a",
+                                 "role":  "runtime"
+                             },
+                             {
+                                 "coordinate":  "net.neoforged:srgutils:1.0.10",
+                                 "url":  "https://maven.neoforged.net/releases/net/neoforged/srgutils/1.0.10/srgutils-1.0.10.jar",
+                                 "path":  "net/neoforged/srgutils/1.0.10/srgutils-1.0.10.jar",
+                                 "size":  72018,
+                                 "sha1":  "abb471237b33b19f040ada00bfbad1ec45b949b6",
+                                 "sha256":  "e4cbc878bc44627196b0507291d09a445fcc8ba8407601944a06d1baa03adc5c",
+                                 "role":  "runtime"
+                             },
+                             {
+                                 "coordinate":  "org.codehaus.plexus:plexus-utils:3.6.1",
+                                 "url":  "https://maven.neoforged.net/releases/org/codehaus/plexus/plexus-utils/3.6.1/plexus-utils-3.6.1.jar",
+                                 "path":  "org/codehaus/plexus/plexus-utils/3.6.1/plexus-utils-3.6.1.jar",
+                                 "size":  272101,
+                                 "sha1":  "9dce1b9c69b197f453223e45a2cb9fa0cd48b424",
+                                 "sha256":  "05a63effd67e2d6b9d610cc82e2bd7473289d34802e57a529b28110f28af5679",
+                                 "role":  "runtime"
+                             },
+                             {
+                                 "coordinate":  "org.jline:jline-reader:3.20.0",
+                                 "url":  "https://maven.neoforged.net/releases/org/jline/jline-reader/3.20.0/jline-reader-3.20.0.jar",
+                                 "path":  "org/jline/jline-reader/3.20.0/jline-reader-3.20.0.jar",
+                                 "size":  171052,
+                                 "sha1":  "8f15415b022a25b473e8e16c28ae913186ffb9c4",
+                                 "sha256":  "acd1c94d1e228aa7b7962f69b21ed3a9fd828eb3a63e4baf9086954e626af1f0",
+                                 "role":  "runtime"
+                             },
+                             {
+                                 "coordinate":  "com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava",
+                                 "url":  "https://libraries.minecraft.net/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+                                 "path":  "com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+                                 "size":  2199,
+                                 "sha1":  "b421526c5f297295adef1c886e5246c39d4ac629",
+                                 "sha256":  "b372a037d4230aa57fbeffdef30fd6123f9c0c2db85d0aced00c91b974f33f99",
+                                 "role":  "runtime"
+                             },
+                             {
+                                 "coordinate":  "com.google.errorprone:error_prone_annotations:2.48.0",
+                                 "url":  "https://libraries.minecraft.net/com/google/errorprone/error_prone_annotations/2.48.0/error_prone_annotations-2.48.0.jar",
+                                 "path":  "com/google/errorprone/error_prone_annotations/2.48.0/error_prone_annotations-2.48.0.jar",
+                                 "size":  20255,
+                                 "sha1":  "bbe30942a31d1778c74cb272321267eca82dc708",
+                                 "sha256":  "b49c5c958316ed67a09c699dda9aa749caf434d51d863dea599ef36a49b9c855",
+                                 "role":  "runtime"
+                             },
+                             {
+                                 "coordinate":  "com.google.j2objc:j2objc-annotations:3.1",
+                                 "url":  "https://libraries.minecraft.net/com/google/j2objc/j2objc-annotations/3.1/j2objc-annotations-3.1.jar",
+                                 "path":  "com/google/j2objc/j2objc-annotations/3.1/j2objc-annotations-3.1.jar",
+                                 "size":  16762,
+                                 "sha1":  "a892ca9507839bbdb900d64310ac98256cab992f",
+                                 "sha256":  "84d3a150518485f8140ea99b8a985656749629f6433c92b80c75b36aba3b099b",
+                                 "role":  "runtime"
+                             },
+                             {
+                                 "coordinate":  "org.jline:jline-terminal:3.20.0",
+                                 "url":  "https://maven.neoforged.net/releases/org/jline/jline-terminal/3.20.0/jline-terminal-3.20.0.jar",
+                                 "path":  "org/jline/jline-terminal/3.20.0/jline-terminal-3.20.0.jar",
+                                 "size":  228481,
+                                 "sha1":  "d0ddcc708ddf527a3454c941b7b9225cc83a15ff",
+                                 "sha256":  "12125170e795519ba6dc8010c070b53c76aae92b485c1e37530e54ab5dd08d43",
+                                 "role":  "runtime"
+                             },
+                             {
+                                 "coordinate":  "net.neoforged.installertools:installertools:4.0.17:fatjar",
+                                 "url":  "https://maven.neoforged.net/releases/net/neoforged/installertools/installertools/4.0.17/installertools-4.0.17-fatjar.jar",
+                                 "path":  "net/neoforged/installertools/installertools/4.0.17/installertools-4.0.17-fatjar.jar",
+                                 "size":  814132,
+                                 "sha1":  "d0e22dfef7eb7eeffa20fee4c393b3f7cad0323b",
+                                 "sha256":  "412c5f5bd74717d62441a3d5914945122f7f44f063c90284545bb0b9ba8751b9",
+                                 "role":  "processor"
+                             },
+                             {
+                                 "coordinate":  "net.neoforged:neoforge:26.2.0.57:universal",
+                                 "url":  "https://maven.neoforged.net/releases/net/neoforged/neoforge/26.2.0.57/neoforge-26.2.0.57-universal.jar",
+                                 "path":  "net/neoforged/neoforge/26.2.0.57/neoforge-26.2.0.57-universal.jar",
+                                 "size":  7050060,
+                                 "sha1":  "c598bbb0216d68504465ee84075ae2915cf956f8",
+                                 "sha256":  "f9baa9303675aa80286115ea6cdbbd12ccd2547947e69e15726bd7285ec00ec8",
+                                 "role":  "platform"
+                             }
+                         ],
+    "jvmArguments":  [
+                         "-Djava.net.preferIPv6Addresses=system",
+                         "-DlibraryDirectory=${library_directory}",
+                         "--add-opens",
+                         "java.base/java.lang.invoke=ALL-UNNAMED",
+                         "--add-exports",
+                         "jdk.naming.dns/com.sun.jndi.dns=java.naming"
+                     ],
+    "gameArguments":  [
+                          "--fml.neoForgeVersion",
+                          "26.2.0.57",
+                          "--fml.mcVersion",
+                          "26.2",
+                          "--fml.neoFormVersion",
+                          "2"
+                      ],
+    "entrypoint":  "net.neoforged.fml.startup.Server",
+    "provenance":  {
+                       "installerProfile":  "installer jar!/install_profile.json",
+                       "versionMetadata":  "installer jar!/version.json",
+                       "generatedAt":  "2026-08-10",
+                       "note":  "Checksums are content pins; generated outputs remain under build/ and are not redistributed."
+                   },
+    "minecraftVersionManifest":  {
+                                     "url":  "https://piston-meta.mojang.com/v1/packages/4b74f58f68a2baae3547d5a20274079f29cafc06/26.2.json",
+                                     "size":  51781,
+                                     "sha256":  "04a069d068111fdaf78ced19feaeaa9d08b2d7560d56dffa87c6e16e76416f6b"
+                                 }
+}

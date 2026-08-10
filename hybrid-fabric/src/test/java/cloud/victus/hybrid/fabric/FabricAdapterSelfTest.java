@@ -8,11 +8,14 @@ import cloud.victus.hybrid.common.PreflightResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.ServiceLoader;
+
+import net.fabricmc.loader.impl.game.GameProvider;
 
 public final class FabricAdapterSelfTest {
     public static void main(String[] args) throws Exception {
         Path temp = Files.createTempDirectory("victus-fabric-adapter-test");
-        LaunchRequest missing = new LaunchRequest(LoaderProfile.FABRIC, "net.minecraft.server.Main",
+        LaunchRequest missing = new LaunchRequest(LoaderProfile.FABRIC, "org.bukkit.craftbukkit.Main",
                 temp.resolve("server.jar"), List.of(), List.of(), List.of(temp.resolve("fabric-loader.jar")),
                 temp, temp.resolve("mods"), List.of("--nogui"), temp.resolve("report.txt"));
         PreflightResult result = new FabricLoaderAdapter().preflight(missing);
@@ -21,9 +24,19 @@ public final class FabricAdapterSelfTest {
                 "missing runtime blocker is actionable");
         check(result.diagnostics().stream().anyMatch(line -> line.startsWith("FABRIC_KNOT_MISSING")),
                 "Knot requirement is explicit");
+        check(result.diagnostics().stream().anyMatch(line -> line.startsWith("FABRIC_ASM_MISSING")),
+                "ASM requirement is explicit");
         check(result.fingerprint().loaderVersion().equals("0.19.3"), "loader pin in fingerprint");
         check(result.fingerprint().apiVersion().equals("0.156.0+26.2"), "API pin in fingerprint");
-        System.out.println("FabricAdapterSelfTest: 5 checks passed");
+        System.clearProperty(VictusFabricGameProvider.ENABLE_PROPERTY);
+        ServiceLoader.Provider<GameProvider> provider = ServiceLoader.load(GameProvider.class).stream()
+                .filter(candidate -> candidate.type() == VictusFabricGameProvider.class)
+                .findFirst().orElseThrow(() -> new AssertionError("Victus GameProvider service metadata missing"));
+        check(provider.type().getName().equals(VictusFabricGameProvider.class.getName()),
+                "Victus provider service is registered without eager initialization");
+        check(System.getProperty(VictusFabricGameProvider.ENABLE_PROPERTY) == null,
+                "Victus provider is opt-in and disabled mode remains isolated");
+        System.out.println("FabricAdapterSelfTest: 8 checks passed");
     }
 
     private static void check(boolean value, String name) {

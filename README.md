@@ -44,8 +44,13 @@ python scripts/hybrid/validate-runtime-lock.py
 ```
 
 The hybrid gate proves launcher parsing, disabled delegation/isolation, adapter preflight, lock/fingerprint/report
-contracts, and owned fixtures. It intentionally does not claim Paper+Fabric or Paper+NeoForge compatibility;
-enabled profiles fail closed until their complete locked runtime and patched target are supplied.
+contracts, and owned fixtures. Fabric runs Loader 0.19.3/Knot with a Victus GameProvider and proves real mod
+discovery, main entrypoint, Mixin transformation, and Knot-owned target definition against an owned class-bearing
+target. `resolveFabricRuntime`, `:hybrid-fabric:fabricDistribution`, and the bounded integration script assemble
+and verify the same plan for the rebuilt `victus-server` jar (never Paperclip/bundler). NeoForge additionally has
+installer/NeoForm reconstruction, source-merge conflict reporting, and a real event-bus/deferred-register/class-
+processor/Mixin fixture. Public bridge flags remain false until the rebuilt Victus target proof and later
+bridge/profile/soak gates pass; enabled profiles fail closed.
 
 An explicit optional refresh contacts Mojang and Paper, updates [`versions/upstream-snapshot.json`](versions/upstream-snapshot.json), and regenerates the catalog:
 
@@ -77,7 +82,7 @@ victus-core/               Paper-independent configuration/metrics/runtime logic
 victus-plugin/             plugin-side command and metrics integration
 hybrid-common/             loader-neutral contracts, lifecycle, reports, policy
 hybrid-launcher/           dependency-light pre-main disabled|fabric|neoforge dispatcher
-hybrid-fabric/             isolated Fabric/Knot adapter foundation
+hybrid-fabric/             Fabric/Knot adapter, Victus GameProvider, lifecycle/Mixin proof
 hybrid-neoforge/           isolated NeoForge/FML adapter foundation
 hybrid-fixtures/           owned Fabric, NeoForge, and Bukkit marker fixtures
 hybrid/                     runtime lock and launcher configuration example

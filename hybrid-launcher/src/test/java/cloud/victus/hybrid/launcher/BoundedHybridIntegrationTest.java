@@ -30,7 +30,7 @@ public final class BoundedHybridIntegrationTest {
         long started = System.nanoTime();
         int status = VictusHybridLauncher.run(new String[]{
                 "--hybrid-profile=" + profile,
-                "--hybrid-target-main=net.minecraft.server.Main",
+                "--hybrid-target-main=" + (profile.equals("fabric") ? "org.bukkit.craftbukkit.Main" : "net.minecraft.server.Main"),
                 "--hybrid-target-artifact=" + missingServer,
                 "--hybrid-adapter-classpath=" + adapters,
                 "--hybrid-loader-classpath=" + missingLoader,

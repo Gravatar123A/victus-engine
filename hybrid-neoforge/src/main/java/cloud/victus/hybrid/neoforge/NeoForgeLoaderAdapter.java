@@ -29,6 +29,7 @@ import java.util.Set;
 public final class NeoForgeLoaderAdapter implements LoaderAdapter {
     public static final String NEOFORGE_VERSION = "26.2.0.57";
     public static final String FML_VERSION = "11.0.17";
+    public static final String INSTALLER_FML_VERSION = "11.0.16";
     public static final String FML_MODULE = "fml_loader";
     public static final String FML_SERVER = "net.neoforged.fml.startup.Server";
     private static final String SUPPORTED_TARGET = "net.minecraft.server.Main";
@@ -67,7 +68,18 @@ public final class NeoForgeLoaderAdapter implements LoaderAdapter {
         }
         if (!hasModule(request.loaderClasspath(), FML_MODULE)) {
             diagnostics.add("NEOFORGE_FML_MODULE_MISSING: module path does not resolve " + FML_MODULE
-                    + "; provide FML and every direct launch requirement from runtime-lock.json");
+                    + "; provide FML and every direct launch requirement from the installer-derived lock");
+        }
+        if (!hasModule(request.loaderClasspath(), "neoforge")) {
+            diagnostics.add("NEOFORGE_PLATFORM_MODULE_MISSING: module path does not resolve the universal NeoForge module");
+        }
+        if (!ClasspathInspector.containsClass(request.loaderClasspath(),
+                "net.neoforged.neoforgespi.transformation.ClassProcessor")) {
+            diagnostics.add("NEOFORGE_CLASS_PROCESSOR_API_MISSING: FML transformation SPI is not assembled");
+        }
+        if (!ClasspathInspector.containsClass(request.loaderClasspath(),
+                "net.neoforged.fml.loading.mixin.FMLMixinService")) {
+            diagnostics.add("NEOFORGE_MIXIN_SERVICE_MISSING: FML Mixin service is not assembled");
         }
         CompatibilityFingerprint fingerprint = new CompatibilityFingerprint(
                 "26.2", System.getProperty("victus.paperCommit", "75c0b485bf038c175d6f3e6efc67519cd5cd524d"),
@@ -84,12 +96,14 @@ public final class NeoForgeLoaderAdapter implements LoaderAdapter {
     @Override
     public void launch(LaunchRequest request, LifecycleTracker lifecycle, StartupReport report)
             throws HybridLaunchException {
+        // request.loaderClasspath is the installer-generated runtime graph. The merged game is supplied
+        // as game content, never as an unpatched Paper jar pretending to be an FML module.
         List<Path> modulePath = new ArrayList<>(request.loaderClasspath());
-        modulePath.add(request.targetArtifact());
         modulePath.addAll(request.targetClasspath());
         ModuleFinder finder = ModuleFinder.of(modulePath.toArray(Path[]::new));
         Set<String> roots = new LinkedHashSet<>();
         roots.add(FML_MODULE);
+        roots.add("neoforge");
         Configuration configuration;
         try {
             configuration = ModuleLayer.boot().configuration().resolve(finder, ModuleFinder.of(), roots);

@@ -32,6 +32,11 @@ def main() -> int:
         print(f"FABRIC_INTEGRATION_TIMEOUT: exceeded {args.timeout}s; log={log}", file=sys.stderr)
         return 124
     text = log.read_text(encoding="utf-8", errors="replace")
+    if result.returncode:
+        # Fabric frequently wraps the useful mod-entrypoint cause several levels deep. Preserve
+        # the full log for CI, and surface a compact tail on stderr so remote build output still
+        # shows the concrete missing class/linkage failure.
+        print("FABRIC_INTEGRATION_LOG_TAIL:\n" + "\n".join(text.splitlines()[-120:]), file=sys.stderr)
     report_path = pathlib.Path(plan["startupReport"])
     report = report_path.read_text(encoding="utf-8", errors="replace") if report_path.is_file() else ""
     required = ["VICTUS_FIXTURE_FABRIC_PROOF", "discovered=true", "entrypoint=true",

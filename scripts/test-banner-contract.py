@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 BANNER_SOURCE = ROOT / "victus-core" / "src" / "main" / "java" / "cloud" / "victus" / "core" / "branding" / "StartupBanner.java"
 ENGINE_PATCH = ROOT / "victus-server" / "paper-patches" / "files" / "src" / "main" / "java" / "cloud" / "victus" / "engine" / "VictusEngine.java.patch"
 SERVER_PATCH = ROOT / "victus-server" / "minecraft-patches" / "sources" / "net" / "minecraft" / "server" / "MinecraftServer.java.patch"
+STARTUP_BANNER_PATCH = ROOT / "victus-server" / "paper-patches" / "files" / "src" / "main" / "java" / "org" / "bukkit" / "craftbukkit" / "CraftServer.java.patch"
 EXPECTED = (
     "__     _____ ____ _____ _   _ ____     ____ _     ___  _   _ ____ ",
     "\\ \\   / /_ _/ ___|_   _| | | / ___|   / ___| |   / _ \\| | | |  _ \\",
@@ -33,6 +34,7 @@ def main() -> int:
     source = BANNER_SOURCE.read_text(encoding="utf-8")
     engine = ENGINE_PATCH.read_text(encoding="utf-8")
     server = SERVER_PATCH.read_text(encoding="utf-8")
+    startup = STARTUP_BANNER_PATCH.read_text(encoding="utf-8")
     errors: list[str] = []
     try:
         actual = decoded_java_strings(source)
@@ -54,16 +56,22 @@ def main() -> int:
     match = re.fullmatch(r"@@ -1,0 \+_,(\d+) @@", header)
     if match is None or int(match.group(1)) != added:
         errors.append(f"VictusEngine new-file patch header count does not match {added} added lines")
-    done = server.find('LOGGER.info("Done ({})! For help, type \\"help\\""')
-    banner = server.find("cloud.victus.engine.VictusEngine.logStartupBanner()")
-    if done < 0:
-        errors.append("MinecraftServer patch does not anchor the genuine Done marker")
+    # The Minecraft source patch parser cannot reliably apply an insertion into a line that
+    # Paper itself introduced. Hook the Paper-layer CraftServer patch instead; enablePlugins
+    # returns only after the server has reached the successful startup path, and the process-wide
+    # guard still guarantees one banner even if a future lifecycle invokes the hook again.
+    postworld_sync = startup.find("this.syncCommands();")
+    banner = startup.find("cloud.victus.engine.VictusEngine.logStartupBanner()")
+    if postworld_sync < 0:
+        errors.append("CraftServer patch does not anchor the POSTWORLD completion path")
     if banner < 0:
-        errors.append("MinecraftServer patch does not call the native banner")
-    if done >= 0 and banner >= 0 and not done < banner:
-        errors.append("banner call must occur after the Done marker")
-    if server.count("cloud.victus.engine.VictusEngine.logStartupBanner()") != 1:
-        errors.append("MinecraftServer must contain exactly one banner call")
+        errors.append("CraftServer patch does not call the native banner")
+    if postworld_sync >= 0 and banner >= 0 and not postworld_sync < banner:
+        errors.append("banner call must occur after POSTWORLD command synchronization")
+    if startup.count("cloud.victus.engine.VictusEngine.logStartupBanner()") != 1:
+        errors.append("CraftServer must contain exactly one banner call")
+    if "cloud.victus.engine.VictusEngine.logStartupBanner()" in server:
+        errors.append("banner must not use the incompatible Minecraft source patch layer")
     if errors:
         for error in errors:
             print(f"ERROR: {error}", file=sys.stderr)

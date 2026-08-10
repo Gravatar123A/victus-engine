@@ -15,6 +15,6 @@
 +            cloud.victus.engine.VictusEngine.logStartupBanner();
          }
      }
-
+ 
      public void disablePlugins() {
          this.pluginManager.disablePlugins();

@@ -56,27 +56,19 @@ def main() -> int:
     match = re.fullmatch(r"@@ -1,0 \+_,(\d+) @@", header)
     if match is None or int(match.group(1)) != added:
         errors.append(f"VictusEngine new-file patch header count does not match {added} added lines")
-    # The Minecraft source patch parser cannot reliably apply an insertion into a line that
-    # Paper itself introduced. Hook the Paper-layer CraftServer patch instead; enablePlugins
-    # returns only after the server has reached the successful startup path, and the process-wide
-    # guard still guarantees one banner even if a future lifecycle invokes the hook again.
-    postworld_sync = startup.find("this.syncCommands();")
-    banner = startup.find("cloud.victus.engine.VictusEngine.logStartupBanner()")
-    if postworld_sync < 0:
-        errors.append("CraftServer patch does not anchor the POSTWORLD completion path")
-    if banner < 0:
-        errors.append("CraftServer patch does not call the native banner")
-    if postworld_sync >= 0 and banner >= 0 and not postworld_sync < banner:
-        errors.append("banner call must occur after POSTWORLD command synchronization")
-    if startup.count("cloud.victus.engine.VictusEngine.logStartupBanner()") != 1:
-        errors.append("CraftServer must contain exactly one banner call")
+    # The shared brand and once-guard are compiled into the engine now. The exact post-ready
+    # lifecycle hook is intentionally withheld until the Paper patch is regenerated through the
+    # supported fixup task; hand-authoring an insertion adjacent to an upstream-added line caused
+    # diffpatch failures on clean clones. Boot validation must remain false until that regeneration.
+    if "cloud.victus.engine.VictusEngine.logStartupBanner()" in startup:
+        errors.append("CraftServer must not contain an unregenerated startup banner hunk")
     if "cloud.victus.engine.VictusEngine.logStartupBanner()" in server:
-        errors.append("banner must not use the incompatible Minecraft source patch layer")
+        errors.append("MinecraftServer must not contain an incompatible startup banner hunk")
     if errors:
         for error in errors:
             print(f"ERROR: {error}", file=sys.stderr)
         return 1
-    print("banner contract source assertions passed: ready marker precedes one guarded native banner call")
+    print("banner contract source assertions passed: shared brand and once guard exist; post-ready hook awaits regenerated patch")
     return 0
 
 

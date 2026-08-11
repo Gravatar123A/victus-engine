@@ -142,6 +142,8 @@ def main() -> int:
         "fabric-entity-events-v1": "Paper rewrites ServerPlayer respawn safety checks; the required monster-nearby redirect has no target",
         "fabric-data-attachment-api-v1": "depends on refused fabric-entity-events-v1",
         "fabric-menu-api-v1": "Paper rewrites ServerPlayer container opening; the required closeContainer redirect has no target",
+        "fabric-registry-sync-v0": "Paper rewrites Bootstrap registry freeze; the Fabric delayRegistryFreeze redirect has no target",
+        "fabric-recipe-api-v1": "depends on refused fabric-registry-sync-v0 for synchronized custom ingredient registries",
     })
     with zipfile.ZipFile(aggregate) as archive:
         metadata = json.loads(archive.read("fabric.mod.json"))

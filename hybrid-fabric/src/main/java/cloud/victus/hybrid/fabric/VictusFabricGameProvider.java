@@ -77,6 +77,7 @@ public final class VictusFabricGameProvider implements GameProvider {
     private Arguments arguments;
     private Path targetJar;
     private List<Path> targetLibraries = List.of();
+    private final Set<Path> platformLibraries = new LinkedHashSet<>();
     private String targetMain;
     private Path launchDirectory;
     private final Set<Path> unlockedTargetClassPath = new LinkedHashSet<>();
@@ -148,6 +149,7 @@ public final class VictusFabricGameProvider implements GameProvider {
         arguments.parse(args);
         targetMain = System.getProperty(TARGET_MAIN_PROPERTY, EXPECTED_TARGET_MAIN);
         targetJar = requiredRegularFile(TARGET_JAR_PROPERTY);
+        platformLibraries.clear();
         targetLibraries = parseLibraries(System.getProperty(TARGET_LIBRARIES_PROPERTY, ""));
         launchDirectory = Path.of(System.getProperty("victus.fabric.gameDir", "."))
                 .toAbsolutePath().normalize();
@@ -186,6 +188,10 @@ public final class VictusFabricGameProvider implements GameProvider {
         addTargetPath(launcher, targetJar);
         for (Path library : targetLibraries) {
             addTargetPath(launcher, library);
+        }
+        if (!platformLibraries.isEmpty()) {
+            launcher.setValidParentClassPath(platformLibraries);
+            System.out.println("VICTUS_FABRIC_PLATFORM_ASM_VISIBLE jars=" + platformLibraries.size());
         }
         if (unlockedTargetClassPath.size() != targetLibraries.size() + 1
                 || !unlockedTargetClassPath.contains(targetJar)
@@ -322,7 +328,7 @@ public final class VictusFabricGameProvider implements GameProvider {
         return path;
     }
 
-    private static List<Path> parseLibraries(String value) {
+    private List<Path> parseLibraries(String value) {
         if (value == null || value.isBlank()) return List.of();
         List<Path> libraries = new java.util.ArrayList<>();
         for (String entry : value.split(java.util.regex.Pattern.quote(java.io.File.pathSeparator))) {
@@ -331,12 +337,25 @@ public final class VictusFabricGameProvider implements GameProvider {
             if (!Files.isRegularFile(path)) {
                 throw new IllegalStateException("Victus target library is not a regular file: " + path);
             }
-            // Do not filter Paper's ASM runtime. Fabric's locked ASM is already on the loader
-            // platform classpath; adding Paper's ASM paths to Knot makes ASM visible to Paper
-            // classes such as CraftMagicNumbers without redefining loader-owned ASM classes.
+            if (containsPackage(path, "org/objectweb/asm/")) {
+                // Fabric Loader/Mixin owns one ASM version in the outer loader. Do not add Paper's
+                // older ASM jars to Knot (that creates duplicate ClassNode definitions). Instead,
+                // record those exact outer code sources as valid parent paths during unlock.
+                platformLibraries.add(path);
+                System.out.println("VICTUS_FABRIC_PLATFORM_LIBRARY_OWNED path=" + path + " package=org.objectweb.asm");
+                continue;
+            }
             libraries.add(path);
         }
         return List.copyOf(libraries);
+    }
+
+    private static boolean containsPackage(Path jar, String prefix) {
+        try (JarFile file = new JarFile(jar.toFile())) {
+            return file.stream().anyMatch(entry -> !entry.isDirectory() && entry.getName().startsWith(prefix));
+        } catch (IOException failure) {
+            throw new IllegalStateException("cannot inspect Victus target library " + jar, failure);
+        }
     }
 
     private static boolean containsClass(Path jar, String className) {

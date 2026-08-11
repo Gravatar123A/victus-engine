@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 package cloud.victus.hybrid.bukkit.fixture;
 
+import cloud.victus.hybrid.bukkit.command.CommandDefinition;
 import cloud.victus.hybrid.bukkit.event.EventTranslator;
 import cloud.victus.hybrid.bukkit.network.ClientHandshake;
 import cloud.victus.hybrid.bukkit.network.HandshakeAdapter;
@@ -21,6 +22,7 @@ public final class FixtureNeoForgeBridgeAdapter implements BridgeAdapter {
     @Override public String adapterVersion() { return "fixture-neoforge-1"; }
     @Override public Collection<RegistryEntry> registryEntries() { return List.of(); }
     @Override public Collection<? extends EventTranslator> eventTranslators() { return List.of(); }
+    @Override public Collection<CommandDefinition> commandDefinitions() { return List.of(); }
 
     @Override
     public HandshakeAdapter handshakeAdapter() {

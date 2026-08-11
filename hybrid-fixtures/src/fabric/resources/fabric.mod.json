@@ -8,6 +8,14 @@
     "main": ["cloud.victus.hybrid.fixtures.fabric.FixtureFabricMod"]
   },
   "mixins": ["victus-fixture.mixins.json"],
+  "custom": {
+    "victus:registry-entries": [
+      {"kind": "ITEM", "id": "victus_hybrid_fixture_fabric:bridge_probe"}
+    ],
+    "victus:network-channels": {
+      "victus_hybrid_fixture_fabric:main": "1"
+    }
+  },
   "depends": {
     "fabricloader": ">=0.19.3",
     "fabric-api-base": "*",

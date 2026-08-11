@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 package cloud.victus.hybrid.bukkit;
 
+import cloud.victus.hybrid.bukkit.command.CollisionPolicy;
+import cloud.victus.hybrid.bukkit.command.CommandBridge;
 import cloud.victus.hybrid.bukkit.event.EventTranslationRegistry;
 import cloud.victus.hybrid.bukkit.lifecycle.BridgePhase;
 import cloud.victus.hybrid.bukkit.lifecycle.LifecyclePhaseCoordinator;
@@ -17,6 +19,7 @@ public final class HybridBukkitBridge {
     private final LifecyclePhaseCoordinator lifecycle;
     private RegistrySnapshot registries = RegistrySnapshot.empty();
     private EventTranslationRegistry events = new EventTranslationRegistry(java.util.List.of());
+    private CommandBridge commands = new CommandBridge(CollisionPolicy.REQUIRE_NAMESPACE, java.util.List.of());
     private BridgeAdapter adapter;
 
     public HybridBukkitBridge(LoaderProfile profile) {
@@ -32,6 +35,7 @@ public final class HybridBukkitBridge {
         lifecycle.advance(BridgePhase.REGISTRATION);
         registries = RegistrySnapshot.capture(1, adapter.registryEntries());
         events = new EventTranslationRegistry(adapter.eventTranslators());
+        commands = new CommandBridge(CollisionPolicy.REQUIRE_NAMESPACE, adapter.commandDefinitions());
         lifecycle.advance(BridgePhase.REGISTRIES_FROZEN);
     }
 
@@ -50,6 +54,7 @@ public final class HybridBukkitBridge {
     public LifecyclePhaseCoordinator lifecycle() { return lifecycle; }
     public RegistrySnapshot registries() { return registries; }
     public EventTranslationRegistry events() { return events; }
+    public CommandBridge commands() { return commands; }
     public BridgeAdapter adapter() { return requireEnabledAdapter(); }
 
     private BridgeAdapter requireEnabledAdapter() {

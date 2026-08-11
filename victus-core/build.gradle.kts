@@ -39,7 +39,14 @@ val fabricRegistryBridgeSelfTest by tasks.registering(JavaExec::class) {
     mainClass.set("cloud.victus.core.runtime.FabricRegistryBridgeSelfTest")
 }
 
+val hybridBukkitHostSelfTest by tasks.registering(JavaExec::class) {
+    group = "verification"
+    dependsOn(tasks.named("classes"))
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("cloud.victus.core.runtime.HybridBukkitHostSelfTest")
+}
+
 tasks.test {
     useJUnitPlatform()
-    dependsOn(fabricLifecycleBridgeSelfTest, fabricRegistryBridgeSelfTest)
+    dependsOn(fabricLifecycleBridgeSelfTest, fabricRegistryBridgeSelfTest, hybridBukkitHostSelfTest)
 }

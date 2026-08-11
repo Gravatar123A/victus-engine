@@ -55,6 +55,9 @@ public final class FabricLifecycleBridge {
             Method callback = findCallback(invoker.getClass(), callbackName, server.getClass());
             callback.invoke(invoker, server);
             System.out.println("VICTUS_FABRIC_LIFECYCLE event=" + fieldName + " owner=source-bridge");
+        } catch (ClassNotFoundException absent) {
+            // The curated server-compatible Fabric API subset may omit lifecycle-events entirely.
+            return;
         } catch (InvocationTargetException failure) {
             Throwable cause = failure.getCause() == null ? failure : failure.getCause();
             throw failure(fieldName, cause);

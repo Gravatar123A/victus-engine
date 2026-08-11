@@ -2,6 +2,8 @@
 package cloud.victus.hybrid.bukkit.fixture;
 
 import cloud.victus.hybrid.bukkit.api.NamespacedIdentifier;
+import cloud.victus.hybrid.bukkit.command.CommandDefinition;
+import cloud.victus.hybrid.bukkit.command.CommandOrigin;
 import cloud.victus.hybrid.bukkit.event.EventTranslationResult;
 import cloud.victus.hybrid.bukkit.event.EventTranslator;
 import cloud.victus.hybrid.bukkit.event.TranslatedEvent;
@@ -66,6 +68,12 @@ public final class FixtureBridgeAdapter implements BridgeAdapter {
                         "Bukkit event carries location but cannot represent fixture charge level mutation");
             }
         });
+    }
+
+    @Override
+    public Collection<CommandDefinition> commandDefinitions() {
+        return List.of(new CommandDefinition(NamespacedIdentifier.parse("fixture:tools"), "inspect",
+                CommandOrigin.MOD, "tools.inspect"));
     }
 
     @Override

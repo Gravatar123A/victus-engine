@@ -3,10 +3,10 @@
 **Status (2026-08-11): FOUNDATION, FAIL-CLOSED, NOT SUPPORTED.** Task #19 establishes an
 Arclight-class architecture boundary. Task #36 adds tracked NeoForge installer/NeoForm reconstruction,
 three-way source merge/conflict reporting, explicit conflict bridge patches, real lifecycle/transformation
-fixtures, and an expected-fail bounded integration gate. Task #22 is **in progress/blocked at architecture**:
-the loader-neutral Bukkit bridge contracts and fixtures exist, but neither live loader nor the Paper host is
-connected. A full Paper/NeoForge merge is not yet claimed. The public `fabricBridge` and `neoForgeBridge`
-capability flags remain false.
+fixtures, and an expected-fail bounded integration gate. Task #44 is **in progress/pending VDS boot**:
+the Fabric adapter, real registry capture, linkage-free Paper host, Bukkit fixture, distribution wiring, and
+full two-boot runner are tracked locally; the parent must still run the isolated VDS gate. A full Paper/NeoForge
+merge is not yet claimed. The public `fabricBridge` and `neoForgeBridge` capability flags remain false.
 
 ## What now exists
 
@@ -75,7 +75,9 @@ against FML 11.0.17's real `@Mod` plus a class-processor marker. The Bukkit fixt
 real `JavaPlugin` lifecycle.
 
 `hybridCheck` compiles all modules, builds fixtures, tests parsing/delegation/isolation, policy, reports,
-fingerprints, locks/profile preflight, and runs bounded integration. Its `hybrid-bukkit` fixture adapter proves
+fingerprints, locks/profile preflight, and runs bounded integration. For an assembled distribution,
+`python scripts/hybrid/run-fabric-integration.py build/hybrid-fabric-dist/fabric-launch-plan.json --port 0`
+runs the required two full boots; it no longer uses `--initSettings`. Its `hybrid-bukkit` fixture adapter proves
 all seven registry surfaces, native and unknown wrapper lookup without enum reflection, deterministic command
 and permission collisions, explicit partial/unsupported event outcomes, manifest round-trip, fingerprint and
 removal refusal, loader-family handshake policy, ordered phases, and disabled-mode ServiceLoader isolation.
@@ -98,12 +100,14 @@ that migration diagnostic. Runtime profile selection belongs to the pre-main lau
    the isolated build workspace; `fabricBridge` remains false.
 2. **Task #21 — NeoForge:** generate the complete locked module/class path, reconcile FML game-content
    location/class processors with patched Paper, bind the real NeoForge fixture, and reach FML lifecycle markers.
-3. **Task #22 — shared bridge (architecture implemented; live binding blocked):** connect Fabric and NeoForge
-   implementations of `BridgeAdapter` and `HandshakeAdapter`; install the versioned `HybridRegistryView`,
-   `HybridEventView`, and `HybridNetworkView` extensions in Paper/CraftBukkit; bind translated events and command
-   dispatch on the server thread; write/read world manifests at world lifecycle boundaries; and prove real
-   modded blocks/items/entities/biomes/dimensions/recipes/tags across save/restart/removal tests. No loader
-   adapter or Paper host is connected yet, so Task #22 remains in progress and both capability flags stay false.
+3. **Task #44 — Fabric shared bridge (implemented locally; VDS pending):** `hybrid-fabric` provides a
+   ServiceLoader `BridgeAdapter` that snapshots real block/item/entity/biome/dimension/recipe/tag registries,
+   Fabric fixture metadata, translated fixture events, Brigadier command definitions, and network channels.
+   `HybridBukkitHost` binds reflectively at Paper's post-world plugin lifecycle and reaches READY after `Done`.
+   The Bukkit fixture verifies vanilla/owned identifiers, command and permission collision policy, exact event
+   translation, and deterministic `victus-hybrid-world.manifest` create/second-boot/removal refusal. The runner
+   performs two full random-port boots and clean console stops. Task #44 stays in progress and `fabricBridge`
+   stays false until the parent captures the isolated VDS proof.
 4. Add curated compatibility fingerprints, conflict policy, gameplay/soak tests, and only then consider
    changing support flags. Unknown combinations must continue to fail closed.
 
@@ -116,11 +120,13 @@ server input, patched-server output, NeoForm `26.2-2`, userdev archive, and NeoF
 `hybrid-neoforge/locks/neoforge-26.2.0.57-lock.json`.
 
 `hybrid-neoforge:neoforgeReconstructPatchedGame` and `neoforgeReconstructSources` generate only under
-`hybrid-neoforge/build/neoforge`. `neoforgeMergeSources` performs a named-source three-way comparison,
-writes automatic non-conflicting overlay files plus `conflicts.json`, and recognizes conflict replacements
-only from `hybrid-neoforge/bridge-patches`. The current Paper 26.2 comparison records 753 unresolved classes;
-`neoforgeHybridDistribution` therefore refuses assembly.
+`hybrid-neoforge/build/neoforge`. `neoforgeMergeSources` performs a deterministic line-edit three-way merge,
+writes automatic non-conflicting and semantically safe merged overlay files plus per-hunk ranges/categories in
+`conflicts.json`, and recognizes explicit conflict replacements only from `hybrid-neoforge/bridge-patches`.
+Task #46 reduces the current Paper 26.2 comparison from 753 to 339 unresolved classes (414 auto-merged);
+`neoforgeHybridDistribution` therefore still refuses assembly. Task #36 remains blocked until the count is zero
+and the merged game passes its boot/lifecycle gate.
 
 The fixture now exercises real FML constructor injection, mod event bus, deferred item registration,
 common setup, a service-loaded no-op class processor, and FML's Mixin service. The bounded gate currently
-records `NEOFORGE_MERGE_CONFLICTS` with 753 classes as expected-fail; it cannot delegate to untransformed Paper.
+records `NEOFORGE_MERGE_CONFLICTS` with 339 classes as expected-fail; it cannot delegate to untransformed Paper.

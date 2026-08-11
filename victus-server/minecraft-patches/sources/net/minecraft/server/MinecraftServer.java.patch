@@ -15,11 +15,21 @@
          try {
 +            cloud.victus.core.runtime.FabricLifecycleBridge.starting(this); // Victus - Fabric lifecycle fallback for Paper startup shape
              if (!this.initServer()) {
+@@ -648,3 +_,4 @@
+         // Paper end - Configurable player collision; Handle collideRule team for player collision toggle
++        cloud.victus.core.runtime.HybridBukkitHost.bind(this); // Victus - bind optional Fabric/Bukkit bridge at post-world plugin lifecycle
+         this.server.enablePlugins(org.bukkit.plugin.PluginLoadOrder.POSTWORLD);
+         this.server.spark.registerCommandBeforePlugins(this.server); // Paper - spark
 @@ -1272,3 +_,4 @@
              this.initTickSchedule(); // Paper - improve tick loop
              this.statusIcon = this.loadStatusIcon().orElse(null);
              this.status = this.buildServerStatus();
 +            cloud.victus.core.runtime.FabricLifecycleBridge.started(this); // Victus - Fabric lifecycle fallback for Paper startup shape
+@@ -1291,3 +_,4 @@
+             LOGGER.info("Done ({})! For help, type \"help\"", String.format(java.util.Locale.ROOT, "%.3fs", actualDoneTimeMs / 1000.00D)); // Paper - Improve startup message
++            cloud.victus.core.runtime.HybridBukkitHost.ready(); // Victus - bridge READY follows genuine Paper Done marker
+             org.spigotmc.WatchdogThread.tick();
+             // Paper end
 @@ -1580,6 +_,8 @@
      protected void tickServer(final BooleanSupplier haveTime) {
          org.spigotmc.WatchdogThread.tick(); // Spigot

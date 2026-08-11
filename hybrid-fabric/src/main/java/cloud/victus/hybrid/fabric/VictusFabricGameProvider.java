@@ -332,8 +332,8 @@ public final class VictusFabricGameProvider implements GameProvider {
                 throw new IllegalStateException("Victus target library is not a regular file: " + path);
             }
             if (containsPackage(path, "org/objectweb/asm/")) {
-                // Loader/Mixin owns a single locked ASM version. Paper's ASM would be child-loaded by Knot and
-                // violate MixinExtras' loader constraints when transforming Fabric API implementation classes.
+                // Loader/Mixin owns a single locked ASM version. Expose that same locked runtime to Knot from
+                // unlockClassPath; Paper's older ASM stays filtered from the target classpath.
                 System.out.println("VICTUS_FABRIC_PLATFORM_LIBRARY_OWNED path=" + path + " package=org.objectweb.asm");
                 continue;
             }

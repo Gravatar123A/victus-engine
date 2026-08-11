@@ -39,6 +39,7 @@ public final class HybridBukkitSelfTest {
         eventTranslationContracts();
         persistenceRoundTripAndGuards();
         networkProfileContract();
+        processRuntimePublication();
         disabledModeIsolation();
         System.out.println("HybridBukkitSelfTest: " + checks + " checks passed");
     }
@@ -56,6 +57,8 @@ public final class HybridBukkitSelfTest {
         check("4.0".equals(modded.attributes().get("hardness")), "wrapper retains stable attributes");
         check(bridge.registries().find(RegistryKind.BLOCK, key("minecraft:stone")).orElseThrow()
                 .hasNativeBukkitRepresentation(), "native entry is marked without exposing enum");
+        check(bridge.commands().resolve("fixture:inspect").status() == CommandResolution.Status.RESOLVED,
+                "adapter command definitions are captured by bridge initialization");
         expect(UnsupportedOperationException.class,
                 () -> bridge.registries().values(RegistryKind.BLOCK).clear(), "snapshot immutable");
         bridge.bukkitBound();
@@ -136,6 +139,16 @@ public final class HybridBukkitSelfTest {
         neoForge.initialize(HybridBukkitSelfTest.class.getClassLoader());
         check(neoForge.adapter().handshakeAdapter().serverProfile().style() == HandshakeStyle.NEOFORGE,
                 "NeoForge profile selected through loader-neutral SPI");
+    }
+
+    private static void processRuntimePublication() {
+        HybridBridgeRuntime.resetForTest();
+        HybridBukkitBridge first = HybridBridgeRuntime.initialize(LoaderProfile.FABRIC,
+                HybridBukkitSelfTest.class.getClassLoader());
+        check(HybridBridgeRuntime.current().orElseThrow() == first, "runtime publishes initialized bridge");
+        check(HybridBridgeRuntime.initialize(LoaderProfile.FABRIC,
+                HybridBukkitSelfTest.class.getClassLoader()) == first, "runtime initialization is idempotent");
+        HybridBridgeRuntime.resetForTest();
     }
 
     private static void disabledModeIsolation() {

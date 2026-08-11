@@ -142,14 +142,18 @@ def main() -> int:
         shutil.rmtree(output)
     (output / "runtime").mkdir(parents=True)
     (output / "mods").mkdir()
+    (output / "plugins").mkdir()
 
     launcher = one(ROOT / "hybrid-launcher" / "build" / "libs", "hybrid-launcher-")
     common = one(ROOT / "hybrid-common" / "build" / "libs", "hybrid-common-")
+    bukkit = one(ROOT / "hybrid-bukkit" / "build" / "libs", "hybrid-bukkit-")
     adapter = one(ROOT / "hybrid-fabric" / "build" / "libs", "hybrid-fabric-")
     fixture = one(ROOT / "hybrid-fixtures" / "build" / "libs", "victus-fixture-fabric-")
-    for source in (launcher, common, adapter):
+    bukkit_fixture = one(ROOT / "hybrid-fixtures" / "build" / "libs", "victus-fixture-bukkit-")
+    for source in (launcher, common, bukkit, adapter):
         shutil.copy2(source, output / "runtime" / source.name)
     shutil.copy2(fixture, output / "mods" / fixture.name)
+    shutil.copy2(bukkit_fixture, output / "plugins" / bukkit_fixture.name)
     # Full Fabric API is a nested mod and belongs in mods, not on Knot's platform classpath.
     for source, artifact in zip(artifacts, lock["artifacts"]):
         # The aggregate Fabric API mod nests its modules. Individually locked fixture modules are compile/test
@@ -182,6 +186,8 @@ def main() -> int:
         "fabric-dimensions-v1": "entrypoint links refused fabric-lifecycle-events-v1 ServerLifecycleEvents without declaring the dependency",
         "fabric-menu-api-v1": "Paper rewrites ServerPlayer container opening; the required closeContainer redirect has no target",
     }, {
+        "fabric-command-api-v2": ("fabric-command-api-v2.mixins.json", "CommandsMixin",
+                                   "owner=Victus FabricCommandBridge reason=Paper adds a modern Commands constructor overload"),
         # These replacements remain declared even while dependency closure refuses their current modules. If a
         # future Fabric release makes the enclosing module retainable, only the incompatible mixin is removed.
         "fabric-lifecycle-events-v1": ("fabric-lifecycle-events-v1.mixins.json", "MinecraftServerMixin",
@@ -222,7 +228,7 @@ def main() -> int:
         raise SystemExit("FABRIC_API_COMPATIBILITY_AUDIT_FAILED: see " + str(report))
 
     runtime = output / "runtime"
-    adapter_cp = str(runtime / adapter.name)
+    adapter_cp = os.pathsep.join((str(runtime / adapter.name), str(runtime / bukkit.name)))
     loader_cp = os.pathsep.join(str(path) for path in sorted(runtime.glob("*.jar"))
                                 if path.name not in {launcher.name, common.name, adapter.name})
     launch_cp = os.pathsep.join((str(runtime / launcher.name), str(runtime / common.name)))
@@ -242,6 +248,7 @@ def main() -> int:
         "jvmProperties": ["-Dvictus.fabric.requireFixtureProof=true"],
     }
     (output / "run").mkdir()
+    shutil.copytree(output / "plugins", output / "run" / "plugins")
     (output / "fabric-launch-plan.json").write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
     def property_value(value: object) -> str:
         # java.util.Properties treats backslash as an escape introducer; preserve Windows paths.

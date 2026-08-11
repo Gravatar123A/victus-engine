@@ -16,6 +16,9 @@ public final class HybridFixturesSelfTest {
             check(jar.getEntry("victus-fixture.mixins.json") != null, "Fabric mixin marker config");
             check(jar.getEntry("cloud/victus/hybrid/fixtures/fabric/FixtureFabricMod.class") != null, "Fabric entrypoint class");
             check(jar.getEntry("cloud/victus/hybrid/fixtures/fabric/mixin/FixtureMarkerMixin.class") != null, "real Fabric Mixin class");
+            String metadata = new String(jar.getInputStream(jar.getEntry("fabric.mod.json")).readAllBytes(),
+                    java.nio.charset.StandardCharsets.UTF_8);
+            check(metadata.contains("victus_hybrid_fixture_fabric:bridge_probe"), "Fabric bridge registry metadata");
         }
         try (JarFile jar = new JarFile(neo.toFile())) {
             check(jar.getEntry("META-INF/neoforge.mods.toml") != null, "NeoForge metadata");
@@ -30,8 +33,11 @@ public final class HybridFixturesSelfTest {
         try (JarFile jar = new JarFile(bukkit.toFile())) {
             check(jar.getEntry("plugin.yml") != null, "Bukkit metadata");
             check(jar.getEntry("cloud/victus/hybrid/fixtures/bukkit/FixtureBukkitPlugin.class") != null, "Bukkit lifecycle class");
+            String plugin = new String(jar.getInputStream(jar.getEntry("plugin.yml")).readAllBytes(),
+                    java.nio.charset.StandardCharsets.UTF_8);
+            check(plugin.contains("hybridproof"), "Bukkit fixture command collision declaration");
         }
-        System.out.println("HybridFixturesSelfTest: 11 checks passed");
+        System.out.println("HybridFixturesSelfTest: 13 checks passed");
     }
 
     private static Path one(Path directory, String prefix) throws Exception {

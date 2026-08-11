@@ -2,6 +2,7 @@
 package cloud.victus.hybrid.bukkit.spi;
 
 import cloud.victus.hybrid.bukkit.event.EventTranslator;
+import cloud.victus.hybrid.bukkit.command.CommandDefinition;
 import cloud.victus.hybrid.bukkit.network.HandshakeAdapter;
 import cloud.victus.hybrid.bukkit.registry.RegistryEntry;
 import cloud.victus.hybrid.common.LoaderProfile;
@@ -19,6 +20,8 @@ public interface BridgeAdapter {
     Collection<RegistryEntry> registryEntries();
 
     Collection<? extends EventTranslator> eventTranslators();
+
+    Collection<CommandDefinition> commandDefinitions();
 
     HandshakeAdapter handshakeAdapter();
 }

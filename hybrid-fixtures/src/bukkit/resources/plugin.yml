@@ -2,4 +2,11 @@ name: VictusHybridFixture
 version: 1.0.0
 main: cloud.victus.hybrid.fixtures.bukkit.FixtureBukkitPlugin
 api-version: '26.2'
-description: Owned lifecycle marker fixture for the Victus hybrid foundation.
+description: Owned full-boot proof for the Victus Fabric/Bukkit bridge.
+permissions:
+  victus.fixture.hybridproof:
+    default: op
+commands:
+  hybridproof:
+    description: Fixture collision owner for the Victus hybrid bridge.
+    permission: victus.fixture.hybridproof

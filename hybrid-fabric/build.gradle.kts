@@ -8,6 +8,7 @@ java {
 
 dependencies {
     api(project(":hybrid-common"))
+    implementation(project(":hybrid-bukkit"))
     // Compile against Loader's maintained GameProvider SPI. It remains compileOnly so disabled mode and
     // the launcher production classpath cannot acquire Fabric transitively; the locked runtime supplies it.
     compileOnly("net.fabricmc:fabric-loader:0.19.3")
@@ -95,7 +96,8 @@ val fabricDistribution by tasks.registering(Exec::class) {
     description = "Creates a verified Fabric hybrid distribution for -PfabricTarget=<class-bearing victus-server jar>."
     dependsOn(
         rootProject.tasks.named("resolveFabricRuntime"), tasks.named("jar"),
-        ":hybrid-common:jar", ":hybrid-launcher:jar", ":hybrid-fixtures:fabricFixtureJar"
+        ":hybrid-common:jar", ":hybrid-bukkit:jar", ":hybrid-launcher:jar",
+        ":hybrid-fixtures:fabricFixtureJar", ":hybrid-fixtures:bukkitFixtureJar"
     )
     val target = providers.gradleProperty("fabricTarget").orElse("")
     val targetClasspathFile = providers.gradleProperty("fabricTargetClasspathFile").orElse("")

@@ -1,5 +1,10 @@
 --- a/net/minecraft/commands/Commands.java
 +++ b/net/minecraft/commands/Commands.java
+@@ -346,3 +_,4 @@
+         // Paper end - Brigadier Command API
++        cloud.victus.core.runtime.FabricCommandBridge.register(this.dispatcher, context, commandSelection); // Victus - Fabric command API fallback for Paper constructor shape
+         this.dispatcher.setConsumer(ExecutionCommandSource.resultConsumer());
+     }
 @@ -460,6 +_,8 @@
          ExecutionContext<CommandSourceStack> currentContext = CURRENT_EXECUTION_CONTEXT.get();
          boolean isTopContext = currentContext == null;

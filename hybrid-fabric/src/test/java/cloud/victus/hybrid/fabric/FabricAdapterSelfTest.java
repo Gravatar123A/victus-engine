@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 package cloud.victus.hybrid.fabric;
 
+import cloud.victus.hybrid.bukkit.spi.BridgeAdapter;
 import cloud.victus.hybrid.common.LaunchRequest;
 import cloud.victus.hybrid.common.LoaderProfile;
 import cloud.victus.hybrid.common.PreflightResult;
@@ -38,7 +39,12 @@ public final class FabricAdapterSelfTest {
                 "Victus provider service is registered without eager initialization");
         check(System.getProperty(VictusFabricGameProvider.ENABLE_PROPERTY) == null,
                 "Victus provider is opt-in and disabled mode remains isolated");
-        System.out.println("FabricAdapterSelfTest: 9 checks passed");
+        ServiceLoader.Provider<BridgeAdapter> bridge = ServiceLoader.load(BridgeAdapter.class).stream()
+                .filter(candidate -> candidate.type() == FabricBridgeAdapter.class)
+                .findFirst().orElseThrow(() -> new AssertionError("Fabric BridgeAdapter service metadata missing"));
+        check(bridge.type().getName().equals(FabricBridgeAdapter.class.getName()),
+                "Fabric bridge service is registered without eager server access");
+        System.out.println("FabricAdapterSelfTest: 10 checks passed");
     }
 
     private static void check(boolean value, String name) {

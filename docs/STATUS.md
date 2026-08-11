@@ -12,8 +12,9 @@ Implemented evidence in this repository includes:
 - a tracked six-module hybrid foundation (`hybrid-common`, loader-neutral `hybrid-bukkit`,
   `hybrid-launcher`, isolated Fabric and NeoForge adapters, and owned fixtures), with locked upstream inputs,
   fail-closed preflight, registry/event/command/persistence/network contracts, and deterministic fixture tests;
-  Task #22 remains in progress because live loader and Paper host bindings are absent, so this is architecture/test
-  evidence only, not a supported Fabric/NeoForge bridge;
+  Task #44 now has a production Fabric `BridgeAdapter`, a linkage-free Paper host, full-boot Bukkit proof,
+  two-boot manifest/removal checks, and distribution wiring. It remains in progress until the isolated VDS full-boot
+  gate passes, so this is not yet a supported Fabric bridge;
 - `victus-core` configuration, runtime, metrics, lag-doctor, and limits logic;
 - native `victus.yml` bootstrap and profile application;
 - DAB and async chunk-send configuration/watchdog paths;
@@ -46,8 +47,9 @@ The following remain false in the support matrix:
 
 - parallel ticking: experimental scaffold with known thread-safety caveats;
 - regionized threading: planned;
-- Fabric bridge: Victus GameProvider plus real Loader/Knot/Mixin owned-target proof passes; rebuilt Victus target
-  integration, bridge reconciliation, profile tests, and soak are still required;
+- Fabric bridge: Victus GameProvider plus real Loader/Knot/Mixin owned-target proof passes and Task #44's
+  registry/event/command/network bridge is tracked; the required isolated VDS two-boot Paper/Bukkit proof and soak
+  are still pending;
 - NeoForge bridge: installer/NeoForm reconstruction and source-merge/conflict machinery is tracked, with a real
   event-bus/deferred-register/class-processor/Mixin fixture; the source comparison currently reports 753
   unresolved classes and the bounded runner remains expected-fail at `NEOFORGE_MERGE_CONFLICTS`, so real

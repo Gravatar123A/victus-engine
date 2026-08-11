@@ -9,6 +9,7 @@ public final class LauncherIsolationSelfTest {
     public static void main(String[] args) throws Exception {
         absent("cloud.victus.hybrid.fabric.FabricLoaderAdapter");
         absent("cloud.victus.hybrid.neoforge.NeoForgeLoaderAdapter");
+        absent("cloud.victus.hybrid.bukkit.HybridBukkitBridge");
         absent("net.fabricmc.loader.impl.launch.knot.KnotServer");
         absent("net.neoforged.fml.startup.Server");
 

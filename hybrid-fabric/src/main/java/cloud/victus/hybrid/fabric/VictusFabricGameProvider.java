@@ -331,23 +331,12 @@ public final class VictusFabricGameProvider implements GameProvider {
             if (!Files.isRegularFile(path)) {
                 throw new IllegalStateException("Victus target library is not a regular file: " + path);
             }
-            if (containsPackage(path, "org/objectweb/asm/")) {
-                // Loader/Mixin owns a single locked ASM version. Expose that same locked runtime to Knot from
-                // unlockClassPath; Paper's older ASM stays filtered from the target classpath.
-                System.out.println("VICTUS_FABRIC_PLATFORM_LIBRARY_OWNED path=" + path + " package=org.objectweb.asm");
-                continue;
-            }
+            // Do not filter Paper's ASM runtime. Fabric's locked ASM is already on the loader
+            // platform classpath; adding Paper's ASM paths to Knot makes ASM visible to Paper
+            // classes such as CraftMagicNumbers without redefining loader-owned ASM classes.
             libraries.add(path);
         }
         return List.copyOf(libraries);
-    }
-
-    private static boolean containsPackage(Path jar, String prefix) {
-        try (JarFile file = new JarFile(jar.toFile())) {
-            return file.stream().anyMatch(entry -> !entry.isDirectory() && entry.getName().startsWith(prefix));
-        } catch (IOException failure) {
-            throw new IllegalStateException("cannot inspect Victus target library " + jar, failure);
-        }
     }
 
     private static boolean containsClass(Path jar, String className) {

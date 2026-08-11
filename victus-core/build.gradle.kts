@@ -32,7 +32,14 @@ val fabricLifecycleBridgeSelfTest by tasks.registering(JavaExec::class) {
     mainClass.set("cloud.victus.core.runtime.FabricLifecycleBridgeSelfTest")
 }
 
+val fabricRegistryBridgeSelfTest by tasks.registering(JavaExec::class) {
+    group = "verification"
+    dependsOn(tasks.named("classes"))
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("cloud.victus.core.runtime.FabricRegistryBridgeSelfTest")
+}
+
 tasks.test {
     useJUnitPlatform()
-    dependsOn(fabricLifecycleBridgeSelfTest)
+    dependsOn(fabricLifecycleBridgeSelfTest, fabricRegistryBridgeSelfTest)
 }

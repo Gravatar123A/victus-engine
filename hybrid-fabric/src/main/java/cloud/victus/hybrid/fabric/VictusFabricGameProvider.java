@@ -212,7 +212,8 @@ public final class VictusFabricGameProvider implements GameProvider {
             FabricLoaderImpl fabric = FabricLoaderImpl.INSTANCE;
             fabric.prepareModInit(getLaunchDirectory(), null);
             validateTargetLibraries(loader);
-            FabricApiCompatibilityValidator.validate(fabric, targetJar, targetLibraries);
+            FabricApiCompatibilityValidator.validate(fabric, targetJar, targetLibraries,
+                    getLaunchDirectory().resolve("fabric-api-compatibility.json"));
             fabric.invokeEntrypoints("main", ModInitializer.class, ModInitializer::onInitialize);
 
             verifyFixtureProof(loader, fabric);

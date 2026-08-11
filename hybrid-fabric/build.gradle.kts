@@ -12,7 +12,10 @@ dependencies {
     // the launcher production classpath cannot acquire Fabric transitively; the locked runtime supplies it.
     compileOnly("net.fabricmc:fabric-loader:0.19.3")
     compileOnly("org.ow2.asm:asm:9.10.1")
+    compileOnly("org.ow2.asm:asm-tree:9.10.1")
     testImplementation("net.fabricmc:fabric-loader:0.19.3")
+    testImplementation("org.ow2.asm:asm:9.10.1")
+    testImplementation("org.ow2.asm:asm-tree:9.10.1")
 }
 
 val fabricAdapterSelfTest by tasks.registering(JavaExec::class) {
@@ -20,6 +23,13 @@ val fabricAdapterSelfTest by tasks.registering(JavaExec::class) {
     dependsOn(tasks.named("testClasses"))
     classpath = sourceSets.test.get().runtimeClasspath
     mainClass.set("cloud.victus.hybrid.fabric.FabricAdapterSelfTest")
+}
+
+val fabricCompatibilityValidatorSelfTest by tasks.registering(JavaExec::class) {
+    group = "verification"
+    dependsOn(tasks.named("testClasses"))
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("cloud.victus.hybrid.fabric.FabricApiCompatibilityValidatorSelfTest")
 }
 
 val fabricLoaderVersion = "0.19.3"
@@ -95,5 +105,6 @@ val fabricDistribution by tasks.registering(Exec::class) {
 }
 
 tasks.named("test") {
-    dependsOn(fabricAdapterSelfTest, fabricProviderIntegrationTest, fabricApiCompatibilityIntegrationTest)
+    dependsOn(fabricAdapterSelfTest, fabricCompatibilityValidatorSelfTest,
+        fabricProviderIntegrationTest, fabricApiCompatibilityIntegrationTest)
 }

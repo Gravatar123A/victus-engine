@@ -72,6 +72,7 @@ tasks.register("hybridCheck") {
     description = "Builds and tests the isolated hybrid runtime foundation and owned fixtures."
     dependsOn(
         ":hybrid-common:test",
+        ":hybrid-bukkit:test",
         ":hybrid-launcher:test",
         ":hybrid-fabric:test",
         ":hybrid-neoforge:test",

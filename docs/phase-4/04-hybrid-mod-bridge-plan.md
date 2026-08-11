@@ -1,17 +1,22 @@
 # Phase 4 — pre-main hybrid runtime foundation
 
-**Status (2026-08-10): FOUNDATION, FAIL-CLOSED, NOT SUPPORTED.** Task #19 establishes an
+**Status (2026-08-11): FOUNDATION, FAIL-CLOSED, NOT SUPPORTED.** Task #19 establishes an
 Arclight-class architecture boundary. Task #36 adds tracked NeoForge installer/NeoForm reconstruction,
 three-way source merge/conflict reporting, explicit conflict bridge patches, real lifecycle/transformation
-fixtures, and an expected-fail bounded integration gate. A full Paper/NeoForge merge is not yet claimed.
-The public `fabricBridge` and `neoForgeBridge` capability flags remain false.
+fixtures, and an expected-fail bounded integration gate. Task #22 is **in progress/blocked at architecture**:
+the loader-neutral Bukkit bridge contracts and fixtures exist, but neither live loader nor the Paper host is
+connected. A full Paper/NeoForge merge is not yet claimed. The public `fabricBridge` and `neoForgeBridge`
+capability flags remain false.
 
 ## What now exists
 
-The tracked Gradle build includes five independent modules:
+The tracked Gradle build includes six independent modules:
 
 - `hybrid-common`: loader contracts, strict lifecycle state machine, fail-closed policy, startup report,
   compatibility fingerprint, and marker contracts;
+- `hybrid-bukkit`: loader-neutral registry snapshots and unknown-content wrappers, lifecycle/event semantics,
+  command and permission collision policy, world manifests/removal guards, handshake profiles, and a
+  ServiceLoader adapter boundary;
 - `hybrid-launcher`: dependency-light `cloud.victus.hybrid.launcher.VictusHybridLauncher`;
 - `hybrid-fabric`: isolated Fabric adapter and ServiceLoader registration;
 - `hybrid-neoforge`: isolated NeoForge/FML adapter and ServiceLoader registration;
@@ -70,9 +75,13 @@ against FML 11.0.17's real `@Mod` plus a class-processor marker. The Bukkit fixt
 real `JavaPlugin` lifecycle.
 
 `hybridCheck` compiles all modules, builds fixtures, tests parsing/delegation/isolation, policy, reports,
-fingerprints, locks/profile preflight, and runs bounded integration. At this milestone bounded integration
-asserts known missing-runtime blockers; when a hydrated loader/target test environment is supplied, tasks
-#20/#21 must replace those expected blockers with real loader lifecycle markers.
+fingerprints, locks/profile preflight, and runs bounded integration. Its `hybrid-bukkit` fixture adapter proves
+all seven registry surfaces, native and unknown wrapper lookup without enum reflection, deterministic command
+and permission collisions, explicit partial/unsupported event outcomes, manifest round-trip, fingerprint and
+removal refusal, loader-family handshake policy, ordered phases, and disabled-mode ServiceLoader isolation.
+At this milestone bounded integration asserts known missing-runtime blockers; when a hydrated loader/target
+test environment is supplied, tasks #20/#21 must replace those expected blockers with real loader lifecycle
+markers.
 
 ## Late invoker removal
 
@@ -89,8 +98,12 @@ that migration diagnostic. Runtime profile selection belongs to the pre-main lau
    the isolated build workspace; `fabricBridge` remains false.
 2. **Task #21 — NeoForge:** generate the complete locked module/class path, reconcile FML game-content
    location/class processors with patched Paper, bind the real NeoForge fixture, and reach FML lifecycle markers.
-3. **Task #22 — shared bridge:** reconcile registries/events/world/entity/item/command surfaces and compile the
-   Bukkit fixture against the real API.
+3. **Task #22 — shared bridge (architecture implemented; live binding blocked):** connect Fabric and NeoForge
+   implementations of `BridgeAdapter` and `HandshakeAdapter`; install the versioned `HybridRegistryView`,
+   `HybridEventView`, and `HybridNetworkView` extensions in Paper/CraftBukkit; bind translated events and command
+   dispatch on the server thread; write/read world manifests at world lifecycle boundaries; and prove real
+   modded blocks/items/entities/biomes/dimensions/recipes/tags across save/restart/removal tests. No loader
+   adapter or Paper host is connected yet, so Task #22 remains in progress and both capability flags stay false.
 4. Add curated compatibility fingerprints, conflict policy, gameplay/soak tests, and only then consider
    changing support flags. Unknown combinations must continue to fail closed.
 

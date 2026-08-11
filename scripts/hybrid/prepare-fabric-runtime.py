@@ -30,24 +30,28 @@ def contains(jar: pathlib.Path, class_name: str) -> bool:
         return False
 
 
-def patch_lifecycle_module(source: bytes) -> bytes:
-    """Disable only MinecraftServerMixin; Victus source hooks own its incompatible Paper lifecycle shape."""
+def patch_module_mixin(source: bytes, config_name: str, removed_mixin: str) -> bytes:
+    """Remove one source-owned incompatible mixin while retaining the rest of its API module."""
     import io
     input_buffer = io.BytesIO(source)
     output_buffer = io.BytesIO()
     with zipfile.ZipFile(input_buffer) as module, zipfile.ZipFile(output_buffer, "w") as output:
         for info in module.infolist():
             data = module.read(info.filename)
-            if info.filename == "fabric-lifecycle-events-v1.mixins.json":
+            if info.filename == config_name:
                 config = json.loads(data)
-                config["mixins"] = [name for name in config.get("mixins", []) if name != "MinecraftServerMixin"]
+                before = list(config.get("mixins", []))
+                config["mixins"] = [name for name in before if name != removed_mixin]
+                if len(config["mixins"]) == len(before):
+                    raise SystemExit(f"FABRIC_API_MIXIN_PATCH_MISSING: {config_name} does not declare {removed_mixin}")
                 data = json.dumps(config, separators=(",", ":")).encode()
             output.writestr(info, data)
     return output_buffer.getvalue()
 
 
-def filter_fabric_api(aggregate: pathlib.Path, refused_modules: dict[str, str]) -> None:
-    """Remove explicitly refused nested modules and record why; never suppress them silently."""
+def filter_fabric_api(aggregate: pathlib.Path, refused_modules: dict[str, str],
+                      replacement_mixins: dict[str, tuple[str, str, str]]) -> None:
+    """Remove explicitly refused modules and patch only source-owned mixins in retained modules."""
     temporary = aggregate.with_suffix(".filtered.jar")
     with zipfile.ZipFile(aggregate) as source:
         metadata = json.loads(source.read("fabric.mod.json"))
@@ -67,20 +71,29 @@ def filter_fabric_api(aggregate: pathlib.Path, refused_modules: dict[str, str]) 
         ]
         with zipfile.ZipFile(temporary, "w") as output:
             for info in source.infolist():
+                upper_name = info.filename.upper()
+                if (upper_name.startswith("META-INF/") and upper_name.endswith((".SF", ".RSA", ".DSA"))):
+                    # Nested module edits invalidate the upstream aggregate signature; the locked input was
+                    # verified before this deterministic local transformation.
+                    continue
                 if info.filename == "fabric.mod.json" or any(
                         pathlib.PurePosixPath(info.filename).name.startswith(module + "-")
                         and info.filename.startswith("META-INF/jars/") for module in removed):
                     continue
                 data = source.read(info.filename)
-                if pathlib.PurePosixPath(info.filename).name.startswith("fabric-lifecycle-events-v1-"):
-                    data = patch_lifecycle_module(data)
+                nested_name = pathlib.PurePosixPath(info.filename).name
+                replacement = next((value for module, value in replacement_mixins.items()
+                                    if nested_name.startswith(module + "-")), None)
+                if replacement is not None:
+                    data = patch_module_mixin(data, replacement[0], replacement[1])
                 output.writestr(info, data)
             output.writestr("fabric.mod.json", json.dumps(metadata, separators=(",", ":")))
     temporary.replace(aggregate)
     for module in sorted(removed):
         print(f"FABRIC_API_MODULE_REFUSED id={module} reason={refused_modules[module]}")
-    print("FABRIC_API_MIXIN_REPLACED module=fabric-lifecycle-events-v1 mixin=MinecraftServerMixin "
-          "owner=Victus FabricLifecycleBridge reason=Paper has no createLevels lifecycle target")
+    for module, (_, mixin, ownership) in replacement_mixins.items():
+        if module not in removed:
+            print(f"FABRIC_API_MIXIN_REPLACED module={module} mixin={mixin} {ownership}")
 
 
 def main() -> int:
@@ -137,18 +150,31 @@ def main() -> int:
         "fabric-creative-tab-api-v1": "depends on refused fabric-resource-loader-v1",
         "fabric-item-api-v1": "depends on refused fabric-resource-loader-v1",
         "fabric-loot-api-v3": "depends on refused fabric-resource-loader-v1",
+        "fabric-lifecycle-events-v1": "Paper rewrites chunk futures, unload scheduling, tag reload and server lifecycle targets; required event injections have no targets",
+        "fabric-data-generation-api-v1": "depends on refused fabric-lifecycle-events-v1",
+        "fabric-networking-api-v1": "depends on refused fabric-lifecycle-events-v1",
+        "fabric-particles-v1": "depends on refused fabric-networking-api-v1",
+        "fabric-permission-api-v1": "depends on refused fabric-lifecycle-events-v1",
+        "fabric-recipe-api-v1": "depends on refused fabric-lifecycle-events-v1 and fabric-networking-api-v1",
+        "fabric-registry-sync-v0": "depends on refused fabric-networking-api-v1; its BootstrapMixin is source-replaceable but the module dependency closure is not",
+        "fabric-resource-conditions-api-v1": "depends on refused fabric-lifecycle-events-v1",
         "fabric-resource-loader-v0": "depends on refused fabric-resource-loader-v1",
         "fabric-tag-api-v1": "depends on refused fabric-resource-loader-v1",
         "fabric-entity-events-v1": "Paper rewrites ServerPlayer respawn safety checks; the required monster-nearby redirect has no target",
         "fabric-data-attachment-api-v1": "depends on refused fabric-entity-events-v1",
         "fabric-menu-api-v1": "Paper rewrites ServerPlayer container opening; the required closeContainer redirect has no target",
-        "fabric-registry-sync-v0": "Paper rewrites Bootstrap registry freeze; the Fabric delayRegistryFreeze redirect has no target",
-        "fabric-recipe-api-v1": "depends on refused fabric-registry-sync-v0 for synchronized custom ingredient registries",
+    }, {
+        # These replacements remain declared even while dependency closure refuses their current modules. If a
+        # future Fabric release makes the enclosing module retainable, only the incompatible mixin is removed.
+        "fabric-lifecycle-events-v1": ("fabric-lifecycle-events-v1.mixins.json", "MinecraftServerMixin",
+                                       "owner=Victus FabricLifecycleBridge reason=Paper has no createLevels lifecycle target"),
+        "fabric-registry-sync-v0": ("fabric-registry-sync-v0.mixins.json", "BootstrapMixin",
+                                    "owner=Victus FabricRegistryBridge reason=Paper owns BuiltInRegistries creation/freeze ordering"),
     })
     with zipfile.ZipFile(aggregate) as archive:
         metadata = json.loads(archive.read("fabric.mod.json"))
         nested_modules = [entry["file"] for entry in metadata.get("jars", [])]
-    print(f"FABRIC_API_AGGREGATE modules={len(nested_modules)} validation=provider-fail-closed")
+    print(f"FABRIC_API_AGGREGATE modules={len(nested_modules)} validation=descriptor-audit")
 
     target_libraries: list[str] = []
     if args.target_classpath:
@@ -161,6 +187,21 @@ def main() -> int:
         if missing:
             raise SystemExit("FABRIC_TARGET_LIBRARY_MISSING: " + ",".join(missing))
     print(f"FABRIC_TARGET_CLASSPATH libraries={len(target_libraries)}")
+    report = output / "fabric-api-compatibility.json"
+    audit_command = [
+        os.environ.get("JAVA", "java"), "-cp", os.pathsep.join((str(output / "runtime" / adapter.name),
+                                                                  str(output / "runtime" / common.name),
+                                                                  *[str(path) for path in artifacts if path.name.startswith("fabric-loader-")],
+                                                                  *[str(path) for path in artifacts if path.name.startswith("asm-")])),
+        "cloud.victus.hybrid.fabric.FabricApiCompatibilityValidator",
+        "--aggregate", str(aggregate), "--target", str(target), "--report", str(report),
+    ]
+    for library in target_libraries:
+        audit_command.extend(("--target-library", library))
+    import subprocess
+    result = subprocess.run(audit_command, text=True)
+    if result.returncode:
+        raise SystemExit("FABRIC_API_COMPATIBILITY_AUDIT_FAILED: see " + str(report))
 
     runtime = output / "runtime"
     adapter_cp = str(runtime / adapter.name)

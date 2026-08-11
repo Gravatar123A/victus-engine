@@ -188,7 +188,7 @@ public final class FabricLoaderAdapter implements LoaderAdapter {
                 "FABRIC_FIXTURE_MIXIN_MISSING", "FABRIC_TARGET_LIBRARY_NOT_VISIBLE",
                 "FABRIC_TARGET_LIBRARY_CLASSLOADER_MISMATCH", "FABRIC_TARGET_CLASSPATH_UNLOCK_FAILED",
                 "FABRIC_API_MODULE_INCOMPATIBLE",
-                "FABRIC_LIFECYCLE_BRIDGE_FAILED")) {
+                "FABRIC_LIFECYCLE_BRIDGE_FAILED", "FABRIC_REGISTRY_BRIDGE_FAILED")) {
             if (text.contains(code)) return code;
         }
         return "FABRIC_KNOT_FAILED";

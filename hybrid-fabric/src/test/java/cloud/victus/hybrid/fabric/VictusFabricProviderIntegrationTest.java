@@ -65,8 +65,15 @@ public final class VictusFabricProviderIntegrationTest {
             } catch (cloud.victus.hybrid.common.HybridLaunchException expected) {
                 check("FABRIC_API_MODULE_INCOMPATIBLE".equals(expected.blockerCode()),
                         "full Fabric API missing-target refusal code");
-                check(expected.getMessage().contains("mixins target classes absent"),
-                        "full Fabric API refusal lists absent targets");
+                check(expected.getMessage().contains("mixin bytecode audit found"),
+                        "full Fabric API refusal reports descriptor audit findings");
+                check(Files.isRegularFile(temp.resolve("fabric-api-compatibility.json")),
+                        "full Fabric API writes machine-readable compatibility report");
+                String compatibility = Files.readString(temp.resolve("fabric-api-compatibility.json"));
+                check(compatibility.contains("\"issues\":"),
+                        "compatibility report contains issue records");
+                check(compatibility.contains("MISSING_TARGET_METHOD") || compatibility.contains("MISSING_INJECTION_TARGET"),
+                        "compatibility report detects method or injection descriptor mismatches");
                 System.out.println("VictusFabricProviderIntegrationTest: full Fabric API incompatibilities refused explicitly");
                 return;
             }

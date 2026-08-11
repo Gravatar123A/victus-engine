@@ -1,6 +1,6 @@
 # Victus Engine build status
 
-_Last reconciled with the machine-readable catalog: 2026-08-09._
+_Last reconciled with the machine-readable catalog and hybrid foundation status: 2026-08-11._
 
 ## Current implementation
 
@@ -9,9 +9,11 @@ Victus Engine has **one implemented source line: Minecraft 26.2 on `main`**. It 
 Implemented evidence in this repository includes:
 
 - the patch/apply build configuration for 26.2;
-- a tracked five-module pre-main hybrid foundation (`hybrid-common`, `hybrid-launcher`, isolated Fabric and
-  NeoForge adapters, and owned fixtures), with locked upstream inputs and fail-closed preflight; this is
-  architecture/test evidence only, not a supported Fabric/NeoForge bridge;
+- a tracked six-module hybrid foundation (`hybrid-common`, loader-neutral `hybrid-bukkit`,
+  `hybrid-launcher`, isolated Fabric and NeoForge adapters, and owned fixtures), with locked upstream inputs,
+  fail-closed preflight, registry/event/command/persistence/network contracts, and deterministic fixture tests;
+  Task #22 remains in progress because live loader and Paper host bindings are absent, so this is architecture/test
+  evidence only, not a supported Fabric/NeoForge bridge;
 - `victus-core` configuration, runtime, metrics, lag-doctor, and limits logic;
 - native `victus.yml` bootstrap and profile application;
 - DAB and async chunk-send configuration/watchdog paths;

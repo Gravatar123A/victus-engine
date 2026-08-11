@@ -39,7 +39,7 @@ tasks.named<JavaCompile>(neoforge.compileJavaTaskName) {
 
 dependencies {
     "fabricCompileOnly"("net.fabricmc:fabric-loader:0.19.3")
-    "fabricCompileOnly"("net.fabricmc.fabric-api:fabric-lifecycle-events-v1:4.1.3+4575b05f9e")
+    "fabricCompileOnly"("net.fabricmc.fabric-api:fabric-api-base:2.0.4+ece063239e")
     "fabricCompileOnly"("net.fabricmc:sponge-mixin:0.17.3+mixin.0.8.7")
     "neoforgeCompileOnly"("net.neoforged.fancymodloader:loader:11.0.17")
     "neoforgeCompileOnly"("net.neoforged:neoforge:26.2.0.57:universal")

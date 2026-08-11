@@ -39,7 +39,6 @@ public final class VictusFabricProviderIntegrationTest {
                     Files.copy(runtime, mods.resolve(runtime.getFileName()));
                 }
             }
-            createLifecycleApiFixture(mods.resolve("fabric-lifecycle-events-v1-test-fixture.jar"));
         }
         Path reportPath = temp.resolve("startup-report.txt");
 
@@ -84,7 +83,7 @@ public final class VictusFabricProviderIntegrationTest {
                 System.getProperty("victus.fixture.fabric.entrypoint")), "Fabric main entrypoint");
         check(FabricLoaderAdapter.FIXTURE_PROOF_MARKER.equals(
                 System.getProperty("victus.fixture.fabric.proof")), "Knot/Mixin proof");
-        check("VICTUS_FIXTURE_FABRIC_LIFECYCLE_API".equals(
+        check("VICTUS_FIXTURE_FABRIC_API_BASE".equals(
                 System.getProperty("victus.fixture.fabric.lifecycleApi")), "Fabric API lifecycle linkage");
         check(VictusFabricGameProvider.EXTERNAL_LIBRARY_MARKER.equals(
                 System.getProperty("victus.fixture.fabric.externalLibrary")), "provider external library visibility");
@@ -110,20 +109,6 @@ public final class VictusFabricProviderIntegrationTest {
             if (!entry.isBlank()) paths.add(Path.of(entry).toAbsolutePath().normalize());
         }
         return List.copyOf(paths);
-    }
-
-    private static void createLifecycleApiFixture(Path jar) throws IOException {
-        String metadata = """
-                {"schemaVersion":1,"id":"fabric-lifecycle-events-v1","version":"4.1.3+4575b05f9e",
-                 "name":"Fabric Lifecycle API owned-target fixture","environment":"server",
-                 "depends":{"fabricloader":">=0.19.3"}}
-                """;
-        try (var output = new JarOutputStream(Files.newOutputStream(jar))) {
-            output.putNextEntry(new JarEntry("fabric.mod.json"));
-            output.write(metadata.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-            output.closeEntry();
-            copyClass(output, "net/fabricmc/fabric/api/event/lifecycle/v1/ServerLifecycleEvents.class");
-        }
     }
 
     private static void createTargetJar(Path jar) throws IOException {

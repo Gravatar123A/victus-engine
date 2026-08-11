@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import os
 import pathlib
@@ -32,7 +33,6 @@ def contains(jar: pathlib.Path, class_name: str) -> bool:
 
 def patch_module_mixin(source: bytes, config_name: str, removed_mixin: str) -> bytes:
     """Remove one source-owned incompatible mixin while retaining the rest of its API module."""
-    import io
     input_buffer = io.BytesIO(source)
     output_buffer = io.BytesIO()
     with zipfile.ZipFile(input_buffer) as module, zipfile.ZipFile(output_buffer, "w") as output:
@@ -55,6 +55,23 @@ def filter_fabric_api(aggregate: pathlib.Path, refused_modules: dict[str, str],
     temporary = aggregate.with_suffix(".filtered.jar")
     with zipfile.ZipFile(aggregate) as source:
         metadata = json.loads(source.read("fabric.mod.json"))
+        nested_metadata: dict[str, dict] = {}
+        for entry in metadata.get("jars", []):
+            name = pathlib.PurePosixPath(entry["file"]).name
+            with zipfile.ZipFile(io.BytesIO(source.read(entry["file"]))) as nested:
+                module_metadata = json.loads(nested.read("fabric.mod.json"))
+                nested_metadata[module_metadata["id"]] = module_metadata
+        changed = True
+        while changed:
+            changed = False
+            for module, module_metadata in nested_metadata.items():
+                if module in refused_modules:
+                    continue
+                refused_dependency = next((dependency for dependency in module_metadata.get("depends", {})
+                                           if dependency in refused_modules), None)
+                if refused_dependency is not None:
+                    refused_modules[module] = f"depends on refused {refused_dependency}"
+                    changed = True
         removed: list[str] = []
         kept_jars = []
         for entry in metadata.get("jars", []):
@@ -162,6 +179,7 @@ def main() -> int:
         "fabric-tag-api-v1": "depends on refused fabric-resource-loader-v1",
         "fabric-entity-events-v1": "Paper rewrites ServerPlayer respawn safety checks; the required monster-nearby redirect has no target",
         "fabric-data-attachment-api-v1": "depends on refused fabric-entity-events-v1",
+        "fabric-dimensions-v1": "entrypoint links refused fabric-lifecycle-events-v1 ServerLifecycleEvents without declaring the dependency",
         "fabric-menu-api-v1": "Paper rewrites ServerPlayer container opening; the required closeContainer redirect has no target",
     }, {
         # These replacements remain declared even while dependency closure refuses their current modules. If a

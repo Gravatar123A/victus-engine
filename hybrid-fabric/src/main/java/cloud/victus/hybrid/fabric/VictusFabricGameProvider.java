@@ -293,7 +293,7 @@ public final class VictusFabricGameProvider implements GameProvider {
                 System.getProperty("victus.fixture.fabric.entrypoint"))) {
             throw new IllegalStateException("FABRIC_FIXTURE_ENTRYPOINT_MISSING: main entrypoint did not run");
         }
-        if (!"VICTUS_FIXTURE_FABRIC_LIFECYCLE_API".equals(
+        if (!"VICTUS_FIXTURE_FABRIC_API_BASE".equals(
                 System.getProperty("victus.fixture.fabric.lifecycleApi"))) {
             throw new IllegalStateException("FABRIC_FIXTURE_API_MISSING: Fabric API lifecycle type did not link");
         }

@@ -32,6 +32,12 @@ val fabricCompatibilityValidatorSelfTest by tasks.registering(JavaExec::class) {
     mainClass.set("cloud.victus.hybrid.fabric.FabricApiCompatibilityValidatorSelfTest")
 }
 
+val fabricAggregateFilterSelfTest by tasks.registering(Exec::class) {
+    group = "verification"
+    commandLine(providers.environmentVariable("PYTHON").orElse("python").get(),
+        rootProject.file("scripts/hybrid/test-prepare-fabric-runtime.py"))
+}
+
 val fabricLoaderVersion = "0.19.3"
 val fabricMixinVersion = "0.17.3+mixin.0.8.7"
 val fabricRuntime by configurations.creating
@@ -105,6 +111,6 @@ val fabricDistribution by tasks.registering(Exec::class) {
 }
 
 tasks.named("test") {
-    dependsOn(fabricAdapterSelfTest, fabricCompatibilityValidatorSelfTest,
+    dependsOn(fabricAdapterSelfTest, fabricCompatibilityValidatorSelfTest, fabricAggregateFilterSelfTest,
         fabricProviderIntegrationTest, fabricApiCompatibilityIntegrationTest)
 }

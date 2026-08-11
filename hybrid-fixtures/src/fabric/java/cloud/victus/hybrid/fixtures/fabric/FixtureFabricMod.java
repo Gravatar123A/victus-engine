@@ -2,18 +2,18 @@
 package cloud.victus.hybrid.fixtures.fabric;
 
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.Event;
 
-/** Owned lifecycle fixture compiled against Fabric Loader and Fabric API. */
+/** Owned fixture compiled against Fabric Loader and the retained Fabric API base module. */
 public final class FixtureFabricMod implements ModInitializer {
     @Override
     public void onInitialize() {
         System.setProperty("victus.fixture.fabric.entrypoint", "VICTUS_FIXTURE_FABRIC_ENTRYPOINT");
-        // Referencing Fabric API's lifecycle entrypoint class at link time makes this a real API fixture.
-        // The callback itself is bridge work; provider proof only needs Loader main + Mixin lifecycle.
-        Class<?> lifecycleApi = ServerLifecycleEvents.class;
+        // Referencing a retained Fabric API type at link time keeps this a real API fixture even when
+        // descriptor auditing refuses lifecycle-events and its dependency closure for Paper.
+        Class<?> fabricApi = Event.class;
         System.setProperty("victus.fixture.fabric.lifecycleApi",
-                lifecycleApi.getName().equals(ServerLifecycleEvents.class.getName())
-                        ? "VICTUS_FIXTURE_FABRIC_LIFECYCLE_API" : "INVALID");
+                fabricApi.getName().equals(Event.class.getName())
+                        ? "VICTUS_FIXTURE_FABRIC_API_BASE" : "INVALID");
     }
 }

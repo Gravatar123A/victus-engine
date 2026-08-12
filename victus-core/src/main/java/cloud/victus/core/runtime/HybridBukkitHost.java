@@ -76,7 +76,7 @@ public final class HybridBukkitHost {
                     console = field.get(server);
                 }
                 bind(console);
-            } catch (ReflectiveOperationException failure) {
+            } catch (Throwable failure) {
                 throw bridgeFailure("FIXTURE_BIND", failure);
             }
         }

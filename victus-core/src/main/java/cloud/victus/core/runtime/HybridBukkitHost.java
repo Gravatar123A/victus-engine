@@ -79,6 +79,12 @@ public final class HybridBukkitHost {
             } catch (Throwable failure) {
                 throw bridgeFailure("FIXTURE_BIND", failure);
             }
+            if (bridge == null) {
+                throw bridgeFailure("FIXTURE_BIND", new IllegalStateException(
+                        "bind returned without publishing bridge; enabled="
+                                + System.getProperty(ENABLE_PROPERTY) + ", contextLoader="
+                                + Thread.currentThread().getContextClassLoader()));
+            }
         }
         Object current = requireBridge();
         try {

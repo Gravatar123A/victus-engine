@@ -59,6 +59,19 @@ public final class HybridBukkitHost {
 
     /** Reflective fixture entry used by the real Bukkit plugin with no hybrid API linkage. */
     public static synchronized String runFixtureProof(String runDirectory) {
+        if (bridge == null) {
+            // POSTWORLD plugin callbacks occur inside enablePlugins(), before the surrounding
+            // MinecraftServer hook can bind. Lazily bind from Bukkit's already-live server.
+            try {
+                Class<?> bukkit = Class.forName("org.bukkit.Bukkit");
+                Object server = bukkit.getMethod("getServer").invoke(null);
+                if (server == null) throw new IllegalStateException("Bukkit server is unavailable");
+                Object console = server.getClass().getMethod("getServer").invoke(server);
+                bind(console);
+            } catch (ReflectiveOperationException failure) {
+                throw bridgeFailure("FIXTURE_BIND", failure);
+            }
+        }
         Object current = requireBridge();
         try {
             Object registries = invoke(current, "registries");

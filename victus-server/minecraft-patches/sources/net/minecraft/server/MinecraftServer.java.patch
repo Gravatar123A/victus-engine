@@ -17,8 +17,8 @@
              if (!this.initServer()) {
 @@ -648,3 +_,4 @@
          // Paper end - Configurable player collision; Handle collideRule team for player collision toggle
++        cloud.victus.core.runtime.HybridBukkitHost.bind(this); // Victus - bind optional Fabric/Bukkit bridge before POSTWORLD plugin callbacks
          this.server.enablePlugins(org.bukkit.plugin.PluginLoadOrder.POSTWORLD);
-+        cloud.victus.core.runtime.HybridBukkitHost.bind(this); // Victus - bind optional Fabric/Bukkit bridge after POSTWORLD plugins
          this.server.spark.registerCommandBeforePlugins(this.server); // Paper - spark
 @@ -1272,3 +_,4 @@
              this.initTickSchedule(); // Paper - improve tick loop

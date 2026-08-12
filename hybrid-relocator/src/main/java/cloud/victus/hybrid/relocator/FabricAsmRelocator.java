@@ -99,8 +99,8 @@ public final class FabricAsmRelocator {
                                  List<String> transformed, Set<String> embedded) {
         for (String name : transformed) {
             byte[] data = output.get(name);
-            if (contains(data, FROM)) throw new IllegalStateException("unrelocated ASM reference in " + name);
-            if (!contains(data, TO)) throw new IllegalStateException("relocated namespace missing in " + name);
+            if (hasSemanticReference(data, FROM)) throw new IllegalStateException("unrelocated ASM reference in " + name);
+            if (!hasSemanticReference(data, TO)) throw new IllegalStateException("relocated namespace missing in " + name);
         }
         Set<String> changed = new LinkedHashSet<>(transformed);
         for (Map.Entry<String, byte[]> entry : original.entrySet()) {
@@ -116,7 +116,7 @@ public final class FabricAsmRelocator {
         }
         for (String name : embedded) {
             byte[] data = output.get(name);
-            if (contains(data, FROM)) throw new IllegalStateException("relocated ASM self-reference leaked in " + name);
+            if (hasSemanticReference(data, FROM)) throw new IllegalStateException("relocated ASM self-reference leaked in " + name);
         }
     }
 
@@ -156,6 +156,33 @@ public final class FabricAsmRelocator {
 
     private static boolean contains(byte[] bytes, String value) {
         return new String(bytes, StandardCharsets.ISO_8859_1).contains(value);
+    }
+
+    /** Ignore harmless string literals (ASM Constants embeds package names in diagnostics). */
+    private static boolean hasSemanticReference(byte[] bytes, String prefix) {
+        final boolean[] found = {false};
+        new ClassReader(bytes).accept(new org.objectweb.asm.ClassVisitor(org.objectweb.asm.Opcodes.ASM9) {
+            private boolean matches(String value) { return value != null && (value.equals(prefix) || value.startsWith(prefix + "/")); }
+            @Override public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+                found[0] |= matches(name) || matches(superName);
+                if (interfaces != null) for (String value : interfaces) found[0] |= matches(value);
+            }
+            @Override public org.objectweb.asm.FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
+                found[0] |= descriptor.contains(prefix);
+                return null;
+            }
+            @Override public org.objectweb.asm.MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+                found[0] |= descriptor.contains(prefix);
+                return new org.objectweb.asm.MethodVisitor(org.objectweb.asm.Opcodes.ASM9) {
+                    @Override public void visitTypeInsn(int opcode, String type) { found[0] |= matches(type); }
+                    @Override public void visitFieldInsn(int opcode, String owner, String name, String descriptor) { found[0] |= matches(owner) || descriptor.contains(prefix); }
+                    @Override public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) { found[0] |= matches(owner) || descriptor.contains(prefix); }
+                    @Override public void visitInvokeDynamicInsn(String name, String descriptor, org.objectweb.asm.Handle bootstrap, Object... args) { found[0] |= descriptor.contains(prefix) || matches(bootstrap.getOwner()); }
+                    @Override public void visitMultiANewArrayInsn(String descriptor, int dimensions) { found[0] |= descriptor.contains(prefix); }
+                };
+            }
+        }, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+        return found[0];
     }
 
     private static String sha256(Path path) throws Exception {

@@ -77,7 +77,6 @@ public final class VictusFabricGameProvider implements GameProvider {
     private Arguments arguments;
     private Path targetJar;
     private List<Path> targetLibraries = List.of();
-    private final Set<Path> platformLibraries = new LinkedHashSet<>();
     private String targetMain;
     private Path launchDirectory;
     private final Set<Path> unlockedTargetClassPath = new LinkedHashSet<>();
@@ -149,7 +148,6 @@ public final class VictusFabricGameProvider implements GameProvider {
         arguments.parse(args);
         targetMain = System.getProperty(TARGET_MAIN_PROPERTY, EXPECTED_TARGET_MAIN);
         targetJar = requiredRegularFile(TARGET_JAR_PROPERTY);
-        platformLibraries.clear();
         targetLibraries = parseLibraries(System.getProperty(TARGET_LIBRARIES_PROPERTY, ""));
         launchDirectory = Path.of(System.getProperty("victus.fabric.gameDir", "."))
                 .toAbsolutePath().normalize();
@@ -188,10 +186,6 @@ public final class VictusFabricGameProvider implements GameProvider {
         addTargetPath(launcher, targetJar);
         for (Path library : targetLibraries) {
             addTargetPath(launcher, library);
-        }
-        if (!platformLibraries.isEmpty()) {
-            launcher.setValidParentClassPath(platformLibraries);
-            System.out.println("VICTUS_FABRIC_PLATFORM_ASM_VISIBLE jars=" + platformLibraries.size());
         }
         if (unlockedTargetClassPath.size() != targetLibraries.size() + 1
                 || !unlockedTargetClassPath.contains(targetJar)
@@ -338,10 +332,8 @@ public final class VictusFabricGameProvider implements GameProvider {
                 throw new IllegalStateException("Victus target library is not a regular file: " + path);
             }
             if (containsPackage(path, "org/objectweb/asm/")) {
-                // Fabric Loader/Mixin owns one ASM version in the outer loader. Do not add Paper's
-                // older ASM jars to Knot (that creates duplicate ClassNode definitions). Instead,
-                // record those exact outer code sources as valid parent paths during unlock.
-                platformLibraries.add(path);
+                // The Fabric-profile target embeds Paper's relocated private ASM. Original Paper
+                // ASM jars must stay outside Knot to avoid duplicate loader/Mixin ClassNode types.
                 System.out.println("VICTUS_FABRIC_PLATFORM_LIBRARY_OWNED path=" + path + " package=org.objectweb.asm");
                 continue;
             }

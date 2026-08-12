@@ -122,6 +122,7 @@ def main() -> int:
     parser.add_argument("--resolved", required=True, type=pathlib.Path,
                         help="output previously produced by validate-runtime-lock.py --resolve --profile fabric --output")
     parser.add_argument("--output", type=pathlib.Path, default=ROOT / "build" / "hybrid-fabric-dist")
+    parser.add_argument("--java", default=os.environ.get("JAVA", "java"))
     args = parser.parse_args()
 
     target = args.target.resolve()
@@ -148,6 +149,7 @@ def main() -> int:
     common = one(ROOT / "hybrid-common" / "build" / "libs", "hybrid-common-")
     bukkit = one(ROOT / "hybrid-bukkit" / "build" / "libs", "hybrid-bukkit-")
     adapter = one(ROOT / "hybrid-fabric" / "build" / "libs", "hybrid-fabric-")
+    relocator = one(ROOT / "hybrid-relocator" / "build" / "libs", "hybrid-relocator-")
     fixture = one(ROOT / "hybrid-fixtures" / "build" / "libs", "victus-fixture-fabric-")
     bukkit_fixture = one(ROOT / "hybrid-fixtures" / "build" / "libs", "victus-fixture-bukkit-")
     for source in (launcher, common, bukkit, adapter):
@@ -211,6 +213,30 @@ def main() -> int:
         if missing:
             raise SystemExit("FABRIC_TARGET_LIBRARY_MISSING: " + ",".join(missing))
     print(f"FABRIC_TARGET_CLASSPATH libraries={len(target_libraries)}")
+    runtime_cp_file = output / "target-runtime-classpath.txt"
+    runtime_cp_file.write_text("\n".join(target_libraries) + "\n", encoding="utf-8")
+    shaded_target = output / "victus-server-fabric.jar"
+    relocation_report = output / "fabric-asm-relocation.json"
+    import subprocess
+    relocate = subprocess.run([
+        args.java, "-jar", str(relocator), str(target), str(runtime_cp_file),
+        str(shaded_target), str(relocation_report)
+    ], text=True)
+    if relocate.returncode:
+        raise SystemExit("FABRIC_ASM_RELOCATION_FAILED: see " + str(relocation_report))
+    original_target = target
+    target = shaded_target
+    # Relocated Paper ASM is embedded in the Fabric target; do not expose the original
+    # unrelocated ASM jars to Knot.
+    def contains_asm_jar(path: str) -> bool:
+        try:
+            with zipfile.ZipFile(path) as archive:
+                return "org/objectweb/asm/ClassVisitor.class" in archive.namelist()
+        except zipfile.BadZipFile:
+            return False
+    target_libraries = [path for path in target_libraries if not contains_asm_jar(path)]
+    runtime_cp_file.write_text("\n".join(target_libraries) + "\n", encoding="utf-8")
+    print(f"FABRIC_SHADED_TARGET source={original_target} target={target} libraries={len(target_libraries)}")
     report = output / "fabric-api-compatibility.json"
     audit_command = [
         os.environ.get("JAVA", "java"), "-cp", os.pathsep.join((str(output / "runtime" / adapter.name),
@@ -222,7 +248,6 @@ def main() -> int:
     ]
     for library in target_libraries:
         audit_command.extend(("--target-library", library))
-    import subprocess
     result = subprocess.run(audit_command, text=True)
     if result.returncode:
         raise SystemExit("FABRIC_API_COMPATIBILITY_AUDIT_FAILED: see " + str(report))

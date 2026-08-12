@@ -14,6 +14,7 @@ dependencies {
     compileOnly("net.fabricmc:fabric-loader:0.19.3")
     compileOnly("org.ow2.asm:asm:9.10.1")
     compileOnly("org.ow2.asm:asm-tree:9.10.1")
+    implementation("org.ow2.asm:asm-commons:9.10.1")
     testImplementation("net.fabricmc:fabric-loader:0.19.3")
     testImplementation("org.ow2.asm:asm:9.10.1")
     testImplementation("org.ow2.asm:asm-tree:9.10.1")
@@ -96,7 +97,7 @@ val fabricDistribution by tasks.registering(Exec::class) {
     description = "Creates a verified Fabric hybrid distribution for -PfabricTarget=<class-bearing victus-server jar>."
     dependsOn(
         rootProject.tasks.named("resolveFabricRuntime"), tasks.named("jar"),
-        ":hybrid-common:jar", ":hybrid-bukkit:jar", ":hybrid-launcher:jar",
+        ":hybrid-common:jar", ":hybrid-bukkit:jar", ":hybrid-launcher:jar", ":hybrid-relocator:jar",
         ":hybrid-fixtures:fabricFixtureJar", ":hybrid-fixtures:bukkitFixtureJar"
     )
     val target = providers.gradleProperty("fabricTarget").orElse("")
@@ -105,7 +106,8 @@ val fabricDistribution by tasks.registering(Exec::class) {
         providers.environmentVariable("PYTHON").orElse("python").get(), rootProject.file("scripts/hybrid/prepare-fabric-runtime.py"),
         "--target", target.get(),
         "--resolved", rootProject.layout.buildDirectory.dir("hybrid-resolved").get().asFile.absolutePath,
-        "--output", rootProject.layout.buildDirectory.dir("hybrid-fabric-dist").get().asFile.absolutePath
+        "--output", rootProject.layout.buildDirectory.dir("hybrid-fabric-dist").get().asFile.absolutePath,
+        "--java", javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(25)) }.get().executablePath.asFile.absolutePath
     )
     if (targetClasspathFile.get().isNotBlank()) {
         args("--target-classpath", targetClasspathFile.get())

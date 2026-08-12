@@ -29,6 +29,7 @@ for (name in listOf(
     "victus-server",
     "victus-core",
     "hybrid-common",
+    "hybrid-relocator",
     "hybrid-bukkit",
     "hybrid-launcher",
     "hybrid-fabric",

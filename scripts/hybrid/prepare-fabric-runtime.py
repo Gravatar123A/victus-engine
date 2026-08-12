@@ -254,6 +254,9 @@ def main() -> int:
 
     runtime = output / "runtime"
     adapter_cp = os.pathsep.join((str(runtime / adapter.name), str(runtime / bukkit.name)))
+    # The provider/bootstrap and bridge runtime must be target-visible for reflective Paper hooks.
+    # Adapter discovery still uses the same files from the outer ServiceLoader.
+    target_libraries.extend((str(runtime / adapter.name), str(runtime / bukkit.name)))
     loader_cp = os.pathsep.join(str(path) for path in sorted(runtime.glob("*.jar"))
                                 if path.name not in {launcher.name, common.name, adapter.name, bukkit.name})
     launch_cp = os.pathsep.join((str(runtime / launcher.name), str(runtime / common.name)))

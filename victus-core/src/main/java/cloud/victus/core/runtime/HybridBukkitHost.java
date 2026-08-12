@@ -31,8 +31,7 @@ public final class HybridBukkitHost {
         if (!Boolean.parseBoolean(System.getProperty(ENABLE_PROPERTY, "false"))) return;
         if (bridge != null) return;
         try {
-            ClassLoader loader = Thread.currentThread().getContextClassLoader();
-            if (loader == null) loader = server.getClass().getClassLoader();
+            ClassLoader loader = server.getClass().getClassLoader();
             Class<?> bootstrap = Class.forName(BOOTSTRAP, true, loader);
             bridge = bootstrap.getMethod("initialize", Object.class).invoke(null, server);
             invoke(bridge, "bukkitBound");

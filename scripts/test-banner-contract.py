@@ -56,19 +56,19 @@ def main() -> int:
     match = re.fullmatch(r"@@ -1,0 \+_,(\d+) @@", header)
     if match is None or int(match.group(1)) != added:
         errors.append(f"VictusEngine new-file patch header count does not match {added} added lines")
-    # The shared brand and once-guard are compiled into the engine now. The exact post-ready
-    # lifecycle hook is intentionally withheld until the Paper patch is regenerated through the
-    # supported fixup task; hand-authoring an insertion adjacent to an upstream-added line caused
-    # diffpatch failures on clean clones. Boot validation must remain false until that regeneration.
+    done = server.find('LOGGER.info("Done ({})! For help, type \\"help\\""')
+    banner = server.find("cloud.victus.engine.VictusEngine.logStartupBanner()")
+    if done < 0 or banner < 0 or not done < banner:
+        errors.append("MinecraftServer must call the guarded banner after the genuine Done marker")
+    if server.count("cloud.victus.engine.VictusEngine.logStartupBanner()") != 1:
+        errors.append("MinecraftServer must contain exactly one banner call")
     if "cloud.victus.engine.VictusEngine.logStartupBanner()" in startup:
-        errors.append("CraftServer must not contain an unregenerated startup banner hunk")
-    if "cloud.victus.engine.VictusEngine.logStartupBanner()" in server:
-        errors.append("MinecraftServer must not contain an incompatible startup banner hunk")
+        errors.append("CraftServer must not duplicate the native banner hook")
     if errors:
         for error in errors:
             print(f"ERROR: {error}", file=sys.stderr)
         return 1
-    print("banner contract source assertions passed: shared brand and once guard exist; post-ready hook awaits regenerated patch")
+    print("banner contract source assertions passed: Done precedes one guarded native banner call")
     return 0
 
 

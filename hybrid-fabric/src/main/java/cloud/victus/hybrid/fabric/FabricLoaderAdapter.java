@@ -173,6 +173,10 @@ public final class FabricLoaderAdapter implements LoaderAdapter {
             throw new HybridLaunchException("FABRIC_KNOT_ENTRY_FAILED",
                     "Cannot enter Fabric Knot " + KNOT_SERVER + ": " + failure, failure);
         } finally {
+            // Knot launches the server on its own thread and returns after delegation. Keep the
+            // profile marker available for reflective Paper lifecycle hooks for the JVM lifetime;
+            // restore every other temporary launcher property.
+            previous.remove("victus.fabric.provider");
             restore(previous);
         }
     }

@@ -23,8 +23,10 @@ public final class FabricAsmRelocatorSelfTest {
         writeJar(asm, Map.of(
                 "org/objectweb/asm/ClassVisitor.class", emptyClass("org/objectweb/asm/ClassVisitor"),
                 "org/objectweb/asm/Helper.class", helperClass()));
+        Path commons = root.resolve("asm-commons.jar");
+        writeJar(commons, Map.of("org/objectweb/asm/commons/Remapper.class", emptyClass("org/objectweb/asm/commons/Remapper")));
         Path cp = root.resolve("classpath.txt");
-        Files.writeString(cp, asm + System.lineSeparator());
+        Files.writeString(cp, asm + System.lineSeparator() + commons + System.lineSeparator());
         Path first = root.resolve("first.jar");
         Path second = root.resolve("second.jar");
         FabricAsmRelocator.Result a = FabricAsmRelocator.relocate(target, cp, first, root.resolve("first.json"));
@@ -32,6 +34,7 @@ public final class FabricAsmRelocatorSelfTest {
         check(a.outputSha256().equals(b.outputSha256()), "deterministic output");
         Map<String, byte[]> output = FabricAsmRelocator.readJar(first);
         check(output.containsKey("cloud/victus/shaded/asm/ClassVisitor.class"), "relocated ASM class");
+        check(output.containsKey("cloud/victus/shaded/asm/commons/Remapper.class"), "relocated ASM commons class");
         check(output.containsKey("org/bukkit/craftbukkit/util/AsmUser.class"), "Paper user preserved");
         check(output.containsKey("net/minecraft/Untouched.class"), "unselected game class preserved");
         check(a.transformed().size() == 1, "one selected Paper class");

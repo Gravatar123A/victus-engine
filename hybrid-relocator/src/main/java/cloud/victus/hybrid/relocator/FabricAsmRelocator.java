@@ -45,7 +45,7 @@ public final class FabricAsmRelocator {
         Map<String, byte[]> targetEntries = readJar(target);
         List<Path> runtime = Files.readAllLines(classpathFile).stream()
                 .map(String::trim).filter(s -> !s.isEmpty()).map(Path::of).filter(Files::isRegularFile).toList();
-        List<Path> asmJars = runtime.stream().filter(FabricAsmRelocator::containsAsm).sorted().toList();
+        List<Path> asmJars = runtime.stream().filter(FabricAsmRelocator::containsAsmNamespace).sorted().toList();
         if (asmJars.isEmpty()) throw new IllegalStateException("FABRIC_ASM_RELOCATION_INPUT_MISSING: no ASM runtime jars");
 
         Map<String, byte[]> out = new LinkedHashMap<>();
@@ -120,8 +120,8 @@ public final class FabricAsmRelocator {
         }
     }
 
-    private static boolean containsAsm(Path path) {
-        try { return readJar(path).containsKey(FROM + "/ClassVisitor.class"); }
+    private static boolean containsAsmNamespace(Path path) {
+        try { return readJar(path).keySet().stream().anyMatch(name -> name.startsWith(FROM + "/") && name.endsWith(".class")); }
         catch (Exception ignored) { return false; }
     }
 

@@ -2342,14 +2342,12 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
         final Collection<String> packsToEnable, final io.papermc.paper.event.server.ServerResourcesReloadedEvent.Cause cause
     ) {
         // Paper end - Add ServerResourcesReloadedEvent
-        CompletableFuture<Void> result = CompletableFuture.<ImmutableList>supplyAsync(
-                () -> packsToEnable.stream()
-                    .map(this.packRepository::getPack)
-                    .filter(Objects::nonNull)
-                    .map(Pack::open)
-                    .collect(ImmutableList.toImmutableList()),
+        CompletableFuture<Void> result = CompletableFuture.<ImmutableList<Pack>>supplyAsync(
+                // Victus bridge: rebuild roots through the repository so NeoForge child packs are expanded and de-duplicated before opening.
+                () -> ImmutableList.copyOf(this.packRepository.rebuildSelected(packsToEnable, false)),
                 this
             )
+            .thenApply(packsToLoad -> packsToLoad.stream().map(Pack::open).collect(ImmutableList.toImmutableList()))
             .thenCompose(
                 packsToLoad -> {
                     CloseableResourceManager resources = new MultiPackResourceManager(PackType.SERVER_DATA, packsToLoad);

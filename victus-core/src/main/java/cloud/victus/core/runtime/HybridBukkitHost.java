@@ -61,12 +61,20 @@ public final class HybridBukkitHost {
     public static synchronized String runFixtureProof(String runDirectory) {
         if (bridge == null) {
             // POSTWORLD plugin callbacks occur inside enablePlugins(), before the surrounding
-            // MinecraftServer hook can bind. Lazily bind from Bukkit's already-live server.
+            // MinecraftServer hook can bind. The Bukkit server object is the CraftServer wrapper;
+            // adapt either it or its console field without compile-time Bukkit linkage.
             try {
                 Class<?> bukkit = Class.forName("org.bukkit.Bukkit");
                 Object server = bukkit.getMethod("getServer").invoke(null);
                 if (server == null) throw new IllegalStateException("Bukkit server is unavailable");
-                Object console = server.getClass().getMethod("getServer").invoke(server);
+                Object console;
+                try {
+                    console = server.getClass().getMethod("getServer").invoke(server);
+                } catch (NoSuchMethodException missingPublicAccessor) {
+                    java.lang.reflect.Field field = server.getClass().getDeclaredField("console");
+                    field.setAccessible(true);
+                    console = field.get(server);
+                }
                 bind(console);
             } catch (ReflectiveOperationException failure) {
                 throw bridgeFailure("FIXTURE_BIND", failure);

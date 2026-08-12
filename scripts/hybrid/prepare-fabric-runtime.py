@@ -255,7 +255,7 @@ def main() -> int:
     runtime = output / "runtime"
     adapter_cp = os.pathsep.join((str(runtime / adapter.name), str(runtime / bukkit.name)))
     loader_cp = os.pathsep.join(str(path) for path in sorted(runtime.glob("*.jar"))
-                                if path.name not in {launcher.name, common.name, adapter.name})
+                                if path.name not in {launcher.name, common.name, adapter.name, bukkit.name})
     launch_cp = os.pathsep.join((str(runtime / launcher.name), str(runtime / common.name)))
     plan = {
         "profile": "fabric",

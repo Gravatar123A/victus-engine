@@ -4,15 +4,16 @@
 from __future__ import annotations
 
 import argparse
+import dataclasses
+import difflib
 import hashlib
 import json
 import os
 import pathlib
+import re
 import shutil
 import subprocess
 import sys
-import tempfile
-import time
 import urllib.request
 import zipfile
 
@@ -244,6 +245,315 @@ def tree_hash(path: pathlib.Path) -> str:
     return snapshot_hash(entries)
 
 
+@dataclasses.dataclass(frozen=True)
+class LineEdit:
+    """One base-relative replacement emitted by SequenceMatcher."""
+
+    side: str
+    base_start: int
+    base_end: int
+    side_start: int
+    side_end: int
+    lines: tuple[str, ...]
+
+
+@dataclasses.dataclass(frozen=True)
+class MergeHunk:
+    """A connected component of potentially interacting edits."""
+
+    base_start: int
+    base_end: int
+    neo_edits: tuple[LineEdit, ...]
+    paper_edits: tuple[LineEdit, ...]
+
+
+def text_lines(data: bytes) -> list[str]:
+    """Decode generated Java sources without normalizing their line endings."""
+    return data.decode("utf-8", errors="surrogateescape").splitlines(keepends=True)
+
+
+def comparison_line(line: str) -> str:
+    """Ignore line-ending-only differences while retaining each side's exact output bytes."""
+    return line.rstrip("\r\n")
+
+
+def line_edits(base: list[str], changed: list[str], side: str) -> list[LineEdit]:
+    matcher = difflib.SequenceMatcher(None, [comparison_line(line) for line in base],
+                                      [comparison_line(line) for line in changed], autojunk=False)
+    return [LineEdit(side, base_start, base_end, side_start, side_end, tuple(changed[side_start:side_end]))
+            for tag, base_start, base_end, side_start, side_end in matcher.get_opcodes()
+            if tag != "equal"]
+
+
+def edits_interact(left: LineEdit, right: LineEdit) -> bool:
+    """Return whether edits share base text or the same insertion point."""
+    if left.base_start == left.base_end and right.base_start == right.base_end:
+        return left.base_start == right.base_start
+    if left.base_start == left.base_end:
+        return right.base_start < left.base_start < right.base_end
+    if right.base_start == right.base_end:
+        return left.base_start < right.base_start < left.base_end
+    return left.base_start < right.base_end and right.base_start < left.base_end
+
+
+def group_edit_hunks(neo_edits: list[LineEdit], paper_edits: list[LineEdit]) -> list[MergeHunk]:
+    """Build deterministic connected components over overlapping base-relative edits."""
+    edits = sorted(neo_edits + paper_edits,
+                   key=lambda edit: (edit.base_start, edit.base_end, edit.side, edit.side_start, edit.lines))
+    components: list[list[LineEdit]] = []
+    unseen = set(range(len(edits)))
+    while unseen:
+        pending = [min(unseen)]
+        unseen.remove(pending[0])
+        component: list[LineEdit] = []
+        while pending:
+            index = pending.pop()
+            component.append(edits[index])
+            neighbours = [other for other in sorted(unseen)
+                          if edits[index].side != edits[other].side
+                          and edits_interact(edits[index], edits[other])]
+            for other in neighbours:
+                unseen.remove(other)
+                pending.append(other)
+        components.append(component)
+    result = []
+    for component in components:
+        result.append(MergeHunk(
+            min(edit.base_start for edit in component),
+            max(edit.base_end for edit in component),
+            tuple(edit for edit in component if edit.side == "neoForge"),
+            tuple(edit for edit in component if edit.side == "paper"),
+        ))
+    return sorted(result, key=lambda hunk: (hunk.base_start, hunk.base_end))
+
+
+def apply_edits(base: list[str], start: int, end: int, edits: tuple[LineEdit, ...]) -> list[str]:
+    output: list[str] = []
+    cursor = start
+    for edit in sorted(edits, key=lambda item: (item.base_start, item.base_end, item.side_start)):
+        output.extend(base[cursor:edit.base_start])
+        output.extend(edit.lines)
+        cursor = edit.base_end
+    output.extend(base[cursor:end])
+    return output
+
+
+def hash_lines(lines: list[str]) -> str:
+    return hashlib.sha256("".join(lines).encode("utf-8", errors="surrogateescape")).hexdigest()
+
+
+def line_range(start: int, end: int) -> dict[str, int]:
+    """Represent a base-relative hunk as one-based inclusive line coordinates."""
+    return {"start": start + 1, "end": max(start + 1, end)}
+
+
+def side_range(edits: tuple[LineEdit, ...], base_start: int) -> dict[str, int]:
+    if not edits:
+        return line_range(base_start, base_start)
+    return line_range(min(edit.side_start for edit in edits), max(edit.side_end for edit in edits))
+
+
+def strip_java_comments(lines: list[str]) -> str:
+    """Remove comments and code whitespace without touching string, character, or text-block contents."""
+    text = "".join(lines)
+    output: list[str] = []
+    index = 0
+    state = "code"
+    while index < len(text):
+        if state == "code":
+            if text.startswith("//", index):
+                state = "line-comment"
+                index += 2
+            elif text.startswith("/*", index):
+                state = "block-comment"
+                index += 2
+            elif text.startswith('"""', index):
+                output.append('"""')
+                state = "text-block"
+                index += 3
+            elif text[index] == '"':
+                output.append(text[index])
+                state = "string"
+                index += 1
+            elif text[index] == "'":
+                output.append(text[index])
+                state = "character"
+                index += 1
+            elif text[index].isspace():
+                index += 1
+            else:
+                output.append(text[index])
+                index += 1
+        elif state == "line-comment":
+            if text[index] in "\r\n":
+                state = "code"
+            index += 1
+        elif state == "block-comment":
+            if text.startswith("*/", index):
+                state = "code"
+                index += 2
+            else:
+                index += 1
+        elif state == "text-block":
+            if text.startswith('"""', index):
+                output.append('"""')
+                state = "code"
+                index += 3
+            else:
+                output.append(text[index])
+                index += 1
+        else:
+            output.append(text[index])
+            if text[index] == "\\" and index + 1 < len(text):
+                output.append(text[index + 1])
+                index += 2
+            else:
+                if (state == "string" and text[index] == '"') \
+                        or (state == "character" and text[index] == "'"):
+                    state = "code"
+                index += 1
+    return "".join(output)
+
+
+def comments_only(base_lines: list[str], neo_lines: list[str], paper_lines: list[str]) -> bool:
+    baseline = strip_java_comments(base_lines)
+    return strip_java_comments(neo_lines) == baseline == strip_java_comments(paper_lines)
+
+
+def parsed_imports(lines: list[str]) -> tuple[list[str], list[str]] | None:
+    imports: dict[tuple[bool, str], str] = {}
+    comments: list[str] = []
+    for line in lines:
+        stripped = line.strip()
+        match = re.fullmatch(r"import\s+(static\s+)?([\w.$*]+)\s*;", stripped)
+        if match:
+            key = (bool(match.group(1)), match.group(2))
+            imports[key] = f"import {'static ' if key[0] else ''}{key[1]};\n"
+        elif not stripped or stripped.startswith("//") or stripped.startswith("/*") or stripped.startswith("*") \
+                or stripped.endswith("*/"):
+            comments.append(line)
+        else:
+            return None
+    ordered = [imports[key] for key in sorted(imports, key=lambda item: (item[0], item[1]))]
+    return comments, ordered
+
+
+def merge_import_insertions(neo_lines: list[str], paper_lines: list[str]) -> list[str] | None:
+    neo_imports = parsed_imports(neo_lines)
+    paper_imports = parsed_imports(paper_lines)
+    if neo_imports is None or paper_imports is None:
+        return None
+    comments: list[str] = []
+    for line in neo_imports[0] + paper_imports[0]:
+        if line not in comments:
+            comments.append(line)
+    imports = parsed_imports(neo_imports[1] + paper_imports[1])
+    return comments + imports[1] if imports is not None else None
+
+
+def brace_depths(lines: list[str]) -> list[int]:
+    depth = 0
+    depths: list[int] = []
+    in_block = False
+    for line in lines:
+        depths.append(depth)
+        code = line
+        if in_block:
+            end = code.find("*/")
+            if end < 0:
+                continue
+            code = code[end + 2:]
+            in_block = False
+        while "/*" in code:
+            start = code.find("/*")
+            end = code.find("*/", start + 2)
+            if end < 0:
+                code = code[:start]
+                in_block = True
+                break
+            code = code[:start] + code[end + 2:]
+        code = re.sub(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|//.*', "", code)
+        depth += code.count("{") - code.count("}")
+    return depths
+
+
+def conflict_category(base: list[str], hunk: MergeHunk, neo_lines: list[str], paper_lines: list[str]) -> str:
+    lines = base[hunk.base_start:hunk.base_end] + neo_lines + paper_lines
+    stripped = [line.strip() for line in lines if line.strip()]
+    if stripped and all(re.fullmatch(r"import\s+(?:static\s+)?[\w.$*]+\s*;", line) for line in stripped):
+        return "imports"
+    if any(line.startswith("@") for line in stripped):
+        return "annotation"
+    depths = brace_depths(base)
+    depth = depths[min(hunk.base_start, len(depths) - 1)] if depths else 0
+    joined = " ".join(stripped)
+    signature = bool(re.search(r"\b(?:public|protected|private|static|final|abstract|synchronized|native|default)\b[^;{}=]*\([^;{}]*\)", joined))
+    # A complete single-line method has its body on the declaration line even though its base depth is class-level.
+    complete_method = bool(re.search(r"\([^;{}]*\)\s*(?:throws\s+[\w., ]+\s*)?\{.*\}", joined))
+    if depth >= 2 or complete_method:
+        return "method body"
+    if signature:
+        return "method signature"
+    if depth == 1 and ("=" in joined or ";" in joined or "static" in joined):
+        return "field/static init"
+    return "unknown"
+
+
+def semantic_three_way_merge(base_data: bytes, neo_data: bytes, paper_data: bytes) -> tuple[bytes | None, list[dict]]:
+    """Line-oriented, fail-closed three-way merge for one source file."""
+    base = text_lines(base_data)
+    neo = text_lines(neo_data)
+    paper = text_lines(paper_data)
+    neo_edits = line_edits(base, neo, "neoForge")
+    paper_edits = line_edits(base, paper, "paper")
+    hunks = group_edit_hunks(neo_edits, paper_edits)
+    # If one side changed only line endings, use it as the unchanged skeleton around substantive edits.
+    skeleton = paper if not paper_edits and paper_data != base_data else base
+    output: list[str] = []
+    conflicts: list[dict] = []
+    cursor = 0
+    for hunk in hunks:
+        output.extend(skeleton[cursor:hunk.base_start])
+        base_lines = base[hunk.base_start:hunk.base_end]
+        neo_lines = apply_edits(base, hunk.base_start, hunk.base_end, hunk.neo_edits)
+        paper_lines = apply_edits(base, hunk.base_start, hunk.base_end, hunk.paper_edits)
+        if not hunk.neo_edits:
+            selected = paper_lines
+        elif not hunk.paper_edits:
+            selected = neo_lines
+        elif neo_lines == paper_lines:
+            selected = neo_lines
+        else:
+            selected = merge_import_insertions(neo_lines, paper_lines)
+            if selected is None and comments_only(base_lines, neo_lines, paper_lines):
+                if not strip_java_comments(base_lines):
+                    # Pure comment hunks can retain both sides without duplicating executable code.
+                    selected = []
+                    for line in neo_lines + paper_lines:
+                        if line not in selected:
+                            selected.append(line)
+                else:
+                    # Inline-comment overlaps are semantically safe, but concatenating both lines would duplicate code.
+                    selected = neo_lines
+            if selected is None:
+                conflicts.append({
+                    "baseRange": line_range(hunk.base_start, hunk.base_end),
+                    "neoForgeRange": side_range(hunk.neo_edits, hunk.base_start),
+                    "paperRange": side_range(hunk.paper_edits, hunk.base_start),
+                    "category": conflict_category(base, hunk, neo_lines, paper_lines),
+                    "baseSha256": hash_lines(base_lines),
+                    "neoForgeSha256": hash_lines(neo_lines),
+                    "paperSha256": hash_lines(paper_lines),
+                })
+        if selected is not None:
+            output.extend(selected)
+        cursor = hunk.base_end
+    output.extend(skeleton[cursor:])
+    if conflicts:
+        return None, conflicts
+    return "".join(output).encode("utf-8", errors="surrogateescape"), []
+
+
 def merge_sources(vanilla_path: pathlib.Path, neoforge_path: pathlib.Path, paper_path: pathlib.Path,
                   fail_unresolved: bool) -> None:
     base, base_complete = source_entries(vanilla_path)
@@ -257,7 +567,7 @@ def merge_sources(vanilla_path: pathlib.Path, neoforge_path: pathlib.Path, paper
     records = []
     overlay_deletions = []
     counts = {"unchanged": 0, "neoforgeOnly": 0, "paperOnly": 0, "identical": 0,
-              "conflict": 0, "resolvedByBridge": 0}
+              "autoMerged": 0, "conflict": 0, "resolvedByBridge": 0}
     missing = object()
     for name in sorted(set(base) | set(neo) | set(paper)):
         original = base.get(name)
@@ -276,10 +586,16 @@ def merge_sources(vanilla_path: pathlib.Path, neoforge_path: pathlib.Path, paper
         elif neo_changed and paper_changed and neo_data == paper_data:
             state, selected = "identical", neo_data
         elif neo_changed and paper_changed:
-            if name in bridge:
-                state, selected = "resolvedByBridge", bridge[name]
-            else:
-                state, selected = "conflict", None
+            conflict_hunks = []
+            if original is not None and neo_data is not None and paper_data is not None:
+                selected, conflict_hunks = semantic_three_way_merge(original, neo_data, paper_data)
+                if selected is not None:
+                    state = "autoMerged"
+            if state != "autoMerged":
+                if name in bridge:
+                    state, selected = "resolvedByBridge", bridge[name]
+                else:
+                    state, selected = "conflict", None
         counts[state] += 1
         record = {
             "path": name,
@@ -288,6 +604,7 @@ def merge_sources(vanilla_path: pathlib.Path, neoforge_path: pathlib.Path, paper
             "neoForgeSha256": hashlib.sha256(neo_data).hexdigest() if neo_data is not None else None,
             "paperSha256": hashlib.sha256(paper_data).hexdigest() if paper_data is not None else None,
             "bridge": (BRIDGES / name).relative_to(ROOT).as_posix() if state == "resolvedByBridge" else None,
+            "conflictHunks": conflict_hunks if state in ("conflict", "resolvedByBridge") else [],
         }
         records.append(record)
         if (neo_changed or paper_changed) and state != "conflict":
@@ -318,6 +635,19 @@ def merge_sources(vanilla_path: pathlib.Path, neoforge_path: pathlib.Path, paper
     print(f"neoforge-merge: {counts}; report={REPORT}")
     if fail_unresolved and report["unresolved"]:
         raise RuntimeError(f"{len(report['unresolved'])} unresolved NeoForge/Paper source conflicts; add explicit files under {BRIDGES}")
+
+
+def merge_determinism(vanilla_path: pathlib.Path, neoforge_path: pathlib.Path, paper_path: pathlib.Path) -> None:
+    """Run the real merge twice and require byte-identical overlay and report output."""
+    merge_sources(vanilla_path, neoforge_path, paper_path, False)
+    first_overlay_hash = tree_hash(MERGE / "overlay")
+    first_report = REPORT.read_bytes()
+    merge_sources(vanilla_path, neoforge_path, paper_path, False)
+    second_overlay_hash = tree_hash(MERGE / "overlay")
+    second_report = REPORT.read_bytes()
+    if first_overlay_hash != second_overlay_hash or first_report != second_report:
+        raise RuntimeError("non-deterministic NeoForge/Paper source merge output")
+    print(f"neoforge-merge-determinism: OK (overlay={second_overlay_hash}, report={sha256(REPORT)})")
 
 
 def ensure_merge_clean() -> dict:
@@ -405,6 +735,10 @@ def main() -> int:
     merge.add_argument("--neoforge", type=pathlib.Path, required=True)
     merge.add_argument("--paper", type=pathlib.Path, required=True)
     merge.add_argument("--allow-conflicts", action="store_true")
+    determinism = sub.add_parser("determinism")
+    determinism.add_argument("--vanilla", type=pathlib.Path, required=True)
+    determinism.add_argument("--neoforge", type=pathlib.Path, required=True)
+    determinism.add_argument("--paper", type=pathlib.Path, required=True)
     sub.add_parser("check-merge")
     bind = sub.add_parser("bind-server")
     bind.add_argument("--server", type=pathlib.Path, required=True)
@@ -420,6 +754,8 @@ def main() -> int:
         reconstruct_sources()
     elif args.command == "merge":
         merge_sources(args.vanilla, args.neoforge, args.paper, not args.allow_conflicts)
+    elif args.command == "determinism":
+        merge_determinism(args.vanilla, args.neoforge, args.paper)
     elif args.command == "check-merge":
         ensure_merge_clean()
         print("neoforge-merge: no unresolved conflicts")

@@ -54,7 +54,15 @@ public final class NeoForgeAdapterSelfTest {
                         "populatePackRepository(packRepository, PackType.SERVER_DATA, true)", "Identifier.PAPER_NAMESPACE"),
                 "net/minecraft/server/MinecraftServer.java", List.of(
                         "rebuildSelected(packsToEnable, false)", "PaperBrigadier.moveBukkitCommands",
-                        "ServerResourcesReloadedEvent(cause)", "DataMapHooks.populateFuelValues")
+                        "ServerResourcesReloadedEvent(cause)", "DataMapHooks.populateFuelValues"),
+                "net/minecraft/core/MappedRegistry.java", List.of(
+                        "extends net.neoforged.neoforge.registries.BaseMappedRegistry<T>",
+                        "new Reference2IntOpenHashMap<>(2048)", "temporaryUnfrozenMap",
+                        "getValueForCopying", "injectFluidRegister", "clearIntrusiveHolder",
+                        "register(final int id", "holder.bindValue(value)", "this.addCallbacks.forEach",
+                        "public void unfreeze(final boolean clearTags)", "this.bakeCallbacks.forEach",
+                        "public Map<TagKey<T>, List<Holder<T>>> contents()", "protected void clear(final boolean full)",
+                        "protected void registerIdMapping", "this.resolve(key)", "public boolean containsValue")
         );
 
         int checks = 0;
